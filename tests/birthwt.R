@@ -3,6 +3,8 @@
 # document("..")
 # library(MASS) 
 
+if (requireNamespace("MASS")){
+
 birthwt <- within(birthwt, { 
     race = factor(race, labels = c("white", "black", "other"))
     ptd = factor(ptl > 0)
@@ -59,3 +61,5 @@ ficall <- FIC.logistic.regression(Y=Y, X=X, Z=Z, XZeval=cbind(X,Z), dataframe=NU
 res <- sapply(ficall[c("FIC","Bias","Bias2","Var","VarS")], function(x)x[,1])
 ## row 2 is submodel 1,1,1,1,1,0
 res[2,]  ## matches my code to small d.p, differences due to numerical derivatives? 
+
+}
