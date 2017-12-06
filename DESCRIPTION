@@ -7,7 +7,7 @@ Description: The Focused Information Criterion and related methods for model sel
 Maintainer: Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
 Depends: R (>= 3.5.0)
 Imports: numDeriv,MASS
-Enhances: stats,msm,flexsurv
+Enhances: stats,msm,survival,flexsurv
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
