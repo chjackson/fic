@@ -3,9 +3,9 @@
 # document("..")
 # library(MASS) 
 
-if (requireNamespace("MASS")){
+if (requireNamespace("MASS", quietly = TRUE)){
 
-birthwt <- within(birthwt, { 
+birthwt <- within(MASS::birthwt, { 
     race = factor(race, labels = c("white", "black", "other"))
     ptd = factor(ptl > 0)
     ftv = factor(ftv) # keeping all levels, not transforming to 2+
@@ -32,13 +32,13 @@ Y = birthwt$low
 X = with(birthwt, cbind(intercpt,lwt))
 Z = with(birthwt, cbind(age, smoke, ht,ui, smokeage=age*smoke, smokeui=smoke*ui))
 
-
+    
 ###### Compute FIC using new code
 
 wide.glm <- glm(Y ~ X + Z - 1, data=birthwt, family=binomial)
-ests <- coef(wide.glm)
-n <- nobs(wide.glm)
-J <- solve(vcov(wide.glm)) / n
+## Submodel to compare with the wide model: all covariates included except for the last 
+inds <- c(1,1,1,1,1,0)
+## First two covariates always included
 pp <- ncol(X)
 ## Focus quantity: 
 ## Prob of LBW for covariate values of the first person in the data
@@ -46,10 +46,8 @@ vals.first <- c(X[1,], Z[1,])
 focus <- function(ests){
     plogis(q = ests %*% vals.first)
 }
-## Submodel to compare with the wide model: all covariates included except for the last 
-inds <- c(1,1,1,1,1,0)
 
-fic(ests, J, inds, pp, n, focus)
+fic.glm(wide.glm, inds, pp, focus)
 
 
 ###### Compare against FIC using Gerda's original code
