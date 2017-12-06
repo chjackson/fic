@@ -1,0 +1,13 @@
+Package: fic
+Title: The Focused Information Criterion for model selection
+Version: 0.0.0.9000
+Date: 2017-12-06
+Author: Gerda Claeskens <gerda.claeskens@kuleuven.be> (conception of method), Nils Lid Hjort <nils@math.uio.no> (conception of method) Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk> (package design and programming), Howard Thom <howard.thom@bristol.ac.ck> (programming)
+Description: The Focused Information Criterion and related methods for model selection.  These methods are designed to choose the best model to estimate a quantity of interest (the "focus") so that different models may be chosen for different purposes.
+Depends: R (>= 3.5.0)
+Imports: numDeriv,MASS
+Enhances: stats,msm,flexsurv
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
