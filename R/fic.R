@@ -43,7 +43,7 @@ fic <- function(ests, # estimates in wide model
     J01 <- J[1:pp,-(1:pp)]
     J11 <- J[-(1:pp),-(1:pp)]
     invJ <- solve(J)
-    K <- invJ[-(1:pp),-(1:pp)]   # called Q in book. Subset of covariance matrix.
+    K <- invJ[-(1:pp),-(1:pp)]   # called Q in book.
     qq <- length(inds) # maximum number of "extra" covariates
     
     if(is.null(focus.deriv))
@@ -51,7 +51,6 @@ fic <- function(ests, # estimates in wide model
     dmudtheta <- focus.deriv[1:pp]
     dmudgamma <- focus.deriv[pp + 1:qq]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
-    ## assuming gamma.ind is indices of all optional covariates 
     psi.full <- t(omega) %*% deltahat
 
     tau0sq = t(dmudtheta) %*% solve(J00) %*% dmudtheta
