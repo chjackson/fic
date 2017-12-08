@@ -2,6 +2,8 @@
 ##'
 ##' Focused information criterion for general models.
 ##'
+##' @aliases FIC
+##' 
 ##' @param ests Vector of maximum likelihood estimates from the wide model
 ##'
 ##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.
@@ -80,3 +82,5 @@ fic <- function(ests, # estimates in wide model
              var2=var2.S/n)
     res
 }
+
+FIC <- fic
