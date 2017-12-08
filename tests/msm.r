@@ -11,7 +11,7 @@ psor.q <- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
 psor.wide.msm <- msm::msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
 psor.wide.msm
 
-## focus: total length of stay in state 4 up to 10 years
+## focus: total length of stay in state 4 up to 10 years for people without ollwsdrt or hieffusn
 focus <- function(pars){
     x.new <- msm::updatepars.msm(psor.wide.msm, pars)
     msm::totlos.msm(x.new, covariates=0, t=10)["State 4"]
