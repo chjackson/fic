@@ -1,16 +1,16 @@
 * Refine what is included in results vector
 
-- fic as root MSE
-- different kinds of bias/variance/fic estimators
-- estimated focus quantity under each submodel
-- AIC, BIC? would need to refit the submodel.
-- model averaging weights
+	- fic as root MSE
+	- different kinds of bias/variance/fic estimators
+	- estimated focus quantity under each submodel
+	- AIC, BIC? would need to refit the submodel.
+	- model averaging weights
 
 
 * More model classes
 
-- survival 
-- ??? 
+	- survival 
+	- ??? 
 
 * Analytic derivatives for particular focuses
 
