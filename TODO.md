@@ -40,4 +40,4 @@
 
 * Vignette + paper
 
-- Define clearly what model selection problems are supported. e.g. models that are nested in a common wide model? 
+	- Define clearly what model selection problems are supported. e.g. models that are nested in a common wide model? 
