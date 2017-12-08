@@ -7,10 +7,14 @@
 	- model averaging weights
 
 
+* Testing against well understood examples, e.g. in book
+
+
 * More model classes
 
 	- survival 
 	- ??? 
+
 
 * Analytic derivatives for particular focuses
 
