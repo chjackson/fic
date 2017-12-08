@@ -1,3 +1,5 @@
+* Special case in fic for all parameters excluded
+
 * Refine what is included in results vector
 
 	- fic as root MSE
