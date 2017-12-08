@@ -2,6 +2,7 @@
 % Please edit documentation in R/fic.R
 \name{fic}
 \alias{fic}
+\alias{FIC}
 \title{Focused Information Criterion: general function}
 \usage{
 fic(ests, J, inds, pp, n, focus = NULL, focus.deriv = NULL)

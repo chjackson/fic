@@ -2,3 +2,4 @@
 
 export(fic)
 export(fic.glm)
+export(fic.msm)
