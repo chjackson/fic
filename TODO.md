@@ -20,19 +20,15 @@
 
 * Analytic derivatives for particular focuses
 
-  - prob of outcome in logistic regression
-
+  - interface for this implemented, needs a few more examples and testing
+  
   - expected value in normal linear regression
-
-  - interface for this - character string, rather than name of a function?
-
-  - should still be able to pass arguments, e.g. covariate values, to the focus
   
 
 * Interface for comparing multiple models, e.g. all combinations
 
   - with some graphics 
-
+  - inds argument as a matrix
 
 * Averaged/weighted FIC over distribution of covariates
 

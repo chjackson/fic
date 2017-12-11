@@ -8,15 +8,21 @@
 ##'
 ##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.
 ##'
-##' @param inds Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions which define the submodel to be compared against the wide model.
+##' @param inds Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.
 ##'
 ##' @param pp Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
 ##'
 ##' @param n Number of observations in the data used to fit the wide model.
 ##'
-##' @param focus An R function taking one argument: a vector of parameters; and returning one scalar: the focus quantity of interest.  Not required if \code{focus.deriv} is specified
+##' @param focus An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 ##'
-##' @param focus.deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.
+##' Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}. 
+##'
+##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.
+##'
+##' @param \dots Other arguments to the focus function can be supplied here.
+##'
+##' These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.
 ##'
 ##' @return A vector containing the focused information criterion, bias and variance quantities (TO DEFINE) for the defined submodel.
 ##'
@@ -32,11 +38,12 @@
 fic <- function(ests, # estimates in wide model 
                 J, #  info matrix in wide model divided by n
                 inds, #  indicator of which terms to include in submodel (was called "variables")
-                pp, #  number of covariates which we always include, ie length of theta (including intercept)
-                n, #  observations 
+                pp, 
+                n,
                 focus=NULL,
-                focus.deriv=NULL
-                ) #  function of wide params, returning focus 
+                focus_deriv=NULL,
+                ...
+                ) 
 {
     ## TODO: implement special case for sum(inds) = 0 
     deltahat <- sqrt(n)*ests[-(1:pp)]
@@ -47,11 +54,15 @@ fic <- function(ests, # estimates in wide model
     invJ <- solve(J)
     K <- invJ[-(1:pp),-(1:pp)]   # called Q in book.
     qq <- length(inds) # maximum number of "extra" covariates
+
+    # Handle built-in focus functions
+    fl <- get_focus(focus, focus_deriv, ests, ...)
+    focus <- fl$focus; focus_deriv <- fl$focus_deriv
     
-    if(is.null(focus.deriv))
-        focus.deriv <- numDeriv::grad(func=focus, x=ests)
-    dmudtheta <- focus.deriv[1:pp]
-    dmudgamma <- focus.deriv[pp + 1:qq]
+    if(is.null(focus_deriv))
+        focus_deriv <- numDeriv::grad(func=focus, x=ests)
+    dmudtheta <- focus_deriv[1:pp]
+    dmudgamma <- focus_deriv[pp + 1:qq]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
     psi.full <- t(omega) %*% deltahat
 

@@ -4,7 +4,7 @@
 \alias{fic.msm}
 \title{Focused Information Criterion for multi-state models for panel data}
 \usage{
-fic.msm(object, inds, pp, focus = NULL, focus.deriv = NULL)
+fic.msm(object, inds, pp, focus = NULL, focus_deriv = NULL)
 }
 \arguments{
 \item{object}{Object returned by \code{\link{msm}} containing the fitted model.}
@@ -13,9 +13,11 @@ fic.msm(object, inds, pp, focus = NULL, focus.deriv = NULL)
 
 \item{pp}{Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
-\item{focus}{An R function taking one argument: a vector of parameters; and returning one scalar: the focus quantity of interest.  Not required if \code{focus.deriv} is specified}
+\item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
-\item{focus.deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
+Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
+
+\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
 }
 \description{
 Focused information criterion for multi-state models fitted with msm().  This is not yet a S3 method, but will probably be made into one

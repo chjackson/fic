@@ -5,22 +5,28 @@
 \alias{FIC}
 \title{Focused Information Criterion: general function}
 \usage{
-fic(ests, J, inds, pp, n, focus = NULL, focus.deriv = NULL)
+fic(ests, J, inds, pp, n, focus = NULL, focus_deriv = NULL, ...)
 }
 \arguments{
 \item{ests}{Vector of maximum likelihood estimates from the wide model}
 
 \item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.}
 
-\item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions which define the submodel to be compared against the wide model.}
+\item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
 
 \item{pp}{Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
 \item{n}{Number of observations in the data used to fit the wide model.}
 
-\item{focus}{An R function taking one argument: a vector of parameters; and returning one scalar: the focus quantity of interest.  Not required if \code{focus.deriv} is specified}
+\item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
-\item{focus.deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
+Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
+
+\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
+
+\item{\dots}{Other arguments to the focus function can be supplied here.
+
+These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.}
 }
 \value{
 A vector containing the focused information criterion, bias and variance quantities (TO DEFINE) for the defined submodel.

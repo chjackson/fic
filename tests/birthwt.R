@@ -1,4 +1,5 @@
 # library(devtools)
+# library(testthat)
 # load_all("..")
 # document("..")
 # library(MASS) 
@@ -59,5 +60,23 @@ ficall <- FIC.logistic.regression(Y=Y, X=X, Z=Z, XZeval=cbind(X,Z), dataframe=NU
 res <- sapply(ficall[c("FIC","Bias","Bias2","Var","VarS")], function(x)x[,1])
 ## row 2 is submodel 1,1,1,1,1,0
 res[2,]  ## matches my code to small d.p, differences due to numerical derivatives? 
+
+    ### Compare numerical and analytic derivatives
+    fic.ana <- fic.glm(wide.glm, inds, pp, focus="prob_logistic", X=vals.first)
+    fic.num <- fic(ests=ests, J=J, inds=inds, pp=pp, n=n, focus=focus)
+    expect_equal(fic.ana, fic.num) # matches within reasonable precision 
+
+    ## Alternatively: supply derivative values directly to lower-level fic() function 
+    object <- wide.glm
+    ests <- coef(object)
+    n <- nobs(object)
+    J <- solve(vcov(object)) / n
+    focus_deriv <- prob_logistic_deriv(ests, vals.first)
+    fic.ana2 <- fic(ests=ests, J=J, inds=inds, pp=pp, n=n, focus_deriv=focus_deriv)
+    expect_equal(fic.ana2, fic.ana)
+    
+    ## test error handling 
+    expect_error(fic.glm(wide.glm, inds, pp, focus="nonexistent_function", X=vals.first),
+                 "not found")
 
 }

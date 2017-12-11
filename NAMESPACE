@@ -3,3 +3,5 @@
 export(fic)
 export(fic.glm)
 export(fic.msm)
+export(prob_logistic)
+export(prob_logistic_deriv)
