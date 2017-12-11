@@ -52,9 +52,6 @@ fic <- function(ests, # estimates in wide model
     J01 <- J[1:pp,-(1:pp)]
     J11 <- J[-(1:pp),-(1:pp)]
     invJ <- solve(J)
-
-    cat("J: ", J, "\n")
-
     K <- invJ[-(1:pp),-(1:pp)]   # called Q in book.
     qq <- length(inds) # maximum number of "extra" covariates
 
@@ -64,7 +61,6 @@ fic <- function(ests, # estimates in wide model
     
     if(is.null(focus_deriv))
         focus_deriv <- numDeriv::grad(func=focus, x=ests)
-    cat("focus deriv: ", focus_deriv, "\n")
     dmudtheta <- focus_deriv[1:pp]
     dmudgamma <- focus_deriv[pp + 1:qq]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
