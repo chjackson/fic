@@ -68,7 +68,8 @@ FIC.logistic.regression = function(Y,X,Z,XZeval=cbind(X,Z),dataframe)
   for (i in 1:(pp+qq))
    {for (j in 1:(pp+qq))
       {J[i,j] <- mean(est.prob*(1-est.prob)*XZ[ ,i]*XZ[ ,j])}}
-
+  print(J)
+  
   deltahat = n^{1/2}*betagamma.hat[-(1:pp)]
   J00 <- J[1:pp, 1:pp]
   J10 <- J[-(1:pp), 1:pp]
@@ -81,6 +82,8 @@ FIC.logistic.regression = function(Y,X,Z,XZeval=cbind(X,Z),dataframe)
 
   # Make all combinations of 0/1 to form all subsets of the full model
   varmatrix = combinations(qq)
+
+  varmatrix <- matrix(c(1,1,1,1,1,0), nrow=1)
 
 
   ## Main part of the program!

@@ -32,7 +32,7 @@ birthwt <- within(MASS::birthwt, {
 Y = birthwt$low
 X = with(birthwt, cbind(intercpt,lwt))
 Z = with(birthwt, cbind(age, smoke, ht,ui, smokeage=age*smoke, smokeui=smoke*ui))
-
+XZ <- cbind(X, Z)
     
 ###### Compute FIC using new code
 
@@ -54,15 +54,30 @@ fic.glm(wide.glm, inds, pp, focus)
 ###### Compare against FIC using Gerda's original code
 
 source("FIClogisticreg.R")
-ficall <- FIC.logistic.regression(Y=Y, X=X, Z=Z, XZeval=cbind(X,Z), dataframe=NULL)
+ficall <- FIC.logistic.regression(Y=Y, X=X, Z=Z, XZeval=XZ[1:2,], dataframe=NULL)
 ## extract results for focus: LBW for covariate values of first person in data
 ## gives matrix with one row for each submodel 
 res <- sapply(ficall[c("FIC","Bias","Bias2","Var","VarS")], function(x)x[,1])
 ## row 2 is submodel 1,1,1,1,1,0
-res[2,]  ## matches my code to small d.p, differences due to numerical derivatives? 
+res[2,]  ## matches my code to first few sig. fig. 
 
+
+    ## Differences arise from differences in the information matrix J.
+    ## My code uses vcov() on the fitted GLM object.
+    ## Gerda's code calculates observed information matrix by hand, evaluating second derivs of the log likelihood at the MLEs
+    ## so where does the estimate used by vcov.glm() come from?
+    # vcov calculated as follows: 
+    # W <- wide.glm$weights
+    # solve(t(XZ) %*% (W * XZ)) # yes. this matches vcov
+    #p0 <- wide.glm$fitted.values
+    #cbind(p0*(1-p0), wide.glm$weights) # small differences here.
+    # Venables and Ripley p186 implies that this is the expected, not the observed information. presumably more details in Mccullagh and Nelder.
+
+    
     ### Compare numerical and analytic derivatives
     fic.ana <- fic.glm(wide.glm, inds, pp, focus="prob_logistic", X=vals.first)
+    fic.ana
+    
     fic.num <- fic(ests=ests, J=J, inds=inds, pp=pp, n=n, focus=focus)
     expect_equal(fic.ana, fic.num) # matches within reasonable precision 
 

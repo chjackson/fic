@@ -52,6 +52,9 @@ fic <- function(ests, # estimates in wide model
     J01 <- J[1:pp,-(1:pp)]
     J11 <- J[-(1:pp),-(1:pp)]
     invJ <- solve(J)
+
+    cat("J: ", J, "\n")
+
     K <- invJ[-(1:pp),-(1:pp)]   # called Q in book.
     qq <- length(inds) # maximum number of "extra" covariates
 
@@ -61,6 +64,7 @@ fic <- function(ests, # estimates in wide model
     
     if(is.null(focus_deriv))
         focus_deriv <- numDeriv::grad(func=focus, x=ests)
+    cat("focus deriv: ", focus_deriv, "\n")
     dmudtheta <- focus_deriv[1:pp]
     dmudgamma <- focus_deriv[pp + 1:qq]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
@@ -71,10 +75,13 @@ fic <- function(ests, # estimates in wide model
     Id <-  diag(rep(1,qq))
     Kinv <- solve(K)
     pi.S <- matrix(Id[inds*(1:qq),],ncol=qq)
+
     K.S <- solve(pi.S %*% Kinv %*% t(pi.S)) # called Q.S in book
     M.S <- t(pi.S) %*% K.S %*% pi.S %*% Kinv # called G.S in book
     psi.S <- t(omega)%*% M.S %*% deltahat
+
     omega.S <- pi.S %*% omega
+
     FIC.S <- (psi.full - psi.S)^2  +  2*t(omega.S) %*% K.S %*% omega.S
 
     bias.S <- t(omega) %*% deltahat - psi.S
