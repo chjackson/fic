@@ -11,8 +11,7 @@ fic.glm <- function(object, inds, pp, focus=NULL, focus_deriv=NULL, ...){
     ests <- coef(object)
     n <- nobs(object)
     J <- solve(vcov(object)) / n
-    fl <- get_focus(focus, focus_deriv, ests, ...)
     fic(ests=ests, J=J, inds=inds, pp=pp, n=n,
-        focus=fl$focus, focus_deriv=fl$focus_deriv)
+        focus=focus, focus_deriv=focus_deriv, ...)
 }
 
