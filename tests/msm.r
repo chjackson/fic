@@ -1,5 +1,5 @@
 #library(devtools)
-#load_all("../../msm/msm/")
+#load_all("../../../../msm/msm/")
 #library(msm)
 #load_all("fic")
 
@@ -8,17 +8,17 @@ if (requireNamespace("msm", quietly = TRUE)){
 ## 4-state PsA model using "psor" data in msm
 ## Wide model includes two covariates on all rates 
 psor.q <- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
-psor.wide.msm <- msm::msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
+psor.wide.msm <- msm::msm(state ~ months, subject=ptnum, data=msm::psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
 psor.wide.msm
 
 ## focus: total length of stay in state 4 up to 10 years for people without ollwsdrt or hieffusn
-focus <- function(pars){
+focus_tlos <- function(pars){
     x.new <- msm::updatepars.msm(psor.wide.msm, pars)
     msm::totlos.msm(x.new, covariates=0, t=10)["State 4"]
 }
 
-msm::totlos.msm(psor.wide.msm, covariates=0, t=10)
-focus(psor.wide.msm$estimates) # should match 
+msm::totlos.msm(psor.wide.msm, covariates=0, t=10, ci="normal") # SE around 0.1
+focus_tlos(psor.wide.msm$estimates) # should match 
 
 ## FIC analysis: omit covariate effects in turn from full model 
 ## Why does bias not go up when covariates omitted?
@@ -27,11 +27,12 @@ focus(psor.wide.msm$estimates) # should match
 ## Variance seems to mostly go down as covariates omitted 
 
 pp <- 3 # intercepts always included
-fic.msm(psor.wide.msm, inds=c(0,1,1,1,1,1), pp, focus)
-fic.msm(psor.wide.msm, inds=c(0,0,1,1,1,1), pp, focus)
-fic.msm(psor.wide.msm, inds=c(0,0,0,1,1,1), pp, focus)
-fic.msm(psor.wide.msm, inds=c(0,0,0,0,1,1), pp, focus)
-fic.msm(psor.wide.msm, inds=c(0,0,0,0,0,1), pp, focus)
+fic.msm(psor.wide.msm, inds=c(0,1,1,1,1,1), pp, focus_tlos)
+fic.msm(psor.wide.msm, inds=c(0,0,1,1,1,1), pp, focus_tlos)
+fic.msm(psor.wide.msm, inds=c(0,0,0,1,1,1), pp, focus_tlos)
+fic.msm(psor.wide.msm, inds=c(0,0,0,0,1,1), pp, focus_tlos)
+fic.msm(psor.wide.msm, inds=c(0,0,0,0,0,1), pp, focus_tlos)
+fic.msm(psor.wide.msm, inds=c(0,0,0,0,0,0), pp, focus_tlos)
 
 
 }

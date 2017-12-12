@@ -45,55 +45,64 @@ fic <- function(ests, # estimates in wide model
                 ...
                 ) 
 {
-    ## TODO: implement special case for sum(inds) = 0 
     deltahat <- sqrt(n)*ests[-(1:pp)]
     J00 <- J[1:pp, 1:pp]
     J10 <- J[-(1:pp), 1:pp]
     J01 <- J[1:pp,-(1:pp)]
     J11 <- J[-(1:pp),-(1:pp)]
     invJ <- solve(J)
-    K <- invJ[-(1:pp),-(1:pp)]   # called Q in book.
+    Q <- invJ[-(1:pp),-(1:pp)]   # using book notation.  called K in original code.
     qq <- length(inds) # maximum number of "extra" covariates
 
     # Handle built-in focus functions
     fl <- get_focus(focus, focus_deriv, ests, ...)
-    focus <- fl$focus; focus_deriv <- fl$focus_deriv
+    focus <- fl$focus
+    focus_deriv <- fl$focus_deriv
     
     if(is.null(focus_deriv))
         focus_deriv <- numDeriv::grad(func=focus, x=ests)
     dmudtheta <- focus_deriv[1:pp]
-    dmudgamma <- focus_deriv[pp + 1:qq]
+    tau0sq <- t(dmudtheta) %*% solve(J00) %*% dmudtheta
+    dmudgamma <- focus_deriv[pp + seq_len(qq)]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
     psi.full <- t(omega) %*% deltahat
 
-    tau0sq = t(dmudtheta) %*% solve(J00) %*% dmudtheta
+    if (sum(inds) > 0) { 
+        Id <-  diag(rep(1,qq))
+        Qinv <- solve(Q)
+        pi.S <- matrix(Id[inds*(seq_len(qq)),],ncol=qq)
 
-    Id <-  diag(rep(1,qq))
-    Kinv <- solve(K)
-    pi.S <- matrix(Id[inds*(1:qq),],ncol=qq)
+        Q.S <- solve(pi.S %*% Qinv %*% t(pi.S))
+        Q0.S <- t(pi.S) %*% Q.S %*% pi.S
+        G.S <- Q0.S %*% Qinv # called M.S in original code
+        psi.S <- t(omega)%*% G.S %*% deltahat
 
-    K.S <- solve(pi.S %*% Kinv %*% t(pi.S)) # called Q.S in book
-    M.S <- t(pi.S) %*% K.S %*% pi.S %*% Kinv # called G.S in book
-    psi.S <- t(omega)%*% M.S %*% deltahat
+        omega.S <- pi.S %*% omega
 
-    omega.S <- pi.S %*% omega
+        ## basic FIC estimates (section 6.1) 
+        bias.S <- psi.full - psi.S
+        FIC.S <- bias.S^2  +  2*t(omega.S) %*% Q.S %*% omega.S
+        
+        ## bias-adjusted estimates (section 6.4)
+        sqbias2 <- t(omega) %*% (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% (Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
+        sqbias3 <- max(sqbias2, 0) # \hat{sqb2}(S) on p152
+        bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
+        ## using Q0.S here as in book, rather than G.S (called M.S in code) as in original code.  is this right?
+        var.adj.S <- tau0sq  +  t(omega) %*% Q0.S %*% omega 
+    } else { 
+        ## Special case for null model with all extra parameters excluded
+        bias.S <- bias.adj.S <- psi.full
+        var.adj.S <- tau0sq
+        FIC.S <- bias.S^2
+    }    
+    mse.adj.S <- var.adj.S + bias.adj.S^2
 
-    FIC.S <- (psi.full - psi.S)^2  +  2*t(omega.S) %*% K.S %*% omega.S
-
-    bias.S <- t(omega) %*% deltahat - psi.S
-    bias2.S <- sign(bias.S) * sqrt(max(0,t(omega) %*%
-                                         (Id - M.S) %*%
-                                         (deltahat %*% t(deltahat) - K) %*%
-                                         (Id - M.S) %*%
-                                         omega)) # sign*root of sqb3 on p152 
-    ## V(S) on p152. or is it?  uses QO.S in book  = pis^t Q pis 
-    var2.S <- tau0sq  +  t(omega) %*% M.S %*% omega    
-    mse.S <- var2.S + bias2.S^2
-
-    res <- c(FIC=FIC.S,
-             bias=bias.S/n,
-             bias2=bias2.S/n,
-             var2=var2.S/n)
+    res <- c(FIC = FIC.S,
+             rmse = sqrt(mse.adj.S / n),   # book p157
+             bias = bias.S / sqrt(n),
+             bias.adj = bias.adj.S / sqrt(n),
+             se.adj = sqrt(var.adj.S / n)
+             )
     res
 }
 

@@ -1,15 +1,11 @@
-* Special case in fic for all parameters excluded
+* Check results vector includes everything useful, check formulae 
 
-* Refine what is included in results vector
-
-	- fic as root MSE
-	- different kinds of bias/variance/fic estimators
-	- estimated focus quantity under each submodel
-	- AIC, BIC? would need to refit the submodel.
-	- model averaging weights
-
+* Estimated focus quantity, AIC/BIC under each submodel? Would need to refit submodel for this, maybe make user do it 
 
 * Testing against well understood examples, e.g. in book
+
+
+* Model averaging weights
 
 
 * More model classes

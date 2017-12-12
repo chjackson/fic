@@ -50,6 +50,10 @@ focus <- function(ests){
 
 fic.glm(wide.glm, inds, pp, focus)
 
+pred <- predict.glm(wide.glm, type="response", se.fit=TRUE)
+cbind(pred$fit, pred$se.fit)[1,]
+
+# Why is the standard error under the wide model less than the RMSE for the narrow?
 
 ###### Compare against FIC using Gerda's original code
 
