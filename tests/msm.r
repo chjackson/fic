@@ -27,6 +27,7 @@ focus_tlos(psor.wide.msm$estimates) # should match
 ## Variance seems to mostly go down as covariates omitted 
 
 pp <- 3 # intercepts always included
+fic.msm(psor.wide.msm, inds=c(1,1,1,1,1,1), pp, focus_tlos)
 fic.msm(psor.wide.msm, inds=c(0,1,1,1,1,1), pp, focus_tlos)
 fic.msm(psor.wide.msm, inds=c(0,0,1,1,1,1), pp, focus_tlos)
 fic.msm(psor.wide.msm, inds=c(0,0,0,1,1,1), pp, focus_tlos)

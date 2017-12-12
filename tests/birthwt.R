@@ -52,8 +52,8 @@ fic.glm(wide.glm, inds, pp, focus)
 
 pred <- predict.glm(wide.glm, type="response", se.fit=TRUE)
 cbind(pred$fit, pred$se.fit)[1,]
+fic.glm(wide.glm, inds=c(1,1,1,1,1,1), pp, focus) # check SE of focus under wide model matches RMSE returned by FIC.  OK - this is tau0sq in code, which matches the delta method formula
 
-# Why is the standard error under the wide model less than the RMSE for the narrow?
 
 ###### Compare against FIC using Gerda's original code
 
