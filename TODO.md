@@ -19,14 +19,15 @@
   - interface for this implemented, needs a few more examples and testing
   
   - expected value in normal linear regression
-  
+
+* Vectorised FIC calculation.  I suggest to vectorise over different focuses rather than different submodels (e.g. different covariate categories)
+
+  - This should allow averaged/weighted FIC over distribution of covariates. 
 
 * Interface for comparing multiple models, e.g. all combinations
 
   - with some graphics 
   - inds argument as a matrix
-
-* Averaged/weighted FIC over distribution of covariates
 
 
 * Cox models (needs additional theory?)

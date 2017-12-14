@@ -11,7 +11,7 @@ fic.msm(object, inds, pp, focus = NULL, focus_deriv = NULL)
 
 \item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?}
 
-\item{pp}{Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{pp}{Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 

@@ -11,7 +11,7 @@ fic.glm(object, inds, pp, focus = NULL, focus_deriv = NULL, ...)
 
 \item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
 
-\item{pp}{Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{pp}{Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
@@ -21,7 +21,7 @@ Alternatively, this can be a character string naming a built-in focus function s
 
 \item{...}{Other arguments to the focus function can be supplied here.
 
-These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.}
+These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
 }
 \description{
 Focused information criterion for generalized linear models fitted with glm().  This is not yet a S3 method, but will probably be made into one

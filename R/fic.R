@@ -1,6 +1,6 @@
 ##' Focused Information Criterion: general function
 ##'
-##' Focused information criterion for general models.
+##' Focused information criterion for general models.  These methods estimate the resulting bias and variance of estimates of a quantity of interest (the "focus") when parameters are excluded from a "wide" model that is assumed to encompass all plausible models.
 ##'
 ##' @aliases FIC
 ##' 
@@ -10,7 +10,7 @@
 ##'
 ##' @param inds Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.
 ##'
-##' @param pp Number of parameters which we would always include in any submodel.  These parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
+##' @param pp Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
 ##'
 ##' @param n Number of observations in the data used to fit the wide model.
 ##'
@@ -22,10 +22,21 @@
 ##'
 ##' @param \dots Other arguments to the focus function can be supplied here.
 ##'
-##' These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.
+##' These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)
 ##'
-##' @return A vector containing the focused information criterion, bias and variance quantities (TO DEFINE) for the defined submodel.
+##' @return A vector containing the following components, describing characteristics of the defined submodel (references in Chapter 6 of Claeskens and Hjort, 2008)
 ##'
+##' \item{FIC}{The focused information criterion (equation 6.1). }
+##'
+##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
+##'
+##' \item{bias}{The estimated bias of the focus quantity (unadjusted).  Defined on page 157.}
+##'
+##' \item{bias.adj}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias, and divided by the square root of the sample size. }
+##'
+##' \item{se.adj}{The estimated standard error (root variance) of the focus quantity (adjusted).  Defined on page 157.}
+##'
+##' 
 ##' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
 ##'
 ##' Claeskens, G., & Hjort, N. L. (2003). The focused information criterion. Journal of the American Statistical Association, 98(464), 900-916.

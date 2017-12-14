@@ -1,7 +1,7 @@
 #library(devtools)
 #load_all("../../../../msm/msm/")
 #library(msm)
-#load_all("fic")
+#load_all("..")
 
 if (requireNamespace("msm", quietly = TRUE)){
 
@@ -21,10 +21,10 @@ msm::totlos.msm(psor.wide.msm, covariates=0, t=10, ci="normal") # SE around 0.1
 focus_tlos(psor.wide.msm$estimates) # should match 
 
 ## FIC analysis: omit covariate effects in turn from full model 
-## Why does bias not go up when covariates omitted?
+## Why does bias not always go up when covariates omitted?
 ## I guess because these covariates are not strongly associated with transition rates
-## ollwsdrt is more associated, particularly with 2-3 rate, so bigger biases when ollwsdrt effect omitted 
-## Variance seems to mostly go down as covariates omitted 
+## ollwsdrt is more associated, particularly with 2-3 rate, so (broadly) bigger biases when ollwsdrt effect omitted, though seems to be noise in the bias estimates. 
+## Variance does go down smoothly as covariates omitted
 
 pp <- 3 # intercepts always included
 fic.msm(psor.wide.msm, inds=c(1,1,1,1,1,1), pp, focus_tlos)
