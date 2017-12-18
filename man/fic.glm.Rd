@@ -11,7 +11,7 @@ fic.glm(object, inds, pp, focus = NULL, focus_deriv = NULL, ...)
 
 \item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
 
-\item{pp}{Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{pp}{Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 

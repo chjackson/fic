@@ -7,6 +7,7 @@
 if (requireNamespace("MASS", quietly = TRUE)){
 
 birthwt <- within(MASS::birthwt, { 
+    lwtkg = lwt*0.45359237 # weight measured in lb in MASS data, kg in FIC book
     race = factor(race, labels = c("white", "black", "other"))
     ptd = factor(ptl > 0)
     ftv = factor(ftv) # keeping all levels, not transforming to 2+
@@ -30,7 +31,7 @@ birthwt <- within(MASS::birthwt, {
 ## For the present illustration, we include in every candidate model the intercept x 1 = 1 and the weight x 2 (in kg) of the mother prior to pregnancy. Other covariates, from which we wish to select a relevant subset, are [ age, smoking, hypertension, uterine irritability, smok*age, smok*ut ] 
 
 Y = birthwt$low
-X = with(birthwt, cbind(intercpt,lwt))
+X = with(birthwt, cbind(intercpt,lwtkg))
 Z = with(birthwt, cbind(age, smoke, ht,ui, smokeage=age*smoke, smokeui=smoke*ui))
 XZ <- cbind(X, Z)
     

@@ -10,7 +10,7 @@
 ##'
 ##' @param inds Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.
 ##'
-##' @param pp Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
+##' @param pp Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
 ##'
 ##' @param n Number of observations in the data used to fit the wide model.
 ##'
@@ -28,13 +28,15 @@
 ##'
 ##' \item{FIC}{The focused information criterion (equation 6.1). }
 ##'
-##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
+##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7).}
+##'
+##' \item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
 ##'
 ##' \item{bias}{The estimated bias of the focus quantity (unadjusted).  Defined on page 157.}
 ##'
 ##' \item{bias.adj}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias, and divided by the square root of the sample size. }
 ##'
-##' \item{se.adj}{The estimated standard error (root variance) of the focus quantity (adjusted).  Defined on page 157.}
+##' \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 ##'
 ##' 
 ##' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
@@ -99,20 +101,24 @@ fic <- function(ests, # estimates in wide model
         sqbias3 <- max(sqbias2, 0) # \hat{sqb2}(S) on p152
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
         ## using Q0.S here as in book, rather than G.S (called M.S in code) as in original code.  is this right?
-        var.adj.S <- tau0sq  +  t(omega) %*% Q0.S %*% omega 
+        var.S <- tau0sq  +  t(omega) %*% Q0.S %*% omega 
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
-        var.adj.S <- tau0sq
+        var.S <- tau0sq
         FIC.S <- bias.S^2
     }    
-    mse.adj.S <- var.adj.S + bias.adj.S^2
+    mse.adj.S <- var.S + bias.adj.S^2
 
+    ## unadjusted mse
+    mse.S <- FIC.S + tau0sq - t(omega) %*% Q %*% omega # book p150, eq 6.7 
+    
     res <- c(FIC = FIC.S,
-             rmse = sqrt(mse.adj.S / n),   # book p157
+             rmse = sqrt(mse.S / n),
+             rmse.adj = sqrt(mse.adj.S / n),   # book p157
              bias = bias.S / sqrt(n),
              bias.adj = bias.adj.S / sqrt(n),
-             se.adj = sqrt(var.adj.S / n)
+             se = sqrt(var.S / n)
              )
     res
 }

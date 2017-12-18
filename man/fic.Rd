@@ -14,7 +14,7 @@ fic(ests, J, inds, pp, n, focus = NULL, focus_deriv = NULL, ...)
 
 \item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
 
-\item{pp}{Number of parameters which we would always include in any submodel.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{pp}{Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
 
 \item{n}{Number of observations in the data used to fit the wide model.}
 
@@ -33,13 +33,15 @@ A vector containing the following components, describing characteristics of the 
 
 \item{FIC}{The focused information criterion (equation 6.1). }
 
-\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
+\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7).}
+
+\item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
 
 \item{bias}{The estimated bias of the focus quantity (unadjusted).  Defined on page 157.}
 
 \item{bias.adj}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias, and divided by the square root of the sample size. }
 
-\item{se.adj}{The estimated standard error (root variance) of the focus quantity (adjusted).  Defined on page 157.}
+\item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 }
 \description{
 Focused information criterion for general models.  These methods estimate the resulting bias and variance of estimates of a quantity of interest (the "focus") when parameters are excluded from a "wide" model that is assumed to encompass all plausible models.
