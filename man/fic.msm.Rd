@@ -4,20 +4,27 @@
 \alias{fic.msm}
 \title{Focused Information Criterion for multi-state models for panel data}
 \usage{
-fic.msm(object, inds, pp, focus = NULL, focus_deriv = NULL)
+\method{fic}{msm}(wide, sub = NULL, inds, inds0, focus = NULL,
+  focus_deriv = NULL, ...)
 }
 \arguments{
-\item{object}{Object returned by \code{\link{msm}} containing the fitted model.}
+\item{wide}{Object returned by \code{\link{msm}} containing the wide model.}
+
+\item{sub}{Object returned by \code{\link{msm}} containing the submodel to be assessed.}
 
 \item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?}
 
-\item{pp}{Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
 Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
+
+\item{...}{Other arguments to the focus function can be supplied here.
+
+These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
 }
 \description{
 Focused information criterion for multi-state models fitted with msm().  This is not yet a S3 method, but will probably be made into one

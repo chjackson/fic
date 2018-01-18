@@ -2,19 +2,22 @@
 ##'
 ##' Focused information criterion for multi-state models fitted with msm().  This is not yet a S3 method, but will probably be made into one
 ##'
-##' @param object Object returned by \code{\link{msm}} containing the fitted model.
+##' @param wide Object returned by \code{\link{msm}} containing the wide model.
+##'
+##' @param sub Object returned by \code{\link{msm}} containing the submodel to be assessed.  
 ##'
 ##' @param inds TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?
 ##' 
 ##' @inheritParams fic
 ##' 
 ##' @export
-fic.msm <- function(object, inds, pp, focus=NULL, focus_deriv=NULL){
-    ests <- object$estimates
-    n <- attr(model.frame(object), "ntrans")
-    J <- object$opt$hessian / n # TODO or use expected information, will this be more accurate?
-    fic(ests=ests, J=J, inds=inds, pp=pp, n=n,
-               focus=focus, focus_deriv=focus_deriv)
+fic.msm <- function(wide, sub=NULL, inds, inds0, focus=NULL, focus_deriv=NULL, ...){
+    par <- wide$estimates
+    n <- attr(model.frame(wide), "ntrans")
+    J <- wide$opt$hessian / n # or use expected information, will this be more accurate?
+    fic(par=par, J=J, inds=inds, inds0=inds0, n=n,
+               focus=focus, focus_deriv=focus_deriv, 
+                parsub=sub$estimates, ...)
 }
 
 

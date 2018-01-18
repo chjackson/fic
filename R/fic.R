@@ -1,24 +1,42 @@
-##' Focused Information Criterion: general function
+##' Focused Information Criterion: generic function
+##' 
+##' 
+##' @rdname fic
+##' @export fic
+fic <- function(x,...) UseMethod("fic")
+  
+
+
+##' Focused Information Criterion: default method
 ##'
 ##' Focused information criterion for general models.  These methods estimate the resulting bias and variance of estimates of a quantity of interest (the "focus") when parameters are excluded from a "wide" model that is assumed to encompass all plausible models.
 ##'
 ##' @aliases FIC
 ##' 
-##' @param ests Vector of maximum likelihood estimates from the wide model
-##'
+##' @param par Vector of maximum likelihood estimates from the wide model
+##' 
 ##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.
 ##'
-##' @param inds Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.
+##' @param inds Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.
 ##'
-##' @param pp Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.
-##'
-##' @param n Number of observations in the data used to fit the wide model.
+##' @param inds0 Specification of narrow model, in the same format as \code{inds}.  TODO error checking
+##' 
+##' @param n Number of observations in the data used to fit the wide model.  TODO is this really needed, or does it cancel?
 ##'
 ##' @param focus An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 ##'
 ##' Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}. 
 ##'
 ##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.
+##'
+##' @param parsub Vector of maximum likelihood estimates from the submodel.  
+##' Only required to return the estimate of the focus quantity alongside 
+##' the model assessment statistics for the submodel. If omitted, the estimate is omitted.
+##'
+##' @param gamma0 Vector of special values taken by gamma in the narrow model.  
+##' Defaults to all 0, as in covariate selection where coefficients are fixed to 0 
+##' Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
+##' Ignored unless \code{parsub} is specified.
 ##'
 ##' @param \dots Other arguments to the focus function can be supplied here.
 ##'
@@ -47,43 +65,55 @@
 ##' 
 ##' @examples TODO
 ##' 
+##' @rdname fic
 ##' @export
-fic <- function(ests, # estimates in wide model 
+fic.default <- function(par, # estimates in wide model 
                 J, #  info matrix in wide model divided by n
                 inds, #  indicator of which terms to include in submodel (was called "variables")
-                pp, 
+                inds0, 
                 n,
                 focus=NULL,
                 focus_deriv=NULL,
+                parsub=NULL, # estimates in submodel
+                gamma0=0,
                 ...
                 ) 
 {
-    deltahat <- sqrt(n)*ests[-(1:pp)]
-    J00 <- J[1:pp, 1:pp]
-    J10 <- J[-(1:pp), 1:pp]
-    J01 <- J[1:pp,-(1:pp)]
-    J11 <- J[-(1:pp),-(1:pp)]
+    pp <- sum(inds0)
+    qq <- sum(inds0==0)  # maximum number of "extra" covariates
+    i0 <- which(inds0==1)
+    indsS <- inds[inds0==0]
+    if (any(inds[inds0==1] != 1)){
+      dodgy_inds <- paste(which(inds[inds0==1] != 1), collapse=",")
+      warning("Submodel excludes parameters in the narrow model, in position ", dodgy_inds, ". Carrying on and including them. ")
+      inds[inds0==1] <- 1
+    }
+    
+    deltahat <- sqrt(n)*par[-i0]
+    J00 <- J[i0, i0]
+    J10 <- J[-i0, i0]
+    J01 <- J[i0,-i0]
+    J11 <- J[-i0,-i0]
     invJ <- solve(J)
-    Q <- invJ[-(1:pp),-(1:pp)]   # using book notation.  called K in original code.
-    qq <- length(inds) # maximum number of "extra" covariates
-
+    Q <- invJ[-i0,-i0]   # using book notation.  called K in original code.
+   
     # Handle built-in focus functions
-    fl <- get_focus(focus, focus_deriv, ests, ...)
+    fl <- get_focus(focus, focus_deriv, par, ...)
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
     
     if(is.null(focus_deriv))
-        focus_deriv <- numDeriv::grad(func=focus, x=ests)
-    dmudtheta <- focus_deriv[1:pp]
+        focus_deriv <- numDeriv::grad(func=focus, x=par)
+    dmudtheta <- focus_deriv[i0]
     tau0sq <- t(dmudtheta) %*% solve(J00) %*% dmudtheta
     dmudgamma <- focus_deriv[pp + seq_len(qq)]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
     psi.full <- t(omega) %*% deltahat
 
-    if (sum(inds) > 0) { 
+    if (sum(indsS) > 0) { 
         Id <-  diag(rep(1,qq))
         Qinv <- solve(Q)
-        pi.S <- matrix(Id[inds*(seq_len(qq)),],ncol=qq)
+        pi.S <- matrix(Id[indsS*(seq_len(qq)),],ncol=qq)
 
         Q.S <- solve(pi.S %*% Qinv %*% t(pi.S))
         Q0.S <- t(pi.S) %*% Q.S %*% pi.S
@@ -120,7 +150,30 @@ fic <- function(ests, # estimates in wide model
              bias.adj = bias.adj.S / sqrt(n),
              se = sqrt(var.S / n)
              )
+    if (!is.null(parsub)) 
+      res["focus"] <- focus_sub(focus=focus, parsub=parsub, 
+                                inds=inds, inds0=inds0, gamma0=gamma0, ...)
     res
 }
 
 FIC <- fic
+
+
+##' Calculate the focus estimate under a submodel of the wide model
+##' 
+##' @inheritParams fic
+##' 
+focus_sub <- function(focus, parsub, inds, inds0, gamma0=NULL, ...){
+    pp <- sum(inds0==1)
+    qq <- sum(inds0==0) # maximum number of "extra" covariates
+    if (is.null(gamma0)) gamma0 <- 0
+    gamma0 <- rep(gamma0, length.out = qq)
+    ests_long <- numeric(pp + qq)
+    ests_long[inds==1] <- parsub
+    ## indices of gamma in full parameters
+    gi <- which(inds0==0)
+    ## indices of gamma not in submodel
+    ngi <- which(inds0==0 & inds==0)
+    ests_long[inds0==0][gi %in% ngi] <- gamma0[gi %in% ngi]
+    focus(ests_long, ...)
+}

@@ -1,6 +1,6 @@
 * Check results vector includes everything useful, check formulae 
 
-* Estimated focus quantity, AIC/BIC under each submodel? Would need to refit submodel for this, maybe make user do it 
+* return AIC, BIC if available for built in classes
 
 * Testing against well understood examples, e.g. in book
 

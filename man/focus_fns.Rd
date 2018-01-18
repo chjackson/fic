@@ -8,12 +8,12 @@
 \alias{prob_logistic_deriv}
 \title{Built-in focus functions and their derivatives}
 \usage{
-prob_logistic(ests, X)
+prob_logistic(par, X)
 
-prob_logistic_deriv(ests, X)
+prob_logistic_deriv(par, X)
 }
 \arguments{
-\item{ests}{Vector of parameter estimates}
+\item{par}{Vector of parameter estimates}
 
 \item{X}{Vector or matrix of covariate values.  This can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function is to be evaluated.}
 }

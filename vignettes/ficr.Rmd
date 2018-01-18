@@ -1,0 +1,138 @@
+---
+title: "Using the fic R package for focused model comparison"
+date: "`r Sys.Date()`"
+author: Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
+output: 
+  html_document: 
+    includes:
+      before_body: fic.sty  
+  code_folding: show
+vignette: >
+ %\VignetteIndexEntry{Using the fic R package for focused model comparison}
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteDepends{fic,ggplot2}
+ %\VignetteEncoding{UTF-8}
+bibliography: fic.bib
+---
+
+This vignette shows how to use the `fic` package through 2 or 3 examples. 
+
+## Example: covariate selection in logistic regression 
+
+
+This example is used by @claeskens:hjort:book (Example 6.1) to illustrate the focused information criterion.  The dataset was originally presented by @hosmer:lemeshow:firstedition. Data are taken from $n=189$ women with newborn babies, and the binary outcome is whether the baby is born with a weight less than 2500g.   We build a logistic regression model to predict the outcome, but are uncertain about what covariates should be included. 
+
+The data are provided as an object `birthwt` in the `fic` package.  This is the same as `birthwt` in `MASS` @venables:ripley with the addition of a few extra columns defining interactions and transformations as in @claeskens:hjort:book. 
+
+The following covariates are always included (coefficient vector $\btheta$)
+
+* $x_1$ Weight of mother in kg, `lwtkg`
+
+The following covariates will be selected from (coefficient vector $\bgamma$)
+
+* $z_1$ age, in years, `age`
+
+* $z_2$ indicator for smoking, `smoke`
+
+* $z_3$ history of hypertension, `ht`
+
+* $z_4$ uterine irritability, `ui`
+
+* interaction $z_5 = z_1 z_2$ between smoking and age, `smokeage`
+
+* interaction $z_6 = z_2 z_4$ between smoking and uterine irritability, `smokeui`
+
+
+## Defining the wide model and the focus function
+
+Firstly the wide model is defined and fitted.  
+
+```{r}
+library(fic)
+wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, data=birthwt, family=binomial)
+```
+
+The *focus function* is then defined.  This should be an R function, mapping the parameters of the wide model to the quantity of interest.  Here we consider two focuses.  
+
+1. the probability of low birth weight for smokers with average or typical values of the other covariates.  These values are given in the order supplied when specifying the model (intercept, `lwtkg`=58.24, `age`=22.95, `smoke`=1, `ht`=0, `ui`=0, `smokeage`=22.95, `smokeui`=0).
+```{r}
+vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+focus.smoke <- function(par)plogis(par %*% vals.smoke)
+```
+
+2. the probability of low birth weight for non-smokers with average values of the other covariates
+```{r}
+vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+focus.nonsmoke <- function(par)plogis(par %*% vals.nonsmoke)
+```
+We can illustrate these functions by calculating the probability of low birth weight, under the wide model, for each group.  Note this is about twice as high for smokers. 
+```{r}
+focus.smoke(coef(wide.glm))
+focus.nonsmoke(coef(wide.glm))
+```
+
+
+### Comparing a small number of submodels 
+
+The `fic` function can then be used to calculate the mean square error of the focus for one or more given submodels.  For example, compare two models, both including maternal weight, one including age and smoking, but the other including age, smoking and hypertension. 
+
+```{r}
+mod1.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family=binomial)
+mod2.glm <- glm(low ~ lwtkg + age + smoke + ht, data=birthwt, family=binomial)
+```
+
+We supply the following arguments to the `fic` function.
+
+* `wide` the fitted wide model.  All the model fit statistics are computed using the estimates and covariance matrix from this model.   `fic` will automatically recognise that this is a GLM fitted by the `glm` function in R, and extract the relevant information. 
+
+* `sub` the fitted submodel to be assessed.  This is optional, and is only needed so that the results from `fic` can include the estimate of the focus under this model.
+
+* `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$. This should have length equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model, and contain 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should be 1 in the positions defining the narrow model as specified in `inds0` below.
+
+* `inds0` indicators for which parameters are included in the narrow model, in the same format as \code{inds}.
+
+* `focus` the focus function. 
+
+We can then call `fic` for each of the two models.  This returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
+
+```{r}
+inds0 <- c(1,1,0,0,0,0,0,0)
+inds1 <- c(1,1,1,1,0,0,0,0)
+inds2 <- c(1,1,1,1,1,0,0,0)
+fic1 <- fic(wide=wide.glm, sub=mod1.glm, inds=inds1, inds0=inds0, focus=focus.smoke)
+fic2 <- fic(wide=wide.glm, sub=mod2.glm, inds=inds2, inds0=inds0, focus=focus.smoke)
+res <- rbind("No HT"=fic1, "HT"=fic2)
+res
+```
+
+
+
+TODO explain the different components of `res` 
+
+
+### Lower-level way of calling `fic` which works for any model class 
+
+Above, the `fic` function recognised the fitted model objects as GLMs.  But the package can be used to calculate
+focused model comparison statistics for any class of models, not just the special classes it recognises.  We can illustrate this for `mod1.glm` above by removing its `glm` class.   Calling the generic `fic` function in this case will call the "default" method `fic.default`, instead of the method `fic.glm`.  For this, we need to supply the parameter estimates $(\hat\btheta, \hat\bgamma)$ and scaled information matrix $J$.   Optionally we can also supply arguments `parsub` giving the parameter estimates under the submodel, and `gamma0` ($\gamma_0$, the special value taken by elements of $\bgamma$ that are excluded in the submodel, which defaults to 0), so that the focus estimate under the submodel can be appended to the results. 
+
+```{r}
+par <- coef(wide.glm)
+J <- solve(vcov(wide.glm))/nrow(birthwt)
+fic(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(birthwt), focus=focus.smoke, parsub=coef(mod1.glm))
+```
+
+
+
+### Testing an automatically-defined set of models 
+
+TODO something to make this easier 
+
+
+
+### Other model classes 
+
+Survival 
+
+Multi-state
+
+???

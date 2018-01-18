@@ -2,21 +2,29 @@
 % Please edit documentation in R/fic.R
 \name{fic}
 \alias{fic}
+\alias{fic.default}
 \alias{FIC}
-\title{Focused Information Criterion: general function}
+\title{Focused Information Criterion: generic function}
 \usage{
-fic(ests, J, inds, pp, n, focus = NULL, focus_deriv = NULL, ...)
+fic(x, ...)
+
+\method{fic}{default}(par, J, inds, inds0, n, focus = NULL,
+  focus_deriv = NULL, parsub = NULL, gamma0 = 0, ...)
 }
 \arguments{
-\item{ests}{Vector of maximum likelihood estimates from the wide model}
+\item{\dots}{Other arguments to the focus function can be supplied here.
+
+These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
+
+\item{par}{Vector of maximum likelihood estimates from the wide model}
 
 \item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.}
 
-\item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
+\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.}
 
-\item{pp}{Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
 
-\item{n}{Number of observations in the data used to fit the wide model.}
+\item{n}{Number of observations in the data used to fit the wide model.  TODO is this really needed, or does it cancel?}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
@@ -24,9 +32,14 @@ Alternatively, this can be a character string naming a built-in focus function s
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
 
-\item{\dots}{Other arguments to the focus function can be supplied here.
+\item{parsub}{Vector of maximum likelihood estimates from the submodel.
+Only required to return the estimate of the focus quantity alongside 
+the model assessment statistics for the submodel. If omitted, the estimate is omitted.}
 
-These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
+\item{gamma0}{Vector of special values taken by gamma in the narrow model.
+Defaults to all 0, as in covariate selection where coefficients are fixed to 0 
+Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
+Ignored unless \code{parsub} is specified.}
 }
 \value{
 A vector containing the following components, describing characteristics of the defined submodel (references in Chapter 6 of Claeskens and Hjort, 2008)
@@ -44,6 +57,8 @@ A vector containing the following components, describing characteristics of the 
 \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 }
 \description{
+Focused Information Criterion: generic function
+
 Focused information criterion for general models.  These methods estimate the resulting bias and variance of estimates of a quantity of interest (the "focus") when parameters are excluded from a "wide" model that is assumed to encompass all plausible models.
 }
 \examples{

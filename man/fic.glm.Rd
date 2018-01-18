@@ -4,14 +4,18 @@
 \alias{fic.glm}
 \title{Focused Information Criterion for generalized linear models}
 \usage{
-fic.glm(object, inds, pp, focus = NULL, focus_deriv = NULL, ...)
+\method{fic}{glm}(wide, sub = NULL, inds, inds0, focus = NULL,
+  focus_deriv = NULL, ...)
 }
 \arguments{
-\item{object}{Object returned by \code{\link{glm}} containing the fitted model.}
+\item{wide}{Object returned by \code{\link{glm}} containing the wide model.}
 
-\item{inds}{Vector of 0s and 1s of length \code{length(ests) - pp}, with 1s in the positions where the parameters of the wide model are included in the submodel, and 0s in the positions where the parameters of the wide model are excluded from the submodel.}
+\item{sub}{Object returned by \code{\link{glm}} containing the submodel to be assessed.  Optional. 
+Only required if you want the estimate of the focus function under the submodel to be included in the results.}
 
-\item{pp}{Number of parameters which we would always include in any submodel, including the intercept term.  The corresponding parameters are assumed to be the first \code{pp} parameters included in \code{ests}.}
+\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.}
+
+\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
 
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
 
@@ -24,5 +28,5 @@ Alternatively, this can be a character string naming a built-in focus function s
 These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
 }
 \description{
-Focused information criterion for generalized linear models fitted with glm().  This is not yet a S3 method, but will probably be made into one
+Focused information criterion for generalized linear models fitted with glm().
 }

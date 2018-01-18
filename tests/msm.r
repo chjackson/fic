@@ -2,6 +2,7 @@
 #load_all("../../../../msm/msm/")
 #library(msm)
 #load_all("..")
+#install_github("chjackson/msm") # requires devel version 
 
 if (requireNamespace("msm", quietly = TRUE)){
 
@@ -26,14 +27,14 @@ focus_tlos(psor.wide.msm$estimates) # should match
 ## ollwsdrt is more associated, particularly with 2-3 rate, so (broadly) bigger biases when ollwsdrt effect omitted, though seems to be noise in the bias estimates. 
 ## Variance does go down smoothly as covariates omitted
 
-pp <- 3 # intercepts always included
-fic.msm(psor.wide.msm, inds=c(1,1,1,1,1,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,1,1,1,1,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,0,1,1,1,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,0,0,1,1,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,0,0,0,1,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,0,0,0,0,1), pp, focus_tlos)
-fic.msm(psor.wide.msm, inds=c(0,0,0,0,0,0), pp, focus_tlos)
+inds0 <- c(1,1,1,0,0,0,0,0,0) # intercepts always included
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,1,1,1,1,1,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,1,1,1,1,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,0,1,1,1,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,0,0,1,1,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,0,0,0,1,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,0,0,0,0,1), inds0=inds0, focus=focus_tlos)
+fic.msm(wide=psor.wide.msm, inds=c(1,1,1,0,0,0,0,0,0), inds0=inds0, focus=focus_tlos)
 
 
 }
