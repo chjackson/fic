@@ -14,8 +14,13 @@ fic.glm <- function(wide, sub=NULL, inds, inds0, focus=NULL, focus_deriv=NULL, .
     par <- coef(wide)
     n <- nobs(wide)
     J <- solve(vcov(wide)) / n
-    fic(par=par, J=J, inds=inds, inds0=inds0, n=n,
+    res <- fic(par=par, J=J, inds=inds, inds0=inds0, n=n,
               focus=focus, focus_deriv=focus_deriv, 
               parsub=coef(sub), ...)
+    if (!is.null(sub)){
+      res["AIC"] <- AIC(sub)
+      res["BIC"] <- BIC(sub)
+    }
+    res
 }
 
