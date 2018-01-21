@@ -43,21 +43,21 @@ namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=",
 Xobs <- with(birthwt, cbind(intercpt, lwtkg))
 Zobs <- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
 
-res <- array(dim=c(nrow(combs), 9, nrow(X)))
+res <- array(dim=c(nrow(X), nrow(combs), 9))
 for (i in 1:nrow(combs)){
   XZi <- cbind(Xobs, Zobs[,which(combs[i,]==1)])
   sub.glm <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
   ficres <- fic(wide=wide.glm, sub=sub.glm, 
                 inds=c(1,1,combs[i,]), inds0=inds0, focus=focus, X=X)
-  res[i,,] <- ficres
+  res[,i,] <- ficres
 }
-dimnames(res) <- list(rownames(combs), colnames(ficres), rownames(X))
+dimnames(res) <- list(rownames(X), rownames(combs), colnames(ficres))
 
 ## ----message=FALSE-------------------------------------------------------
 library(tidyverse)
 
 ## ------------------------------------------------------------------------
-ress <- as.data.frame(res[,,"vals.smoke"]) %>% 
+ress <- as.data.frame(res["vals.smoke",,]) %>% 
   mutate(l95 = focus - qnorm(0.975)*se,
          u95 = focus + qnorm(0.975)*se,
          namesfull = namesfull) %>% 
