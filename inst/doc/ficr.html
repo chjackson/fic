@@ -230,9 +230,8 @@ combs &lt;- as.matrix(with(combs,
                                 (ui==0 &amp; smokeui==1)),]))
 rownames(combs) &lt;- apply(combs, 1, paste, collapse=&quot;&quot;)
 namesfull &lt;- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=&quot;,&quot;))</code></pre>
-<p>The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at a set of covariate values supplied as the <code>vals</code> argument.</p>
+<p>The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by <code>X</code>.</p>
 <p>TODO annotate this more</p>
-<p>TODO work out how to</p>
 <pre class="r"><code>Xobs &lt;- with(birthwt, cbind(intercpt, lwtkg))
 Zobs &lt;- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
 
@@ -246,7 +245,7 @@ for (i in 1:nrow(combs)){
 }
 dimnames(res) &lt;- list(rownames(X), rownames(combs), colnames(ficres))</code></pre>
 <p>Explain why there are NaNs.</p>
-<p>Then show how to plot them. TODO condition on tidyverse as suggests packages. TODO annotate/simplify TODO make into a function of the focus, compare smokers vs non.</p>
+<p>Then show how to plot them. TODO condition on tidyverse as suggests packages. TODO annotate/simplify TODO compare smokers vs non. ggplot facet/grid?</p>
 <pre class="r"><code>library(tidyverse)</code></pre>
 <pre class="r"><code>ress &lt;- as.data.frame(res[&quot;vals.smoke&quot;,,]) %&gt;% 
   mutate(l95 = focus - qnorm(0.975)*se,

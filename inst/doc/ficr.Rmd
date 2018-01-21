@@ -140,11 +140,10 @@ rownames(combs) <- apply(combs, 1, paste, collapse="")
 namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=","))
 ```
 
-The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at a set of covariate values supplied as the `vals` argument.
+The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
 
 TODO annotate this more 
 
-TODO work out how to 
 
 ```{r,warning=FALSE}
 Xobs <- with(birthwt, cbind(intercpt, lwtkg))
@@ -164,7 +163,7 @@ dimnames(res) <- list(rownames(X), rownames(combs), colnames(ficres))
 Explain why there are NaNs.
 
 Then show how to plot them. TODO condition on tidyverse as suggests packages.  TODO annotate/simplify
-TODO make into a function of the focus, compare smokers vs non. 
+TODO compare smokers vs non.  ggplot facet/grid? 
 
 ```{r,message=FALSE}
 library(tidyverse)
