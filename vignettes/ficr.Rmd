@@ -54,23 +54,22 @@ library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, data=birthwt, family=binomial)
 ```
 
-The *focus function* is then defined.  This should be an R function, mapping the parameters of the wide model to the quantity of interest.  Here we consider two focuses.  
+The *focus function* is then defined.  This should be an R function, mapping the parameters `par` of the wide model to the quantity of interest.   The focus can optionally have an second argument.  If supplied, this must be called `X`, and can be used to supply covariate values at which the focus function should be evaluated.  Here we take the probability of low birth weight as the focus, for two covariate categories: 
+ 
+1. smokers with average or typical values of the other covariates.  These values are given in the order supplied when specifying the model (for smokers: intercept, `lwtkg`=58.24, `age`=22.95, `smoke`=1, `ht`=0, `ui`=0, `smokeage`=22.95, `smokeui`=0).
 
-1. the probability of low birth weight for smokers with average or typical values of the other covariates.  These values are given in the order supplied when specifying the model (intercept, `lwtkg`=58.24, `age`=22.95, `smoke`=1, `ht`=0, `ui`=0, `smokeage`=22.95, `smokeui`=0).
+2. non-smokers with average values of the other covariates
+
 ```{r}
+focus <- function(par, X)plogis(X %*% par)
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
-focus.smoke <- function(par)plogis(par %*% vals.smoke)
+vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+X <- rbind(vals.smoke, vals.nonsmoke)
 ```
 
-2. the probability of low birth weight for non-smokers with average values of the other covariates
-```{r}
-vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
-focus.nonsmoke <- function(par)plogis(par %*% vals.nonsmoke)
-```
 We can illustrate these functions by calculating the probability of low birth weight, under the wide model, for each group.  Note this is about twice as high for smokers. 
 ```{r}
-focus.smoke(coef(wide.glm))
-focus.nonsmoke(coef(wide.glm))
+focus(coef(wide.glm), X=X)
 ```
 
 
@@ -101,10 +100,10 @@ We can then call `fic` for each of the two models.  This returns an object conta
 inds0 <- c(1,1,0,0,0,0,0,0)
 inds1 <- c(1,1,1,1,0,0,0,0)
 inds2 <- c(1,1,1,1,1,0,0,0)
-fic1 <- fic(wide=wide.glm, sub=mod1.glm, inds=inds1, inds0=inds0, focus=focus.smoke)
-fic2 <- fic(wide=wide.glm, sub=mod2.glm, inds=inds2, inds0=inds0, focus=focus.smoke)
-res <- rbind("No HT"=fic1, "HT"=fic2)
-res
+fic1 <- fic(wide=wide.glm, sub=mod1.glm, inds=inds1, inds0=inds0, focus=focus, X=X)
+fic2 <- fic(wide=wide.glm, sub=mod2.glm, inds=inds2, inds0=inds0, focus=focus, X=X)
+fic1
+fic2
 ```
 
 
@@ -120,7 +119,7 @@ focused model comparison statistics for any class of models, not just the specia
 ```{r}
 par <- coef(wide.glm)
 J <- solve(vcov(wide.glm))/nrow(birthwt)
-fic(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(birthwt), focus=focus.smoke, parsub=coef(mod1.glm))
+fic(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(birthwt), focus=focus, X=X, parsub=coef(mod1.glm))
 ```
 
 
@@ -145,28 +144,21 @@ The following function calculates the focused model comparison statistics for al
 
 TODO annotate this more 
 
+TODO work out how to 
+
 ```{r,warning=FALSE}
-vals <- vals.nonsmoke
-X <- with(birthwt, cbind(intercpt, lwtkg))
-Z <- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
+Xobs <- with(birthwt, cbind(intercpt, lwtkg))
+Zobs <- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
 
-ficall <- function(vals) { 
-    focus <- function(ests){plogis(ests %*% vals)}
-    res <- matrix(nrow=nrow(combs), ncol=9)
-    for (i in 1:nrow(combs)){
-        XZi <- cbind(X, Z[,which(combs[i,]==1)])
-        sub.glm <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
-        ficres <- fic(wide=wide.glm, sub=sub.glm, 
-                          inds=c(1,1,combs[i,]), inds0=inds0, focus=focus)
-        res[i,] <- ficres
-    }
-    rownames(res) <- rownames(combs)
-    colnames(res) <- names(ficres)
-    res
+res <- array(dim=c(nrow(combs), 9, nrow(X)))
+for (i in 1:nrow(combs)){
+  XZi <- cbind(Xobs, Zobs[,which(combs[i,]==1)])
+  sub.glm <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
+  ficres <- fic(wide=wide.glm, sub=sub.glm, 
+                inds=c(1,1,combs[i,]), inds0=inds0, focus=focus, X=X)
+  res[i,,] <- ficres
 }
-
-ress <- ficall(vals.smoke) 
-resns <- ficall(vals.nonsmoke) 
+dimnames(res) <- list(rownames(combs), colnames(ficres), rownames(X))
 ```
 
 Explain why there are NaNs.
@@ -179,7 +171,7 @@ library(tidyverse)
 ```
 
 ```{r}
-ress <- as.data.frame(ress) %>% 
+ress <- as.data.frame(res[,,"vals.smoke"]) %>% 
   mutate(l95 = focus - qnorm(0.975)*se,
          u95 = focus + qnorm(0.975)*se,
          namesfull = namesfull) %>% 
@@ -233,7 +225,7 @@ ps
 
 ### Average FIC over a range of focuses 
 
-TODO Vectorise `fic.default` over focus values
+TODO 
 
 
 ### Other model classes 

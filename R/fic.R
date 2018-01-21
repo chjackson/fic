@@ -38,10 +38,21 @@ fic <- function(x,...) UseMethod("fic")
 ##' Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
 ##' Ignored unless \code{parsub} is specified.
 ##'
-##' @param \dots Other arguments to the focus function can be supplied here.
-##'
-##' These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)
-##'
+##' @param X second argument of the focus function.  This will typically be a vector of covariate values.  
+##' 
+##' This can be a vector with \code{nc} elements, e.g. one for each covariate coefficient in the wide model.
+##' 
+##' Alternatively this can be a matrix with \code{nf} rows and \code{nc} columns. 
+##' The FIC calculation is then "vectorised".  With one call of the \code{fic} function, the   
+##' FIC and related statistics are calculated \code{nf} times, with 
+##' the focus function evaluated at each of \code{nf} alternative 
+##' covariate values. 
+##' 
+##' Not yet tested in situations other than supplying covariate values. 
+##' 
+##' 
+##' @param \dots Other arguments to the focus function can be supplied here.  Currently no examples of this. 
+##' 
 ##' @return A vector containing the following components, describing characteristics of the defined submodel (references in Chapter 6 of Claeskens and Hjort, 2008)
 ##'
 ##' \item{FIC}{The focused information criterion (equation 6.1). }
@@ -76,6 +87,7 @@ fic.default <- function(par, # estimates in wide model
                 focus_deriv=NULL,
                 parsub=NULL, # estimates in submodel
                 gamma0=0,
+                X=NULL, # second argument of focus function, e.g. covariate values 
                 ...
                 ) 
 {
@@ -102,36 +114,51 @@ fic.default <- function(par, # estimates in wide model
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
     
-    if(is.null(focus_deriv))
-        focus_deriv <- numDeriv::grad(func=focus, x=par)
-    dmudtheta <- focus_deriv[i0]
-    tau0sq <- t(dmudtheta) %*% solve(J00) %*% dmudtheta
-    dmudgamma <- focus_deriv[pp + seq_len(qq)]
-    omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma
-    psi.full <- t(omega) %*% deltahat
+    ## TODO check dims of X 
+    ## Should be a vector of length ncoefs, or nvals x ncoefs matrix
+    if(is.null(focus_deriv)){
+      if(is.vector(X)) X <- matrix(X, nrow=1)
+      ncols <- if(is.null(X)) 1 else nrow(X)
+      focus_deriv <- matrix(nrow=length(par), ncol=ncols)
+      for (i in 1:ncols){
+        if (is.null(X))
+          focus_deriv[,i] <- numDeriv::grad(func=focus, x=par) 
+        else
+          focus_deriv[,i] <- numDeriv::grad(func=focus, x=par, X=X[i,]) 
+      }
+    }
+    dmudtheta <- focus_deriv[i0,]
+    tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
+    dmudgamma <- focus_deriv[pp + seq_len(qq),]
+
+    omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m 
+    psi.full <- t(omega) %*% deltahat # m x 1
 
     if (sum(indsS) > 0) { 
         Id <-  diag(rep(1,qq))
-        Qinv <- solve(Q)
-        pi.S <- matrix(Id[indsS*(seq_len(qq)),],ncol=qq)
+        Qinv <- solve(Q)  # q x q 
+        pi.S <- matrix(Id[indsS*(seq_len(qq)),],ncol=qq) # qs x q
 
-        Q.S <- solve(pi.S %*% Qinv %*% t(pi.S))
-        Q0.S <- t(pi.S) %*% Q.S %*% pi.S
-        G.S <- Q0.S %*% Qinv # called M.S in original code
-        psi.S <- t(omega)%*% G.S %*% deltahat
+        Q.S <- solve(pi.S %*% Qinv %*% t(pi.S)) # qs x qs
+        Q0.S <- t(pi.S) %*% Q.S %*% pi.S        # q x q
+        G.S <- Q0.S %*% Qinv # called M.S in original code.  q x q
+        psi.S <- t(omega)%*% G.S %*% deltahat  # m x 1 
 
-        omega.S <- pi.S %*% omega
+        omega.S <- pi.S %*% omega              # qs x m
 
         ## basic FIC estimates (section 6.1) 
-        bias.S <- psi.full - psi.S
-        FIC.S <- bias.S^2  +  2*t(omega.S) %*% Q.S %*% omega.S
+        bias.S <- psi.full - psi.S # m x 1 
+        FIC.S <- bias.S^2  +  2*diag(t(omega.S) %*% Q.S %*% omega.S)  # m x 1  +  diag of m x m 
         
+        ## todo test all diagonalisations
+
         ## bias-adjusted estimates (section 6.4)
         sqbias2 <- t(omega) %*% (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% (Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
-        sqbias3 <- max(sqbias2, 0) # \hat{sqb2}(S) on p152
+        sqbias2 <- diag(sqbias2)
+        sqbias3 <- pmax(sqbias2, 0) # \hat{sqb2}(S) on p152
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
         ## using Q0.S here as in book, rather than G.S (called M.S in code) as in original code.  is this right?
-        var.S <- tau0sq  +  t(omega) %*% Q0.S %*% omega 
+        var.S <- tau0sq  +  diag(t(omega) %*% Q0.S %*% omega)
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
@@ -141,18 +168,22 @@ fic.default <- function(par, # estimates in wide model
     mse.adj.S <- var.S + bias.adj.S^2
 
     ## unadjusted mse
-    mse.S <- FIC.S + tau0sq - t(omega) %*% Q %*% omega # book p150, eq 6.7 
+    mse.S <- FIC.S + tau0sq - diag(t(omega) %*% Q %*% omega) # book p150, eq 6.7 
     
-    res <- c(FIC = FIC.S,
-             rmse = sqrt(mse.S / n),
+    res <- cbind(
+             FIC      = FIC.S,
+             rmse     = sqrt(mse.S / n),
              rmse.adj = sqrt(mse.adj.S / n),   # book p157
-             bias = bias.S / sqrt(n),
+             bias     = bias.S / sqrt(n),
              bias.adj = bias.adj.S / sqrt(n),
-             se = sqrt(var.S / n)
+             se       = sqrt(var.S / n)
              )
-    if (!is.null(parsub)) 
-      res["focus"] <- focus_sub(focus=focus, parsub=parsub, 
-                                inds=inds, inds0=inds0, gamma0=gamma0, ...)
+    colnames(res) <- c("FIC.S", "rmse", "rmse.adj", "bias", "bias.adj", "se")
+
+    if (!is.null(parsub)) {
+      fval <- focus_sub(focus=focus, parsub=parsub, inds=inds, inds0=inds0, X=X, gamma0=gamma0, ...)
+      res <- cbind(res, focus=as.numeric(fval))
+    }
     res
 }
 
@@ -163,7 +194,7 @@ FIC <- fic
 ##' 
 ##' @inheritParams fic
 ##' 
-focus_sub <- function(focus, parsub, inds, inds0, gamma0=NULL, ...){
+focus_sub <- function(focus, parsub, inds, inds0, X=NULL, gamma0=NULL, ...){
     pp <- sum(inds0==1)
     qq <- sum(inds0==0) # maximum number of "extra" covariates
     if (is.null(gamma0)) gamma0 <- 0
@@ -175,5 +206,9 @@ focus_sub <- function(focus, parsub, inds, inds0, gamma0=NULL, ...){
     ## indices of gamma not in submodel
     ngi <- which(inds0==0 & inds==0)
     ests_long[inds0==0][gi %in% ngi] <- gamma0[gi %in% ngi]
-    focus(ests_long, ...)
+    if ("X" %in% names(formals(focus)))
+      res <- focus(ests_long, X=X, ...)
+    else
+      res <- focus(ests_long, ...)
+    res
 }

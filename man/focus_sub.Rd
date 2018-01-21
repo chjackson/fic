@@ -4,7 +4,7 @@
 \alias{focus_sub}
 \title{Calculate the focus estimate under a submodel of the wide model}
 \usage{
-focus_sub(focus, parsub, inds, inds0, gamma0 = NULL, ...)
+focus_sub(focus, parsub, inds, inds0, X = NULL, gamma0 = NULL, ...)
 }
 \arguments{
 \item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
@@ -19,14 +19,24 @@ the model assessment statistics for the submodel. If omitted, the estimate is om
 
 \item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
 
+\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.
+
+This can be a vector with \code{nc} elements, e.g. one for each covariate coefficient in the wide model.
+
+Alternatively this can be a matrix with \code{nf} rows and \code{nc} columns. 
+The FIC calculation is then "vectorised".  With one call of the \code{fic} function, the   
+FIC and related statistics are calculated \code{nf} times, with 
+the focus function evaluated at each of \code{nf} alternative 
+covariate values. 
+
+Not yet tested in situations other than supplying covariate values.}
+
 \item{gamma0}{Vector of special values taken by gamma in the narrow model.
 Defaults to all 0, as in covariate selection where coefficients are fixed to 0 
 Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
 Ignored unless \code{parsub} is specified.}
 
-\item{...}{Other arguments to the focus function can be supplied here.
-
-These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
+\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
 Calculate the focus estimate under a submodel of the wide model

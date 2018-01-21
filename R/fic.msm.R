@@ -11,13 +11,13 @@
 ##' @inheritParams fic
 ##' 
 ##' @export
-fic.msm <- function(wide, sub=NULL, inds, inds0, focus=NULL, focus_deriv=NULL, ...){
+fic.msm <- function(wide, sub=NULL, inds, inds0, focus=NULL, focus_deriv=NULL, X=NULL, ...){
     par <- wide$estimates
     n <- attr(model.frame(wide), "ntrans")
     J <- wide$opt$hessian / n # or use expected information, will this be more accurate?
     fic(par=par, J=J, inds=inds, inds0=inds0, n=n,
                focus=focus, focus_deriv=focus_deriv, 
-                parsub=sub$estimates, ...)
+                parsub=sub$estimates, X=X, ...)
 }
 
 

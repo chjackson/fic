@@ -9,12 +9,10 @@
 fic(x, ...)
 
 \method{fic}{default}(par, J, inds, inds0, n, focus = NULL,
-  focus_deriv = NULL, parsub = NULL, gamma0 = 0, ...)
+  focus_deriv = NULL, parsub = NULL, gamma0 = 0, X = NULL, ...)
 }
 \arguments{
-\item{\dots}{Other arguments to the focus function can be supplied here.
-
-These might include the covariate values at which the focus is to be evaluated.  For the built-in focus functions, this argument is named \code{X} and can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function, and hence FIC, is to be evaluated.  (TODO not implemented vectorisation yet)}
+\item{\dots}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 
 \item{par}{Vector of maximum likelihood estimates from the wide model}
 
@@ -40,6 +38,18 @@ the model assessment statistics for the submodel. If omitted, the estimate is om
 Defaults to all 0, as in covariate selection where coefficients are fixed to 0 
 Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
 Ignored unless \code{parsub} is specified.}
+
+\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.
+
+This can be a vector with \code{nc} elements, e.g. one for each covariate coefficient in the wide model.
+
+Alternatively this can be a matrix with \code{nf} rows and \code{nc} columns. 
+The FIC calculation is then "vectorised".  With one call of the \code{fic} function, the   
+FIC and related statistics are calculated \code{nf} times, with 
+the focus function evaluated at each of \code{nf} alternative 
+covariate values. 
+
+Not yet tested in situations other than supplying covariate values.}
 }
 \value{
 A vector containing the following components, describing characteristics of the defined submodel (references in Chapter 6 of Claeskens and Hjort, 2008)
