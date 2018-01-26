@@ -229,7 +229,7 @@ TODO
 
 ### Other model classes 
 
-Survival 
+Survival (see separate survival vignette for now)
 
 Multi-state
 

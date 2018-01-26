@@ -13,13 +13,7 @@ Alternatively, this can be a character string naming a built-in focus function s
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel.
 Only required to return the estimate of the focus quantity alongside 
-the model assessment statistics for the submodel. If omitted, the estimate is omitted.}
-
-\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.}
-
-\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
-
-\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.
+the model assessment statistics for the submodel. If omitted, the estimate is omitted.
 
 This can be a vector with \code{nc} elements, e.g. one for each covariate coefficient in the wide model.
 
@@ -31,10 +25,16 @@ covariate values.
 
 Not yet tested in situations other than supplying covariate values.}
 
-\item{gamma0}{Vector of special values taken by gamma in the narrow model.
-Defaults to all 0, as in covariate selection where coefficients are fixed to 0 
-Either a scalar, assumed to be the same for all elements of gamma, or a vector or the same length as gamma.
-Ignored unless \code{parsub} is specified.}
+\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.}
+
+\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
+
+\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.}
+
+\item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
+Defaults to all 0, as in covariate selection, where excluded coefficients are fixed to 0. 
+Either a scalar, assumed to be the same for all parameters fixed in the narrow model,
+or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }

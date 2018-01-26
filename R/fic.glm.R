@@ -1,6 +1,7 @@
 ##' Focused Information Criterion for generalized linear models
 ##'
 ##' Focused information criterion for generalized linear models fitted with glm().
+##' This can be used to compare models with different covariates.  TODO any other model selection problems?
 ##'
 ##' @param wide Object returned by \code{\link{glm}} containing the wide model.
 ##'

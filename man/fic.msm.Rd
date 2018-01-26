@@ -22,17 +22,7 @@ Alternatively, this can be a character string naming a built-in focus function s
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
 
-\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.
-
-This can be a vector with \code{nc} elements, e.g. one for each covariate coefficient in the wide model.
-
-Alternatively this can be a matrix with \code{nf} rows and \code{nc} columns. 
-The FIC calculation is then "vectorised".  With one call of the \code{fic} function, the   
-FIC and related statistics are calculated \code{nf} times, with 
-the focus function evaluated at each of \code{nf} alternative 
-covariate values. 
-
-Not yet tested in situations other than supplying covariate values.}
+\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
