@@ -1,0 +1,82 @@
+---
+title: "Using the fic R package for focused model comparison: survival analysis"
+date: "`r Sys.Date()`"
+author: Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
+output: 
+  html_document: 
+    includes:
+      before_body: fic.sty  
+  code_folding: show
+vignette: >
+ %\VignetteIndexEntry{Using the fic R package for focused model comparison}
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteDepends{fic,ggplot2}
+ %\VignetteEncoding{UTF-8}
+bibliography: fic.bib
+---
+
+Another common model choice problem is to determine the appropriate
+level of flexibility for a parametric model.  For example, parametric
+survival modelling.  Here a series of increasingly flexible parametric
+distributions are fitted to a set of right-censored times to events. 
+
+```{r}
+library("flexsurv")
+ex <-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="exponential")
+we <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="weibull")
+gg <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma")
+```
+
+Note that the generalized gamma reduces to the other two models
+for special values of the parameters, therefore we can
+use FIC... 
+
+```{r}
+we2 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", inits=c(1,1,1), fixedpars=3)  # weibull with shape 1/sigma, scale exp(mu)
+we3 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", inits=c(1,1,1), fixedpars=c(2,3)) # exponential model with rate 1/exp(mu)
+```
+
+Define the wide model as the generalised gamma model.  Test Weibull,
+exponential submodels against this.
+
+Focus parameter is the estimated 5 year survival. 
+
+```{r}
+library(fic)
+indmat <- rbind(ggamma = c(1,1,1),
+                weib   = c(1,1,0),
+                exp    = c(1,0,0))
+gamma0 <- c(1,1)
+focus <- function(par){
+    pgengamma(5, par[1], exp(par[2]), par[3], lower.tail=FALSE)
+}
+fic(gg, inds=indmat[1,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
+fic(gg, inds=indmat[2,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
+fic(gg, inds=indmat[3,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
+```
+
+Wide GG model fits best.
+
+(note this doesn't work with generalized F, as parameter P=0 defining generalized gamma special case is on the boundary)
+
+What if simulate small dataset from exponential?  Would a simpler model be better? 
+
+```{r}
+set.seed(1)
+y <- rexp(100); cen <- rep(1,100)
+gge <- flexsurvreg(Surv(y, cen) ~ 1, dist="gengamma")
+focus <- function(par){
+    pgengamma(1, par[1], exp(par[2]), par[3], lower.tail=FALSE)
+}
+gge
+focus(coef(gge))
+rbind(
+    ggamma  = fic(gge, inds=indmat[1,], inds0=indmat[3,], gamma0=gamma0, focus=focus),
+    weibull = fic(gge, inds=indmat[2,], inds0=indmat[3,], gamma0=gamma0, focus=focus),
+    exp     = fic(gge, inds=indmat[3,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
+)
+```
+
+Weibull has smaller error than exponential, surprisingly.
+Is this because we assume the GG model is true? 
+
