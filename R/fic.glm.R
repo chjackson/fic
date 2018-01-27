@@ -5,13 +5,15 @@
 ##'
 ##' @param wide Object returned by \code{\link{glm}} containing the wide model.
 ##'
-##' @param sub Object returned by \code{\link{glm}} containing the submodel to be assessed.  Optional. 
-##' Only required if you want the estimate of the focus function under the submodel to be included in the results. 
+##' @param sub Object returned by \code{\link{glm}} containing the submodel to be assessed.
+##' Optional. Only required if you want the estimate of the focus
+##' function under the submodel to be included in the results. 
 ##' 
 ##' @inheritParams fic
 ##' 
 ##' @export
-fic.glm <- function(wide, sub=NULL, inds, inds0, focus=NULL, focus_deriv=NULL, X=NULL, ...){
+fic.glm <- function(wide, inds, inds0, focus=NULL, focus_deriv=NULL, X=NULL, sub=NULL, ...){
+    if (!inherits(wide, "glm")) stop("\"wide\" must be an object of class \"glm\"")
     par <- coef(wide)
     n <- nobs(wide)
     J <- solve(vcov(wide)) / n

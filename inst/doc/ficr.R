@@ -19,8 +19,8 @@ mod2.glm <- glm(low ~ lwtkg + age + smoke + ht, data=birthwt, family=binomial)
 inds0 <- c(1,1,0,0,0,0,0,0)
 inds1 <- c(1,1,1,1,0,0,0,0)
 inds2 <- c(1,1,1,1,1,0,0,0)
-fic1 <- fic(wide=wide.glm, sub=mod1.glm, inds=inds1, inds0=inds0, focus=focus, X=X)
-fic2 <- fic(wide=wide.glm, sub=mod2.glm, inds=inds2, inds0=inds0, focus=focus, X=X)
+fic1 <- fic(wide=wide.glm, inds=inds1, inds0=inds0, focus=focus, X=X, sub=mod1.glm)
+fic2 <- fic(wide=wide.glm, inds=inds2, inds0=inds0, focus=focus, X=X, sub=mod2.glm)
 fic1
 fic2
 

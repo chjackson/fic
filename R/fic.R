@@ -24,7 +24,7 @@ fic <- function(x,...) UseMethod("fic")
 ##' @param gamma0 Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.  
 ##' Defaults to all 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 ##' Either a scalar, assumed to be the same for all parameters fixed in the narrow model,
-##' or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model.
+##' or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.
 ##' 
 ##' @param n Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity? 
 ##'
@@ -91,8 +91,23 @@ fic.default <- function(par, # estimates in wide model
                 ...
                 ) 
 {
+    npar <- length(par)
+
+    if (!is.numeric(inds)) stop("`inds` must be numeric")
+    if (!is.numeric(inds0)) stop("`inds0` must be numeric")
+    if (!is.vector(inds)) stop("`inds` must be a vector")
+    if (!is.vector(inds0)) stop("`inds0` must be a vector")
+    if (length(inds) != npar) stop(sprintf("`inds` of length %d, but model has %d parameters.\nLength of `inds` must match number of parameters", length(inds), npar))
+    if (length(inds0) != npar) stop(sprintf("`inds0` of length %d, but model has %d parameters.\nLength of `inds0` must match number of parameters", length(inds0), npar))
+    if (!is.matrix(J) || (nrow(J)!=ncol(J))) stop("`J` must be a square matrix")
+    if (!is.numeric(J)) stop("`J` must be numeric")
+    if (nrow(J) != npar) stop("`J` has %d rows and columns, but there are %d parameters.\n`J` must have number of rows and columns equal to the number of parameters")
+
     pp <- sum(inds0)
     qq <- sum(inds0==0)  # maximum number of "extra" covariates
+    
+    if ((length(gamma0) != 1) && (length(gamma0) != qq)) stop(sprintf("`gamma0` of length %d, but `inds0` has %d non-zero entries.\nLength of gamma0 must either be 1 or match the number of non-zero entries of `inds0`", length(gamma0), qq))
+
     i0 <- which(inds0==1)
     indsS <- inds[inds0==0]
     if (any(inds[inds0==1] != 1)){
@@ -114,13 +129,14 @@ fic.default <- function(par, # estimates in wide model
     fl <- get_focus(focus, focus_deriv, par, ...)
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
+    if (!is.function(focus)) stop("`focus` must be a function")
     
     ## TODO check dims of X 
     ## Should be a vector of length ncoefs, or nvals x ncoefs matrix
     if(is.null(focus_deriv)){
       if(is.vector(X)) X <- matrix(X, nrow=1)
       ncols <- if(is.null(X)) 1 else nrow(X)
-      focus_deriv <- matrix(nrow=length(par), ncol=ncols)
+      focus_deriv <- matrix(nrow=npar, ncol=ncols)
       for (i in 1:ncols){
         if (is.null(X))
           focus_deriv[,i] <- numDeriv::grad(func=focus, x=par) 

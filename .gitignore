@@ -27,3 +27,4 @@ vignettes/*.pdf
 # emacs backups
 *~
 .dropbox.attr
+.DS_Store
