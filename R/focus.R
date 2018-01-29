@@ -18,7 +18,7 @@ prob_logistic <- function(par, X){
 ##' @rdname focus_fns
 prob_logistic_deriv <- function(par, X){
     p0 <- as.vector(plogis(q = X %*% par))
-    X * p0 * (1 - p0)
+    t(X) * p0 * (1 - p0)
 }
 
 focus_fns <- 
@@ -31,15 +31,18 @@ focus_fns <-
 
 ## Construct the arguments to supply to fic() from the built-in focus functions
 
-get_focus <- function(focus, focus_deriv, par=NULL, ...){
+get_focus <- function(focus, focus_deriv, par=NULL, X=NULL, ...){
     if (is.character(focus)) {
         if (!focus %in% names(focus_fns))
             stop(sprintf("focus function \"%s\" not found", focus))
         fi <- match(focus, names(focus_fns))
         args_extra <- list(...)
         focus <- focus_fns[[fi]]$focus
-        deriv_args <- c(par=list(par), args_extra)
+        deriv_args <- c(par=list(par), X=list(X), args_extra)
         focus_deriv <- do.call(focus_fns[[fi]]$deriv, deriv_args)
-    } 
+    }
+    ## add unused X argument to function if it doesn't already have one
+    if (!("X" %in% names(formals(focus))))
+        formals(focus) <- c(formals(focus), alist(X=))
     list(focus=focus, focus_deriv=focus_deriv)
 }

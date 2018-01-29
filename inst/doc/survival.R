@@ -17,9 +17,7 @@ gamma0 <- c(1,1)
 focus <- function(par){
     pgengamma(5, par[1], exp(par[2]), par[3], lower.tail=FALSE)
 }
-fic(gg, inds=indmat[1,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
-fic(gg, inds=indmat[2,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
-fic(gg, inds=indmat[3,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
+fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus)
 
 ## ------------------------------------------------------------------------
 set.seed(1)
@@ -35,4 +33,5 @@ rbind(
     weibull = fic(gge, inds=indmat[2,], inds0=indmat[3,], gamma0=gamma0, focus=focus),
     exp     = fic(gge, inds=indmat[3,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
 )
+
 

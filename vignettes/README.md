@@ -10,3 +10,5 @@ See the package vignettes (work in progress) for an introduction:
 [Focused model comparison using the `fic` R package](https://chjackson.github.io/fic/inst/doc/ficr.html)
 
 [Survival analysis example](https://chjackson.github.io/fic/inst/doc/survival.html)
+
+[Multi-state models example](https://chjackson.github.io/fic/inst/doc/multistate.html)

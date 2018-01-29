@@ -32,18 +32,18 @@ focus <- function(ests){
     plogis(q = ests %*% vals.first)
 }
 
-fic.glm(wide=wide.glm, inds=inds, inds0=inds0, focus=focus)
+fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus)
 
 pred <- predict.glm(wide.glm, type="response", se.fit=TRUE)
 cbind(pred$fit, pred$se.fit)[1,]
-fic.glm(wide=wide.glm, inds=c(1,1,1,1,1,1,1,1), inds0=inds0, focus=focus) 
+fic(wide=wide.glm, inds=c(1,1,1,1,1,1,1,1), inds0=inds0, focus=focus) 
 ## check SE of focus under wide model matches RMSE returned by FIC.  
 ## OK - this is tau0sq in code, which matches the delta method formula
 
 
 ###### Compare against FIC using Gerda's original code
 
-source("tests/FIClogisticreg.R")
+source("FIClogisticreg.R")
 ficall <- FIC.logistic.regression(Y=Y, X=X, Z=Z, XZeval=XZ[1:2,], dataframe=NULL)
 ## extract results for focus: LBW for covariate values of first and second people in data
 ## gives matrix with one row for each submodel 
@@ -64,23 +64,21 @@ do.call("rbind", ficall[c("FIC","Bias","Bias2","Var","VarS")])
 
 
 ### Compare numerical and analytic derivatives
-fic.ana <- fic.glm(wide=wide.glm, sub=sub.glm, inds, inds0, focus="prob_logistic", X=vals.first)
+fic.ana <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus="prob_logistic", X=vals.first)
 fic.ana
 
-fic.num <- fic(par=ests, J=J, inds=inds, inds0=inds0, n=n, focus=focus, parsub=coef(sub.glm))
+fic.num <- fic_multi(par=coef(wide.glm), J=solve(vcov(wide.glm))/nobs(wide.glm), inds=inds, inds0=inds0, n=nobs(wide.glm), focus=focus)
+fic.num
+
 library(testthat)
-expect_equal(fic.ana, fic.num) # matches within reasonable precision 
+expect_equal(fic.ana[,"FIC"], fic.num[,"FIC",1]) # matches within reasonable precision 
 
 ## Alternatively: supply derivative values directly to lower-level fic() function 
 object <- wide.glm
 ests <- coef(object)
 n <- nobs(object)
 J <- solve(vcov(object)) / n
-focus_deriv <- prob_logistic_deriv(ests, vals.first)
-fic.ana2 <- fic(par=ests, J=J, inds=inds, inds0=inds0, n=n, focus_deriv=focus_deriv, parsub=coef(sub.glm))
-expect_equal(fic.ana2, fic.ana)
-
-## test error handling 
-expect_error(fic.glm(wide=wide.glm, inds=inds, inds0=inds0, focus="nonexistent_function", X=vals.first),
-             "not found")
+focus_deriv <- t(prob_logistic_deriv(ests, vals.first))
+fic.ana2 <- fic_core(par=ests, J=J, inds=inds, inds0=inds0, n=n, focus_deriv=focus_deriv, parsub=coef(sub.glm))
+expect_equal(as.numeric(fic.ana2[,"FIC"]), fic.ana[,"FIC"])
 

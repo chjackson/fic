@@ -67,7 +67,7 @@ vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind(vals.smoke, vals.nonsmoke)
 ```
 
-We can illustrate these functions by calculating the probability of low birth weight, under the wide model, for each group.  Note this is about twice as high for smokers. 
+We can illustrate these functions by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  Note this is about twice as high for smokers. 
 ```{r}
 focus(coef(wide.glm), X=X)
 ```
@@ -86,24 +86,24 @@ We supply the following arguments to the `fic` function.
 
 * `wide` the fitted wide model.  All the model fit statistics are computed using the estimates and covariance matrix from this model.   `fic` will automatically recognise that this is a GLM fitted by the `glm` function in R, and extract the relevant information. 
 
-* `sub` the fitted submodel to be assessed.  This is optional, and is only needed so that the results from `fic` can include the estimate of the focus under this model.
+* `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0` below.
+If just one submodel is to be assessed, `inds` can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$. 
 
-* `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$. This should have length equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model, and contain 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should be 1 in the positions defining the narrow model as specified in `inds0` below.
-
-* `inds0` indicators for which parameters are included in the narrow model, in the same format as \code{inds}.
+* `inds0` vector of indicators for which parameters are included in the narrow model, in the same format as `inds`.
 
 * `focus` the focus function. 
 
-We can then call `fic` for each of the two models.  This returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
+* `sub` a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the results from `fic` can include the estimate of the focus under the submodels.  If just one submodel is to be assessed, this can be a single fitted model object instead of a list. 
+
+The main `fic` function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
 
 ```{r}
+inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
+              mod2 = c(1,1,1,1,1,0,0,0))
 inds0 <- c(1,1,0,0,0,0,0,0)
-inds1 <- c(1,1,1,1,0,0,0,0)
-inds2 <- c(1,1,1,1,1,0,0,0)
-fic1 <- fic(wide=wide.glm, inds=inds1, inds0=inds0, focus=focus, X=X, sub=mod1.glm)
-fic2 <- fic(wide=wide.glm, inds=inds2, inds0=inds0, focus=focus, X=X, sub=mod2.glm)
+sub <- list(mod1.glm, mod2.glm)
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
 fic1
-fic2
 ```
 
 
@@ -111,26 +111,23 @@ fic2
 TODO explain the different components of `res` 
 
 
-### Lower-level way of calling `fic` which works for any model class 
+### Calling `fic` for an unfamiliar class of models 
 
-Above, the `fic` function recognised the fitted model objects as GLMs.  But the package can be used to calculate
-focused model comparison statistics for any class of models, not just the special classes it recognises.  We can illustrate this for `mod1.glm` above by removing its `glm` class.   Calling the generic `fic` function in this case will call the "default" method `fic.default`, instead of the method `fic.glm`.  For this, we need to supply the parameter estimates $(\hat\btheta, \hat\bgamma)$ and scaled information matrix $J$.   Optionally we can also supply arguments `parsub` giving the parameter estimates under the submodel, and `gamma0` ($\gamma_0$, the special value taken by elements of $\bgamma$ that are excluded in the submodel, which defaults to 0), so that the focus estimate under the submodel can be appended to the results. 
+Above, the `fic` function recognised the fitted model objects as GLMs, that is, objects of class `"glm"` returned by the `glm()` function in base R.
+But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises.
+
+To do this, it needs to know three pieces of information about the fitted model objects.   TODO illustrate `fns` argument 
 
 ```{r}
-par <- coef(wide.glm)
-J <- solve(vcov(wide.glm))/nrow(birthwt)
-fic(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(birthwt), focus=focus, X=X, parsub=coef(mod1.glm))
 ```
 
 
 
 ### Testing an automatically-defined set of models 
 
-TODO something to make this easier?   Could go into separate vignette if this gets too long. Separate package features vs user tips.
-
-The following code creates a matrix of indicators for all possible covariate selections between the narrow and wide models.  Models with interactions but not both corresponding main effects are excluded.  Two alternative sets of names for the models are created.  
+The following code creates a matrix of indicators for all possible covariate selections between the narrow and wide models.  Models with interactions but not both corresponding main effects are then excluded.  Two alternative sets of names for the models are created.   TODO a function to do this all for you
 ```{r}
-combs <- expand.grid(age=c(0,1), smoke=c(0,1), ht=c(0,1), ui=c(0,1), smokeage=c(0,1), smokeui=c(0,1))
+combs <- expand.grid(intercept=1, lwtkg=1, age=c(0,1), smoke=c(0,1), ht=c(0,1), ui=c(0,1), smokeage=c(0,1), smokeui=c(0,1))
 combs <- as.matrix(with(combs,
                         combs[!((smoke==0 & smokeage==1) |
                                 (smoke==0 & smokeui==1) |
@@ -140,59 +137,47 @@ rownames(combs) <- apply(combs, 1, paste, collapse="")
 namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=","))
 ```
 
-The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
-
-TODO annotate this more 
-
+We can actually fit the submodels 
 
 ```{r,warning=FALSE}
 Xobs <- with(birthwt, cbind(intercpt, lwtkg))
 Zobs <- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
-
-res <- array(dim=c(nrow(X), nrow(combs), 9))
-for (i in 1:nrow(combs)){
-  XZi <- cbind(Xobs, Zobs[,which(combs[i,]==1)])
-  sub.glm <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
-  ficres <- fic(wide=wide.glm, sub=sub.glm, 
-                inds=c(1,1,combs[i,]), inds0=inds0, focus=focus, X=X)
-  res[,i,] <- ficres
+nmod <- nrow(combs)
+sub <- vector(nmod, mode="list")
+for (i in 1:nmod){
+  XZi <- cbind(Xobs, Zobs)[,which(combs[i,]==1)]
+  sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
 }
-dimnames(res) <- list(rownames(X), rownames(combs), colnames(ficres))
 ```
 
-Explain why there are NaNs.
+The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
+```{r}
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, sub=sub)
+ficres
+```
 
-Then show how to plot them. TODO condition on tidyverse as suggests packages.  TODO annotate/simplify
-TODO compare smokers vs non.  ggplot facet/grid? 
+TODO Explain why there are NaNs.
+
+Then show how to plot them. TODO condition on ggplot2.  TODO annotate/simplify.
 
 ```{r,message=FALSE}
-library(tidyverse)
+library(ggplot2)
 ```
 
 ```{r}
-ress <- as.data.frame(res["vals.smoke",,]) %>% 
-  mutate(l95 = focus - qnorm(0.975)*se,
-         u95 = focus + qnorm(0.975)*se,
-         namesfull = namesfull) %>% 
-  filter(!is.nan(rmse)) %>%
-  arrange(desc(rmse)) %>%
-  mutate(aic.rank = rank(AIC),
-         bic.rank = rank(BIC))
+ress <- within(ficres,{
+  l95 = focus - qnorm(0.975)*se
+  u95 = focus + qnorm(0.975)*se
+})
+ress <- subset(ress, !is.nan(ress$rmse))
+ress <- ress[order(ress$rmse, decreasing=TRUE),]
+ress_wide <- ress[ress$mods=="11111111",]
+wide_est <- focus(coef(wide.glm), X)
+ress$wide_est <- wide_est[match(ress$vals, rownames(wide_est))]
 
-mod_wide <-  namesfull[rowSums(combs)==ncol(combs)]
-ress_wide <- ress[ress$namesfull==mod_wide,]
-mods_exc_smoke <- c(mod_wide, 
-                    "smoke",
-                    "smoke,ui,smokeui",
-                    "age,smoke,ht,ui,smokeui",
-                    "smoke,ht,ui",
-                    "smoke,ui",
-                    "smoke,ht",
-                    "age,smoke,ht"
-                    )
-
-ps <- ress %>% filter(!namesfull %in% mods_exc_smoke) %>% 
-  ggplot(aes(x=focus, y=rmse)) +
+ps <- ggplot(ress[ress$mods!="11111111",],
+         aes(x=focus, y=rmse)) +
+  facet_grid(.~vals) + 
   xlim(0, 0.6) + 
   xlab("Probability of low birth weight") +
   ylab("Root mean square error of estimate") + 
@@ -200,23 +185,12 @@ ps <- ress %>% filter(!namesfull %in% mods_exc_smoke) %>%
   geom_segment(aes(x=l95, xend=u95, yend=rmse)) +
   geom_point(data=ress_wide, col="red") +
   geom_segment(aes(x=l95, xend=u95, yend=rmse), data=ress_wide, col="red") +
-  geom_text(aes(x=0, label=mod_wide, hjust=0), data=ress_wide, col="red", size=5) +
-  #  geom_point(aes(x = focus - bias), col="red") +
-  geom_text(aes(x=0, label=namesfull, hjust=0)) +
-  geom_vline(aes(xintercept = as.numeric(plogis(coef(wide.glm) %*% vals.smoke))),
-             col="red") +
+  geom_text(aes(x=0, label="11111111", hjust=0), data=ress_wide, col="red", size=5) +
+  geom_text(aes(x=0, label=mods, hjust=0)) +
+  geom_vline(aes(xintercept = wide_est), col="red") +
   theme(text = element_text(size=20),
         axis.text.x = element_text(size=20)) +
-  geom_text(aes(x=0.35, y= 0.08, label="Estimate from wide model", hjust=0), col="red") +
-  geom_text(aes(x=0, y=0.047, label="Models with lowest MSE", hjust=0), col="blue") +
-  geom_text(aes(x=0, y=0.085, label="Models with highest MSE", hjust=0), col="blue") +
-  geom_text(aes(x=0.55, label=aic.rank), size=4) + 
-  geom_text(data=ress_wide, aes(x=0.55, label=aic.rank), size=5, col="red") +
-  geom_text(aes(x=0.57, y=0.093, label="Ranks of:")) + 
-  geom_text(aes(x=0.55, y=0.091, label="AIC")) +
-  geom_text(aes(x=0.6, label=bic.rank), size=4) + 
-  geom_text(data=ress_wide, aes(x=0.6, label=bic.rank), size=5, col="red") +
-  geom_text(aes(x=0.6, y=0.091, label="BIC")) 
+  geom_text(aes(x=wide_est, y= 0.12, label="Estimate from wide model", hjust=0), col="red") 
 ps
 ```
 

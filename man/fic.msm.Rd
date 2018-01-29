@@ -4,28 +4,53 @@
 \alias{fic.msm}
 \title{Focused Information Criterion for multi-state models for panel data}
 \usage{
-\method{fic}{msm}(wide, sub = NULL, inds, inds0, focus = NULL,
-  focus_deriv = NULL, X = NULL, ...)
+\method{fic}{msm}(wide, inds, inds0, gamma0 = 0, focus = NULL,
+  focus_deriv = NULL, X = NULL, sub = NULL, ...)
 }
 \arguments{
 \item{wide}{Object returned by \code{\link{msm}} containing the wide model.}
-
-\item{sub}{Object returned by \code{\link{msm}} containing the submodel to be assessed.}
 
 \item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?}
 
 \item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
 
-\item{focus}{An R function whose first argument is a vector of parameters; and which returns one scalar: the focus quantity of interest.  Not required if \code{focus_deriv} is specified.
+\item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 
-Alternatively, this can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
+This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 
-\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  If not supplied, this is computed from the function supplied in \code{focus}, using numerical differentiation.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.}
 
-\item{X}{second argument of the focus function.  This will typically be a vector of covariate values.}
+\item{focus}{An R function with:
+
+\itemize{
+\item first argument named \code{par}, denoting a vector of parameters
+
+\item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
+}
+
+The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+
+Not required if \code{focus_deriv} is specified.
+
+Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
+
+\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.}
+
+\item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
+
+This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
+
+To compute focused model comparison statistics for the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative covariate values.
+
+For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+
+If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
+
+\item{sub}{Object returned by \code{\link{msm}} containing the submodel to be assessed.  Optional. Only required if you want the estimate of the focus
+function under the submodel to be included in the results.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for multi-state models fitted with msm().  This is not yet a S3 method, but will probably be made into one
+Focused information criterion for multi-state models fitted with msm().
 }

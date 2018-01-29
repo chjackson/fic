@@ -18,16 +18,8 @@
 ##' 
 ##' @export
 fic.flexsurvreg <- function(wide, inds, inds0, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, sub=NULL, ...){
-    par <- coef(wide)
-    n <- nrow(model.frame(wide)) # TODO add nobs method
-    J <- solve(vcov(wide)) / n # or use expected information, will this be more accurate?
-    res <- fic(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n,
-               focus=focus, focus_deriv=focus_deriv, 
-                parsub=coef(sub), X=X, ...)
-    if (!is.null(sub)){
-      res <- cbind(res, AIC=AIC(sub), BIC=BIC(sub))
-    }
-    res
+    flexsurvreg_fns <- list(nobs = function(x)nrow(model.frame(x)))
+    fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
+        focus=focus, focus_deriv=focus_deriv, X=X, sub=sub,
+        fns = flexsurvreg_fns, ...)
 }
-
-

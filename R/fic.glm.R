@@ -3,26 +3,13 @@
 ##' Focused information criterion for generalized linear models fitted with glm().
 ##' This can be used to compare models with different covariates.  TODO any other model selection problems?
 ##'
-##' @param wide Object returned by \code{\link{glm}} containing the wide model.
-##'
-##' @param sub Object returned by \code{\link{glm}} containing the submodel to be assessed.
-##' Optional. Only required if you want the estimate of the focus
-##' function under the submodel to be included in the results. 
-##' 
 ##' @inheritParams fic
-##' 
+##'
 ##' @export
-fic.glm <- function(wide, inds, inds0, focus=NULL, focus_deriv=NULL, X=NULL, sub=NULL, ...){
+fic.glm <- function(wide, inds, inds0, gamma0=0, focus=NULL, focus_deriv=NULL,
+                          X=NULL, sub=NULL, ...){
     if (!inherits(wide, "glm")) stop("\"wide\" must be an object of class \"glm\"")
-    par <- coef(wide)
-    n <- nobs(wide)
-    J <- solve(vcov(wide)) / n
-    res <- fic(par=par, J=J, inds=inds, inds0=inds0, n=n,
-              focus=focus, focus_deriv=focus_deriv, 
-              parsub=coef(sub), X=X, ...)
-    if (!is.null(sub)){
-      res <- cbind(res, AIC=AIC(sub), BIC=BIC(sub))
-    }
-    res
+    fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
+                focus=focus, focus_deriv=focus_deriv, X=X, sub=sub, ...)
 }
 

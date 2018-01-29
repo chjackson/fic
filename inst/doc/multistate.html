@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title></title>
+<title>Focused model comparison for covariate selection in multi-state models fitted with msm</title>
 
 <script type="text/javascript">
 window.onload = function() {
@@ -201,123 +201,93 @@ hr {
 </head>
 
 <body>
-<p>Another common model choice problem is to determine the appropriate
-level of flexibility for a parametric model.  For example, parametric
-survival modelling.  Here a series of increasingly flexible parametric
-distributions are fitted to a set of right-censored times to events. </p>
+<p>Requires the development version of msm to </p>
 
-<pre><code class="r">library(&quot;flexsurv&quot;)
-</code></pre>
+<h2>Focused model comparison for covariate selection in multi-state models fitted with msm</h2>
 
-<pre><code>## Warning: package &#39;flexsurv&#39; was built under R version 3.5.0
-</code></pre>
+<p>Example dataset in package, <code>psor</code>.  Four state progression-only model.</p>
 
-<pre><code>## Loading required package: survival
+<p>Wide model: model with two binary covariates associated with different effects for all three transition rates.</p>
+
+<pre><code class="r">library(msm)
+psor.q &lt;- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
+psor.wide.msm &lt;- msm::msm(state ~ months, subject=ptnum, data=msm::psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
+psor.wide.msm
 </code></pre>
 
 <pre><code>## 
-## Attaching package: &#39;flexsurv&#39;
-</code></pre>
-
-<pre><code>## The following object is masked from &#39;package:msm&#39;:
+## Call:
+## msm::msm(formula = state ~ months, subject = ptnum, data = msm::psor,     qmatrix = psor.q, covariates = ~ollwsdrt + hieffusn, control = list(fnscale = 1))
 ## 
-##     qgeneric
+## Maximum likelihood estimates
+## Baselines are with covariates set to their means
+## 
+## Transition intensities with hazard ratios for each covariate
+##                   Baseline                    ollwsdrt              
+## State 1 - State 1 -0.1004 (-0.12750,-0.07898)                       
+## State 1 - State 2  0.1004 ( 0.07898, 0.12750) 0.7320 (0.4258,1.2585)
+## State 2 - State 2 -0.1623 (-0.20601,-0.12789)                       
+## State 2 - State 3  0.1623 ( 0.12789, 0.20601) 0.4579 (0.2643,0.7932)
+## State 3 - State 3 -0.2607 (-0.34952,-0.19453)                       
+## State 3 - State 4  0.2607 ( 0.19453, 0.34952) 1.5757 (0.7776,3.1928)
+##                   hieffusn            
+## State 1 - State 1                     
+## State 1 - State 2 2.338 (1.0937,4.997)
+## State 2 - State 2                     
+## State 2 - State 3 1.681 (0.9500,2.975)
+## State 3 - State 3                     
+## State 3 - State 4 1.394 (0.7738,2.511)
+## 
+## -2 * log-likelihood:  1112.613 
+## [Note, to obtain old print format, use &quot;printold.msm&quot;]
 </code></pre>
 
-<pre><code class="r">ex &lt;-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
-we &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;weibull&quot;)
-gg &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;gengamma&quot;)
-</code></pre>
+<p>Focus: total length of stay in state 4 up to 10 years for people without <code>ollwsdrt</code> or <code>hieffusn</code>.</p>
 
-<p>Note that the generalized gamma reduces to the other two models
-for special values of the parameters, therefore we can
-use FIC&hellip; </p>
+<p>This requires the development version of <code>msm</code>, currently available from github.  This includes the <code>updatepars.msm</code> function for altering the point estimates from a fitted model a model to a vector of values supplied by the user.  This allows functions such as <code>totlos.msm</code> to be used, which define complicated functions of the model parameters.</p>
 
-<pre><code class="r">we2 &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;gengamma&quot;, inits=c(1,1,1), fixedpars=3)  # weibull with shape 1/sigma, scale exp(mu)
-we3 &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;gengamma&quot;, inits=c(1,1,1), fixedpars=c(2,3)) # exponential model with rate 1/exp(mu)
-</code></pre>
-
-<p>Define the wide model as the generalised gamma model.  Test Weibull,
-exponential submodels against this.</p>
-
-<p>Focus parameter is the estimated 5 year survival. </p>
-
-<pre><code class="r">library(fic)
-indmat &lt;- rbind(ggamma = c(1,1,1),
-                weib   = c(1,1,0),
-                exp    = c(1,0,0))
-gamma0 &lt;- c(1,1)
-focus &lt;- function(par){
-    pgengamma(5, par[1], exp(par[2]), par[3], lower.tail=FALSE)
+<pre><code class="r">#install_github(&quot;chjackson/msm&quot;) # if necessary 
+focus_tlos &lt;- function(pars){
+    x.new &lt;- msm::updatepars.msm(psor.wide.msm, pars)
+    msm::totlos.msm(x.new, covariates=0, t=10)[&quot;State 4&quot;]
 }
-fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus)
 </code></pre>
 
-<pre><code>##   vals   mods        FIC       rmse   rmse.adj        bias    bias.adj
-## 1    A ggamma  0.3386422 0.02122024 0.02122024  0.00000000  0.00000000
-## 2    A   weib  1.8723939 0.05182749 0.03176671 -0.04829627 -0.02464134
-## 3    A    exp 39.7557746 0.24064429 0.24115659  0.24073434  0.24073434
+<p>We assess the wide model and six further submodels.</p>
+
+<pre><code class="r">inds0 &lt;- c(1,1,1,0,0,0,0,0,0) # intercepts always included
+inds &lt;- rbind(
+    c(1,1,1,1,1,1,1,1,1),
+    c(1,1,1,0,1,1,1,1,1),
+    c(1,1,1,0,0,1,1,1,1),
+    c(1,1,1,0,0,0,1,1,1),
+    c(1,1,1,0,0,0,0,1,1),
+    c(1,1,1,0,0,0,0,0,1),
+    c(1,1,1,0,0,0,0,0,0))
+fic(wide=psor.wide.msm, inds=inds, inds0=inds0, focus=focus_tlos)
+</code></pre>
+
+<pre><code>##   vals mods      FIC       rmse  rmse.adj          bias      bias.adj
+## 1    A    1 5.735999 0.12595943 0.1259594 -2.095787e-17 -1.804524e-17
+## 2    A    2 5.235032 0.12144973 0.1197090 -4.421893e-02  0.000000e+00
+## 3    A    3 9.853610 0.15822896 0.1521346 -1.165617e-01 -9.740202e-02
+## 4    A    4 4.771357 0.11712111 0.1143717 -7.138451e-02 -2.893414e-02
+## 5    A    5 2.270819 0.09026753 0.1086252 -2.037505e-02  0.000000e+00
+## 6    A    6 1.674484 0.08258382 0.1053649  2.196226e-02  0.000000e+00
+## 7    A    7 1.547294 0.08085056 0.1136853  5.870340e-02  5.870340e-02
 ##           se
-## 1 0.02122024
-## 2 0.02004816
-## 3 0.01426446
+## 1 0.12595943
+## 2 0.11970903
+## 3 0.11686649
+## 4 0.11065122
+## 5 0.10862519
+## 6 0.10536490
+## 7 0.09735631
 </code></pre>
 
-<p>Wide GG model fits best.</p>
+<p>Very small biases in all cases.  RMSE goes down with the variance as covariates are omitted.</p>
 
-<p>(note this doesn&#39;t work with generalized F, as parameter P=0 defining generalized gamma special case is on the boundary)</p>
-
-<p>What if simulate small dataset from exponential?  Would a simpler model be better? </p>
-
-<pre><code class="r">set.seed(1)
-y &lt;- rexp(100); cen &lt;- rep(1,100)
-gge &lt;- flexsurvreg(Surv(y, cen) ~ 1, dist=&quot;gengamma&quot;)
-focus &lt;- function(par){
-    pgengamma(1, par[1], exp(par[2]), par[3], lower.tail=FALSE)
-}
-gge
-</code></pre>
-
-<pre><code>## Call:
-## flexsurvreg(formula = Surv(y, cen) ~ 1, dist = &quot;gengamma&quot;)
-## 
-## Estimates: 
-##        est      L95%     U95%     se     
-## mu     -0.0686  -0.3618   0.2245   0.1496
-## sigma   0.9044   0.7661   1.0677   0.0766
-## Q       0.6579   0.1628   1.1529   0.2526
-## 
-## N = 100,  Events: 100,  Censored: 0
-## Total time at risk: 103.0676
-## Log-likelihood = -100.2533, df = 3
-## AIC = 206.5065
-</code></pre>
-
-<pre><code class="r">focus(coef(gge))
-</code></pre>
-
-<pre><code>## [1] 0.3833288
-</code></pre>
-
-<pre><code class="r">rbind(
-    ggamma  = fic(gge, inds=indmat[1,], inds0=indmat[3,], gamma0=gamma0, focus=focus),
-    weibull = fic(gge, inds=indmat[2,], inds0=indmat[3,], gamma0=gamma0, focus=focus),
-    exp     = fic(gge, inds=indmat[3,], inds0=indmat[3,], gamma0=gamma0, focus=focus)
-)
-</code></pre>
-
-<pre><code>##         vals mods        FIC       rmse   rmse.adj        bias    bias.adj
-## ggamma     A    1 0.05956647 0.04207849 0.04207849  0.00000000  0.00000000
-## weibull    A    1 0.05535489 0.04157504 0.03893240  0.02162454  0.00000000
-## exp        A    1 0.64375618 0.08724962 0.08894003 -0.08023442 -0.08023442
-##                 se
-## ggamma  0.04207849
-## weibull 0.03893240
-## exp     0.03837665
-</code></pre>
-
-<p>Weibull has smaller error than exponential, surprisingly.
-Is this because we assume the GG model is true? </p>
+<p>I guess because these covariates are not strongly associated with transition rates. </p>
 
 </body>
 
