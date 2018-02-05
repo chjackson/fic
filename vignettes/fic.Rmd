@@ -17,7 +17,7 @@ bibliography: fic.bib
 
 This is a brief tutorial in the "focused" model comparison methods developed by Claeskens and Hjort.
 
-These can be implemented in the fic R package. 
+These can be implemented in the `fic` R package. 
 
 The method originates from the paper by @fic , and is developed further in the book by @claeskens:hjort:book , and a series of related papers. 
 
@@ -47,7 +47,7 @@ However both of these methods select one "best fitting" model for a given datase
 
 Suppose the range of models we are willing to use is bounded by 
 
-* a *wide model* in which all models we would use are nested
+* a *wide model*, in which all models we would use are nested
 
 * a *narrow model*, the smallest model we are willing to use
 

@@ -11,8 +11,6 @@ Description: The Focused Information Criterion and related methods for model sel
 Maintainer: Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
 Imports:
     numDeriv
-Enhances:
-    stats,msm,survival,flexsurv
 URL: https://github.com/chjackson/fic
 BugReports: https://github.com/chjackson/fic/issues
 License: GPL-3
@@ -22,5 +20,9 @@ RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown,
     testthat,
-    ggplot2
+    ggplot2,
+    stats,
+    msm(>= 1.6.6),
+    survival,
+    flexsurv
 VignetteBuilder: knitr

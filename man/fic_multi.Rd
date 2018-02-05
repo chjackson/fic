@@ -42,7 +42,12 @@ Not required if \code{focus_deriv} is specified.
 
 Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
 
-\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.}
+\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic.core}.
+
+If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
+
+This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
+For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
 
 \item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
 
@@ -58,12 +63,7 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel.
 Only required to return the estimate of the focus quantity alongside 
-the model assessment statistics for the submodel. If omitted, the estimate is omitted.
-
-If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
-
-This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
-For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
+the model assessment statistics for the submodel. If omitted, the estimate is omitted.}
 }
 \value{
 See \code{\link{fic}}

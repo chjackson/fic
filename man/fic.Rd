@@ -53,7 +53,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{sub}{List of fitted model objects for each submodel to be assessed, or alternatively, the model object for a single submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.}
+\item{sub}{List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.}
 
 \item{fns}{Named list of functions to extract the quantities from the fitted model object that are required for the FIC calculation.  By default this is
 

@@ -21,7 +21,7 @@ survival modelling.  Here a series of increasingly flexible parametric
 distributions are fitted to a set of right-censored times to events. 
 
 ```{r}
-library("flexsurv")
+if (!require("flexsurv")) stop("The `flexsurv` package should be installed to run code in this vignette") 
 ex <-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="exponential")
 we <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="weibull")
 gg <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma")
@@ -39,21 +39,31 @@ we3 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", inits=c(
 Define the wide model as the generalised gamma model.  Test Weibull,
 exponential submodels against this.
 
-Focus parameter is the estimated 5 year survival. 
+Focus parameter is the expected survival over 8 years (the "restricted mean" survival). 
 
 ```{r}
 library(fic)
 indmat <- rbind(ggamma = c(1,1,1),
                 weib   = c(1,1,0),
                 exp    = c(1,0,0))
-gamma0 <- c(1,1)
+gamma0 <- c(0,1)
 focus <- function(par){
-    pgengamma(5, par[1], exp(par[2]), par[3], lower.tail=FALSE)
+    rmst_gengamma(8, par[1], exp(par[2]), par[3])
 }
-fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus)
+fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus, sub=list(gg, we2, we3))
 ```
 
 Wide GG model fits best.
+
+```{r}
+focus(coef(gg))
+focus(coef(we2))
+focus(coef(we3))
+```
+
+TODO check gamma0 on the right scale here, and explain a bit more.
+also explain focus maps pars on real line scale, coef method returns pars on real line scale.
+
 
 (note this doesn't work with generalized F, as parameter P=0 defining generalized gamma special case is on the boundary)
 
@@ -78,3 +88,4 @@ rbind(
 Weibull has smaller error than exponential, surprisingly.
 Is this because we assume the GG model is true? 
 
+This would be nive with 

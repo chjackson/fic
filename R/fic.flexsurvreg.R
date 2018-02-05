@@ -18,7 +18,15 @@
 ##' 
 ##' @export
 fic.flexsurvreg <- function(wide, inds, inds0, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, sub=NULL, ...){
-    flexsurvreg_fns <- list(nobs = function(x)nrow(model.frame(x)))
+    coef_fn = function(x){
+        if (!is.null(x$fixedpars))
+            coef(x)[-x$fixedpars]
+        else coef(x)
+    }
+    flexsurvreg_fns <- list(
+        coef = coef_fn,
+        nobs = function(x)nrow(model.frame(x))
+    )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
         focus=focus, focus_deriv=focus_deriv, X=X, sub=sub,
         fns = flexsurvreg_fns, ...)

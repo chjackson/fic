@@ -1,5 +1,5 @@
 ## ------------------------------------------------------------------------
-library("flexsurv")
+if (!require("flexsurv")) stop("The `flexsurv` package should be installed to run code in this vignette") 
 ex <-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="exponential")
 we <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="weibull")
 gg <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma")
@@ -13,11 +13,16 @@ library(fic)
 indmat <- rbind(ggamma = c(1,1,1),
                 weib   = c(1,1,0),
                 exp    = c(1,0,0))
-gamma0 <- c(1,1)
+gamma0 <- c(0,1)
 focus <- function(par){
-    pgengamma(5, par[1], exp(par[2]), par[3], lower.tail=FALSE)
+    rmst_gengamma(8, par[1], exp(par[2]), par[3])
 }
-fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus)
+fic(gg, inds=indmat, inds0=indmat[3,], gamma0=gamma0, focus=focus, sub=list(gg, we2, we3))
+
+## ------------------------------------------------------------------------
+focus(coef(gg))
+focus(coef(we2))
+focus(coef(we3))
 
 ## ------------------------------------------------------------------------
 set.seed(1)

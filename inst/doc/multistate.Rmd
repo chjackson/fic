@@ -10,12 +10,10 @@ output:
 vignette: >
  %\VignetteIndexEntry{Using the fic R package for focused model comparison: multi-state models}
  %\VignetteEngine{knitr::rmarkdown}
- %\VignetteDepends{fic,ggplot2}
+ %\VignetteDepends{fic,ggplot2,msm}
  %\VignetteEncoding{UTF-8}
 bibliography: fic.bib
 ---
-
-Requires the development version of msm to 
 
 ## Focused model comparison for covariate selection in multi-state models fitted with msm 
 
@@ -24,21 +22,20 @@ Example dataset in package, `psor`.  Four state progression-only model.
 Wide model: model with two binary covariates associated with different effects for all three transition rates.
 
 ```{r}
-library(msm)
+if (!require("msm")) stop("The `msm` package should be installed to run code in this vignette") 
 psor.q <- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
-psor.wide.msm <- msm::msm(state ~ months, subject=ptnum, data=msm::psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
+psor.wide.msm <- msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
 psor.wide.msm
 ```
 
-Focus: total length of stay in state 4 up to 10 years for people without `ollwsdrt` or `hieffusn`.
+This requires version 1.6.6 of `msm`, available from CRAN since 3 Feb 2017.  This version introduced the `updatepars.msm` function for altering the point estimates from a fitted model a model to a vector of values supplied by the user.  This allows functions such as `totlos.msm` to be used, which define complicated functions of the model parameters.
 
-This requires the development version of `msm`, currently available from github.  This includes the `updatepars.msm` function for altering the point estimates from a fitted model a model to a vector of values supplied by the user.  This allows functions such as `totlos.msm` to be used, which define complicated functions of the model parameters.
+Here we use this to define a focus function, which returns the expected total time spent in state 4 over 10 years for people without `ollwsdrt` or `hieffusn`, given a vector of parameters `pars` in the model structure `psor.wide.msm`. 
 
 ```{r}
-#install_github("chjackson/msm") # if necessary 
 focus_tlos <- function(pars){
-    x.new <- msm::updatepars.msm(psor.wide.msm, pars)
-    msm::totlos.msm(x.new, covariates=0, t=10)["State 4"]
+    x.new <- updatepars.msm(psor.wide.msm, pars)
+    totlos.msm(x.new, covariates=0, t=10)["State 4"]
 }
 ```
 

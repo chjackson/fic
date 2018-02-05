@@ -37,7 +37,8 @@
 * Alternative losses.  Prediction of an event
 
 * Error handling for all functions
-
+  - can narrow model parameters be in the middle? 
+  
 * testthat tests
 
 * Vignette + paper
