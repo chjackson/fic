@@ -18,7 +18,7 @@
 
 This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 
-This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
 \item{focus}{An R function with:
 

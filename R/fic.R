@@ -35,7 +35,7 @@ fic_core <- function(
     qq <- sum(inds0==0)  # maximum number of "extra" covariates
     
     if ((length(gamma0) != 1) && (length(gamma0) != qq))
-        stop(sprintf("`gamma0` of length %d, but `inds0` has %d non-zero entries.\nLength of gamma0 must either be 1 or match the number of non-zero entries of `inds0`", length(gamma0), qq))
+        stop(sprintf("`gamma0` of length %d, but `inds0` has %d zero entries.\nLength of gamma0 must either be 1 or match the number of zero entries of `inds0`", length(gamma0), qq))
 
     i0 <- which(inds0==1)
     indsS <- inds[inds0==0]
@@ -279,9 +279,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' @param wide Fitted model object containing the wide model.
 ##'
-##' @param sub List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.
-##'
-##' @param inds matrix or vector of indicators for which parameters are included in the submodel or submodels.
+##' @param inds matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 ##'
 ##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.
 ##'
@@ -291,7 +289,7 @@ get_ics <- function(sub, fns){
 ##' 
 ##' This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 ##'
-##' This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.
+##' This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.
 ##' 
 ##'
 ##' @param focus An R function with:
@@ -319,6 +317,8 @@ get_ics <- function(sub, fns){
 ##' For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
 ##'
 ##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
+##'
+##' @param sub List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.
 ##'
 ##' @param fns Named list of functions to extract the quantities from the fitted model object that are required for the FIC calculation.  By default this is
 ##'

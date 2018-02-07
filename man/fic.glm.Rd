@@ -10,7 +10,7 @@
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}
 
-\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels.
+\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
 A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.}
 
@@ -20,7 +20,7 @@ A matrix should be supplied if multiple submodels are to be assessed.  This shou
 
 This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 
-This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
 \item{focus}{An R function with:
 

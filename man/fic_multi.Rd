@@ -24,7 +24,7 @@ fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
 
 This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
 
-This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of non-zero entries of inds0.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
 \item{n}{Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity?}
 
