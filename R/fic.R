@@ -35,7 +35,7 @@ fic_core <- function(
     qq <- sum(inds0==0)  # maximum number of "extra" covariates
     
     if ((length(gamma0) != 1) && (length(gamma0) != qq))
-        stop(sprintf("`gamma0` of length %d, but `inds0` has %d zero entries.\nLength of gamma0 must either be 1 or match the number of zero entries of `inds0`", length(gamma0), qq))
+        stop(sprintf("`gamma0` of length %d, but `inds0` has %d entries which are zero.\nLength of gamma0 must either be 1 or match the number of entries of `inds0` which are zero", length(gamma0), qq))
 
     i0 <- which(inds0==1)
     indsS <- inds[inds0==0]
