@@ -1,0 +1,130 @@
+---
+title: "Using the fic R package for focused model comparison: skew-normal models"
+date: "`r Sys.Date()`"
+author: Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
+output: 
+  html_document: 
+    includes:
+      before_body: fic.sty
+  code_folding: show
+vignette: >
+ %\VignetteIndexEntry{Using the fic R package for focused model comparison: skew-normal models}
+ %\VignetteEngine{knitr::rmarkdown}
+ %\VignetteDepends{fic,ggplot2}
+ %\VignetteEncoding{UTF-8}
+bibliography: fic.bib
+---
+
+
+Illustrates focused model comparison for a novel class of models. 
+
+This needs narrow model pars to be in the middle! 
+
+Mixture of covariate selection and flexibility selection.  Covariate coefficients are subset of model parameters 
+
+
+
+```{r}
+
+library(sn)
+data(ais)
+plot(density(ais$Hc))
+plot(ais$BMI, ais$Hc, pch=19)
+
+ldsnorm <- function(x, mean, sd, skew){
+    log(skew) + (skew-1)*pnorm(x, mean, sd, log=TRUE) + dnorm(x, mean, sd, log=TRUE)
+}
+
+mloglik <- function(b0, b1, sd, skew){
+    ret <- -sum(ldsnorm(ais$Hc, b0 + b1*ais$BMI, sd, skew))
+    ret
+}
+
+snlm <- function(reg=FALSE, skew=FALSE){
+    inilm <- lm(Hc ~ BMI, data=ais)
+    ini <- c(coef(inilm), log(summary(inilm)$sigma), 0)
+    if (!reg && !skew){
+        ini <- ini[c(1,3)]
+        fn <- function(par) mloglik(par[1], 0, exp(par[2]), 1)
+    } else if (reg && !skew){
+        ini <- ini[c(1,2,3)]
+        fn <- function(par) mloglik(par[1], par[2], exp(par[3]), 1)
+    } else if (!reg && skew){
+        ini <- ini[c(1,3,4)]
+        fn <- function(par) mloglik(par[1], 0, exp(par[2]), exp(par[3]))
+    } else if (reg && skew){
+        fn <- function(par) mloglik(par[1], par[2], exp(par[3]), exp(par[4]))
+    }
+    opt <- nlm(fn, ini, hessian=TRUE)
+    vcov <- solve(opt$hessian)
+    list(loglik=-opt$minimum, est=opt$estimate, vcov=vcov, nobs=nrow(ais))
+}
+
+```
+
+Four models 
+
+1. constant mean, constant variance, standard normal error 
+
+2. linear regression, no skewness ie standard normal error 
+
+3. no regression term, skewed error 
+
+4. linear regression term, skewed error 
+
+
+```{r}
+
+
+(mod1 <- snlm(reg=FALSE, skew=FALSE))
+(mod2 <- snlm(reg=TRUE, skew=FALSE))
+(mod3 <- snlm(reg=FALSE, skew=TRUE))
+(mod4 <- snlm(reg=TRUE, skew=TRUE))
+
+
+```
+
+
+## Mean at particular cov value, shouldn't need skewness to be known. 
+
+
+```{r}
+
+focus <- function(par, X){
+    X %*% par[1:2]
+}
+
+fns <- list(coef=function(x)x$est,
+            vcov=function(x)x$vcov,
+            nobs=function(x)x$nobs)
+
+med.bmi <- rbind(male=c(1, 23.56), female=c(1, 21.82))
+
+inds <- rbind(c(1,0,1), c(1,1,1))
+fic(mod2, inds=inds, inds0=c(1,0,1), fns=fns, focus=focus, X=med.bmi,
+    sub=list(mod1, mod2))
+
+
+
+```
+
+models 3 and 4 have worse FIC, rmse as expected 
+FIC values here near those in book but not exactly
+MLEs are the same, but book states
+xbar - x  =  mean(ais$BMI) - 21.82 which is not 1.141 for females as stated in book 
+presumably also algebraic vs numeric calculations somewhere, e.g. info matrix?
+
+
+## Median at particular cov value, skewness may affect this. should pick biggest model. 
+
+## Third central moment -- pick skewed model if degree of skewness sufficiently big 
+
+
+todo should the focus function (mean) involve the error term for skew models?
+
+```{r}
+
+inds <- rbind(c(1,0,1,0), c(1,1,1,0), c(1,0,1,1), c(1,1,1,1))
+
+
+```

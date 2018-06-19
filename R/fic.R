@@ -13,17 +13,10 @@ fic_core <- function(
                        n,
                        focus = NULL,
                        focus_deriv = NULL,
-                       X = NULL, 
                        ...
                        ) 
 {
     npar <- length(par)
-    if (!is.numeric(inds0)) 
-        stop("`inds0` must be numeric")
-    if (!is.vector(inds0))
-        stop("`inds0` must be a vector")
-    if (length(inds0) != npar)
-        stop(sprintf("`inds0` of length %d, but model has %d parameters.\nLength of `inds0` must match number of parameters", length(inds0), npar))
     if (!is.matrix(J) || (nrow(J)!=ncol(J)))
         stop("`J` must be a square matrix")
     if (!is.numeric(J))
@@ -31,8 +24,8 @@ fic_core <- function(
     if (nrow(J) != npar)
         stop(sprintf("`J` has %d rows and columns, but there are %d parameters.\n`J` must have number of rows and columns equal to the number of parameters", nrow(J), npar))
 
-    pp <- sum(inds0)
-    qq <- sum(inds0==0)  # maximum number of "extra" covariates
+    pp <- sum(inds0)     # number of parameters in narrow model
+    qq <- sum(inds0==0)  # maximum number of "extra" parameters
     
     if ((length(gamma0) != 1) && (length(gamma0) != qq))
         stop(sprintf("`gamma0` of length %d, but `inds0` has %d entries which are zero.\nLength of gamma0 must either be 1 or match the number of entries of `inds0` which are zero", length(gamma0), qq))
@@ -47,18 +40,18 @@ fic_core <- function(
 
     gamma0 <- rep(gamma0, length.out = qq) # TODO error checking 
     deltahat <- sqrt(n)*(par[-i0] - gamma0)
-    J00 <- J[i0, i0]
-    J10 <- J[-i0, i0]
-    J01 <- J[i0,-i0]
-    J11 <- J[-i0,-i0]
+    J00 <- J[i0, i0, drop=FALSE]
+    J10 <- J[-i0, i0, drop=FALSE]
+    J01 <- J[i0,-i0, drop=FALSE]
+    J11 <- J[-i0,-i0, drop=FALSE]
     invJ <- solve(J)
-    Q <- invJ[-i0,-i0]   # using book notation.  called K in original code.
-    
-    dmudtheta <- focus_deriv[i0,]
-    tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
-    dmudgamma <- focus_deriv[pp + seq_len(qq),]
+    Q <- invJ[-i0,-i0, drop=FALSE]   # using book notation.  called K in original code.
 
-    omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m 
+    dmudtheta <- focus_deriv[i0,,drop=FALSE]
+    tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
+    dmudgamma <- focus_deriv[-i0,,drop=FALSE]
+
+    omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m, where m is number of alternative focuses (typically covariate values)
     psi.full <- t(omega) %*% deltahat # m x 1
 
     if (sum(indsS) > 0) { 
@@ -111,9 +104,11 @@ fic_core <- function(
 
 
 check_inds <- function(inds, npar){
-    if (!is.numeric(inds)) stop("`inds` must be numeric")
-    if (!(is.vector(inds) || is.matrix(inds)))
-        stop("`inds` must be a vector or a matrix")
+    if (!(is.vector(inds) || is.matrix(inds) || is.data.frame(inds)))
+        stop("`inds` must be a vector, matrix or data frame")
+    if (is.data.frame(inds))
+        inds <- as.matrix(inds)
+    if (!is.numeric(inds)) stop("`inds` must contain only numeric elements")
     if (is.vector(inds)){
         if (length(inds) != npar)
             stop(sprintf("`inds` of length %d, but model has %d parameters.\nLength of vector `inds` must match number of parameters", length(inds), npar))
@@ -126,6 +121,19 @@ check_inds <- function(inds, npar){
     inds
 }
 
+check_inds0 <- function(inds0, inds, npar){
+    if (is.null(inds0)){
+        inds0 <- inds[1,]
+    } else { 
+        if (!is.numeric(inds0)) 
+            stop("`inds0` must be numeric")
+        if (!is.vector(inds0))
+            stop("`inds0` must be a vector")
+        if (length(inds0) != npar)
+            stop(sprintf("`inds0` of length %d, but model has %d parameters.\nLength of `inds0` must match number of parameters", length(inds0), npar))
+    }
+    inds0
+}
 
 ##' Focused Information Criterion: core calculation functions
 ##'
@@ -136,7 +144,7 @@ check_inds <- function(inds, npar){
 ##' 
 ##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.
 ##'
-##' @param inds Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.
+##' @param inds Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX 
 ##'
 ##' @param n Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity? 
 ##'
@@ -181,21 +189,39 @@ fic_multi <- function(
         if (!is.numeric(X)) stop("`X` must be numeric")
         if (!(is.vector(X) || is.matrix(X))) stop("X must be a vector or a matrix")
         if (is.vector(X)) {
+            if (length(X) > npar)
+                stop("length of X is %s, this should be at most the number of parameters, %s", length(X), npar)
             X <- matrix(X, nrow=1)
             nval <- 1
             ncoef <- length(X)
         } else {
             nval <- nrow(X)
             ncoef <- ncol(X)
+            if (ncoef > npar)
+                stop(sprintf("Number of columns of X is %s, this should be at most the number of parameters, %s", ncoef, npar))
         }
         if (is.null(rownames(X))) rownames(X) <- seq_len(nrow(X))
-    } else nval <- 1
+    } else {
+        nval <- 1
+        ncoef <- 1
+    }
 
     outn <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
 
     if (!is.null(parsub)) {
-        ## TODO more error checks
         if (!is.numeric(parsub)) stop("`parsub` must be numeric")
+        if (!is.matrix(parsub)) {
+            if (length(parsub) != npar)
+                stop("parsub of length ", length(parsub), ", should be ", npar, ", the number of parameters in the wide model")
+            if (nmod != 1)
+                stop("parsub is a vector, should be a matrix with number of columns equal to ", nmod, ", the number of models being assessed")
+            parsub <- matrix(parsub, nrow=1)
+        } else {
+            if (ncol(parsub) != npar)
+                stop("Number of columns of parsub is ", ncol(parsub), ", should be ", npar, ", the number of parameters in the wide model")
+            if (nrow(parsub) != nmod)
+                stop("Number of rows of parsub is ", nrow(parsub), ", should be ", nmod, ", the number of models being assessed")                
+        }
         outn <- c(outn, "focus")
     }
    
@@ -203,6 +229,7 @@ fic_multi <- function(
     fl <- get_focus(focus, focus_deriv, par, X, ...)
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
+
     if (!is.function(focus)) stop("`focus` must be a function")
     if(is.null(focus_deriv)){
       ncols <- if(is.null(X)) 1 else nrow(X)
@@ -232,29 +259,45 @@ fic_multi <- function(
 get_fns <- function(fns){
     args <- c("coef","nobs","vcov","AIC","BIC")
     default_fns <- list(
-        coef = coef,
-        nobs = nobs,
-        vcov = vcov,
-        AIC = AIC,
-        BIC = BIC
+        coef = stats::coef,
+        nobs = stats::nobs,
+        vcov = stats::vcov,
+        AIC = stats::AIC,
+        BIC = stats::BIC
     )
     ret <- default_fns
-### TODO error checking. must be list of functions, names must be in args 
     if (!is.null(fns)){
-        for (i in names(fns))
-            ret[i] <- fns[i]
+        if (!is.list(fns)) stop("`fns` must be a list of functions")
+        badnames <- setdiff(names(fns), args)
+        if (length(badnames) > 0){
+            badnamestr <- paste0("\"", paste(badnames, collapse="\",\""), "\"")
+            goodnamestr <- paste0("\"", paste(args, collapse="\",\""), "\"")
+            stop(sprintf("`fns` has components named %s. Names should include one or more of %s", badnamestr, goodnamestr))
+        }
+
+        for (i in names(fns)){
+            if (!is.function(fns[[i]])) stop(sprintf("component of `fns` named \"%s\" should be a function", i))
+            ret[[i]] <- fns[[i]]
+        }
     }
     ret
 }
 
-get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn){
+get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
     if (is.null(sub))
         parsub <- NULL
     else {
-        ## todo error checking for sub of correct form
+        ## TODO error checking for sub of correct form
+        ## Should have same class as wide model
         nmod <- length(sub)
         parsub <- array(dim=c(nmod, npar))
+        if (!is.list(sub[[1]])) stop("`sub` should be a list of fitted model objects. A list of lists is expected here. Did you supply a single fitted model?")
+        if (nmod != nrow(inds)){
+            stop(sprintf("`sub` of length %s, should be %s, the same as the number of rows of `inds`", nmod, nrow(inds)))
+        }
         for (i in 1:nmod){
+            if (!identical(class(sub[[i]]), class(wide)))
+                stop(sprintf("submodel %s of class %s, should be %s, the same class as `wide`", i, class(sub[[i]])[1], class(wide)[1]))
             parsub[i,inds0==0] <- gamma0
             parsub[i,inds[i,]==1] <- coef_fn(sub[[i]])
         }
@@ -283,7 +326,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.
 ##'
-##' @param inds0 Specification of narrow model, in the same format as \code{inds}.  TODO error checking
+##' @param inds0 Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.
 ##'
 ##' @param gamma0 Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 ##' 
@@ -359,7 +402,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' \item{FIC}{The focused information criterion (equation 6.1). }
 ##'
-##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7).}
+##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7, but square rooted and divided by \eqn{sqrt{n}}), }
 ##'
 ##' \item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
 ##'
@@ -380,16 +423,22 @@ get_ics <- function(sub, fns){
 ##'
 ##' @rdname fic
 ##' @export
-fic.default <- function(wide, inds, inds0, gamma0=0, 
+fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
                       X=NULL, sub=NULL, fns=NULL,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
-    par <- fns$coef(wide)
-    n <- fns$nobs(wide)
-    J <- solve(fns$vcov(wide)) / n
+    res <- try({
+        par <- fns$coef(wide)
+        n <- fns$nobs(wide)
+        J <- solve(fns$vcov(wide)) / n
+    })
+    if (inherits(res, "try-error") &&
+        isTRUE(grep("no applicable method", attr(res, "condition")$message)==1))
+        stop("check that the `fns` argument is specified correctly")
     inds <- check_inds(inds, length(par))
-    parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef)
+    inds0 <- check_inds0(inds0, inds, length(par))
+    parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef, wide)
     res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
               focus=focus, focus_deriv=focus_deriv, 
               parsub=parsub, X=X, ...)
@@ -406,5 +455,5 @@ fic.default <- function(wide, inds, inds0, gamma0=0,
 fic <- function(x,...) UseMethod("fic")
 
 FIC <- fic
-fic_multi <- fic_multi
-fic_core <- fic_core
+FIC_multi <- fic_multi
+FIC_core <- fic_core

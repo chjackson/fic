@@ -1,7 +1,9 @@
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, data=birthwt, family=binomial)
+mod1.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family=binomial)
 inds0 <- c(1,1,0,0,0,0,0,0)
 inds1 <- c(1,1,1,1,0,0,0,0)
-focus <- function(par, X)plogis(X %*% par)
+focus_plogis <- function(par, X)plogis(X %*% par)
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind(vals.smoke, vals.nonsmoke)
+

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk" />
 
-<meta name="date" content="2018-02-05" />
+<meta name="date" content="2018-06-19" />
 
 <title>Using the fic R package for focused model comparison: survival analysis</title>
 
@@ -277,6 +277,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -311,14 +314,22 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Using the fic R package for focused model comparison: survival analysis</h1>
 <h4 class="author"><em>Chris Jackson <a href="mailto:chris.jackson@mrc-bsu.cam.ac.uk">chris.jackson@mrc-bsu.cam.ac.uk</a></em></h4>
-<h4 class="date"><em>2018-02-05</em></h4>
+<h4 class="date"><em>2018-06-19</em></h4>
 
 </div>
 
 
 <p>Another common model choice problem is to determine the appropriate level of flexibility for a parametric model. For example, parametric survival modelling. Here a series of increasingly flexible parametric distributions are fitted to a set of right-censored times to events.</p>
-<pre class="r"><code>if (!require(&quot;flexsurv&quot;)) stop(&quot;The `flexsurv` package should be installed to run code in this vignette&quot;) 
-ex &lt;-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
+<pre class="r"><code>if (!require(&quot;flexsurv&quot;)) stop(&quot;The `flexsurv` package should be installed to run code in this vignette&quot;) </code></pre>
+<pre><code>## Loading required package: flexsurv</code></pre>
+<pre><code>## Warning: package 'flexsurv' was built under R version 3.5.0</code></pre>
+<pre><code>## Loading required package: survival</code></pre>
+<pre><code>## 
+## Attaching package: 'flexsurv'</code></pre>
+<pre><code>## The following object is masked from 'package:msm':
+## 
+##     qgeneric</code></pre>
+<pre class="r"><code>ex &lt;-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
 we &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;weibull&quot;)
 gg &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;gengamma&quot;)</code></pre>
 <p>Note that the generalized gamma reduces to the other two models for special values of the parameters, therefore we can use FIC…</p>
@@ -389,7 +400,14 @@ gge</code></pre>
 ## weibull 0.011956427 0.03893240
 ## exp     0.007927558 0.03837665</code></pre>
 <p>Weibull has smaller error than exponential, surprisingly. Is this because we assume the GG model is true?</p>
-<p>This would be nive with</p>
+<div id="alternative-focuses" class="section level2">
+<h2>alternative focuses</h2>
+<p>e.g. hazard ratio, cumulative hazard.</p>
+<p>Refer to Cox regression</p>
+</div>
+<div id="survreg-package-todo" class="section level2">
+<h2>survreg package TODO</h2>
+</div>
 
 
 

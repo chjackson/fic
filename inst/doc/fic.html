@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk" />
 
-<meta name="date" content="2018-02-05" />
+<meta name="date" content="2018-06-19" />
 
 <title>Theory of focused model comparison</title>
 
@@ -277,6 +277,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -311,27 +314,27 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Theory of focused model comparison</h1>
 <h4 class="author"><em>Chris Jackson <a href="mailto:chris.jackson@mrc-bsu.cam.ac.uk">chris.jackson@mrc-bsu.cam.ac.uk</a></em></h4>
-<h4 class="date"><em>2018-02-05</em></h4>
+<h4 class="date"><em>2018-06-19</em></h4>
 
 </div>
 
 
 <p>This is a brief tutorial in the “focused” model comparison methods developed by Claeskens and Hjort.</p>
 <p>These can be implemented in the <code>fic</code> R package.</p>
-<p>The method originates from the paper by <span class="citation" data-cites="fic">Claeskens and Hjort (2003)</span> , and is developed further in the book by <span class="citation" data-cites="claeskens:hjort:book">Claeskens and Hjort (2008)</span> , and a series of related papers.</p>
-<section id="some-familiar-model-comparison-methods" class="level1">
+<p>The method originates from the paper by <span class="citation">Claeskens and Hjort (2003)</span> , and is developed further in the book by <span class="citation">Claeskens and Hjort (2008)</span> , and a series of related papers.</p>
+<div id="some-familiar-model-comparison-methods" class="section level1">
 <h1>Some familiar model comparison methods</h1>
-<p>For comparing a set of models fitted by maximum likelihood, it is common to rank the models according to some “criterion”. For example, Akaike’s information criterion (AIC, <span class="citation" data-cites="aic">Akaike (1973)</span>) takes the form</p>
+<p>For comparing a set of models fitted by maximum likelihood, it is common to rank the models according to some “criterion”. For example, Akaike’s information criterion (AIC, <span class="citation">Akaike (1973)</span>) takes the form</p>
 <p><span class="math display">\[ -2\log \ell(\hat\theta ; \mathbf{x}) + 2p \]</span> where <span class="math inline">\(\ell(\hat\theta ; \mathbf{x})\)</span> is the maximised likelihood for the model fitted to the dataset <span class="math inline">\(\mathbf{x}\)</span>, the likelihood is maximised at parameters <span class="math inline">\(\hat\theta\)</span>, and <span class="math inline">\(p\)</span> is the number of parameters.</p>
-<p>The Bayesian information criterion (BIC, <span class="citation" data-cites="schwarz">Schwarz (1978)</span>) is</p>
+<p>The Bayesian information criterion (BIC, <span class="citation">Schwarz (1978)</span>) is</p>
 <p><span class="math display">\[ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) \]</span></p>
 <p>These two criteria are based on very different principles. Thus they often rank models differently.</p>
 <p>The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.</p>
-<p>BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see <span class="citation" data-cites="kass:wasserman">Kass and Wasserman (1995)</span> ). If there is a “true” model, the BIC will select it “consistently” as the sample size increases. In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data - in which case AIC may be more suitable.</p>
-<p>See e.g. <span class="citation" data-cites="burnham:anderson:book">Burnham and Anderson (2003)</span>, <span class="citation" data-cites="claeskens:hjort:book">Claeskens and Hjort (2008)</span> for more theory behind these criteria.</p>
+<p>BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see <span class="citation">Kass and Wasserman (1995)</span> ). If there is a “true” model, the BIC will select it “consistently” as the sample size increases. In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data - in which case AIC may be more suitable.</p>
+<p>See e.g. <span class="citation">Burnham and Anderson (2003)</span>, <span class="citation">Claeskens and Hjort (2008)</span> for more theory behind these criteria.</p>
 <p>However both of these methods select one “best fitting” model for a given dataset. But that might not always be appropriate. Different models may be better for different purposes. This is the idea behind “focused” model comparison.</p>
-</section>
-<section id="focused-model-comparison-principles." class="level1">
+</div>
+<div id="focused-model-comparison-principles." class="section level1">
 <h1>Focused model comparison: principles.</h1>
 <p>Suppose the range of models we are willing to use is bounded by</p>
 <ul>
@@ -343,25 +346,25 @@ $(document).ready(function () {
 <p>In focused model comparison, we prefer models which give better estimates of <span class="math inline">\(\mu\)</span>. A typical way to define “best” is by the <em>mean square error</em>. The mean square error of the estimate <span class="math inline">\(\hat\mu_S\)</span> of <span class="math inline">\(\mu\)</span> under a submodel <span class="math inline">\(S\)</span> of the wide model is</p>
 <p><span class="math display">\[E(\hat\mu_s - \mu)^2\]</span></p>
 <p>where <span class="math inline">\(\mu\)</span> is the true value of <span class="math inline">\(\mu\)</span>. This expectation is calculated under the assumption that the data are generated from the wide model. While we believe the wide model is the most realistic, we also accept that there may not be enough data to give sufficiently precise estimates of <span class="math inline">\(\mu\)</span>. Therefore we are willing to accept some bias in this estimate, in return for a smaller variance, by selecting a smaller model than the wide model. The submodel <span class="math inline">\(S\)</span> with the lowest mean square error is the one which makes the optimal trade-off between bias and variance.</p>
-</section>
-<section id="focused-information-criterion-formula" class="level1">
+</div>
+<div id="focused-information-criterion-formula" class="section level1">
 <h1>Focused information criterion: formula</h1>
 <p>The expected squared error under model <span class="math inline">\(S\)</span> can be decomposed as a sum of the squared bias <span class="math inline">\(B^2\)</span> and the variance <span class="math inline">\(V\)</span>.</p>
 <p>\begin{aligned} MSE = E{(_S - )^2} &amp; = {E(_S)- }^2 + E{(_S - E(_S))^2} \ &amp; = B^2 + V \end{aligned}</p>
-<p>Estimators for these quantities are constructed by <span class="citation" data-cites="fic">Claeskens and Hjort (2003)</span> under an asymptotic framework in which the data are assumed to be generated from the wide model, but reparameterised so that <span class="math inline">\(\bgamma = \gamma_0 + \bdelta / \sqrt{n}\)</span>. Thus as the sample size increases, we aim to detect more subtle departures from the narrow model.</p>
-<section id="bias" class="level2">
+<p>Estimators for these quantities are constructed by <span class="citation">Claeskens and Hjort (2003)</span> under an asymptotic framework in which the data are assumed to be generated from the wide model, but reparameterised so that <span class="math inline">\(\bgamma = \gamma_0 + \bdelta / \sqrt{n}\)</span>. Thus as the sample size increases, we aim to detect more subtle departures from the narrow model.</p>
+<div id="bias" class="section level2">
 <h2>Bias</h2>
 <p>An obvious estimator for the bias <span class="math inline">\(B\)</span> is</p>
 <p><span class="math display">\[ \hat{B} = \hat{\mu_S} - \hat{\mu_W} \]</span></p>
-<p>where <span class="math inline">\(\hat\mu_W\)</span> is the estimate of the focus quantity under the wide model, which is assumed to be unbiased. However, <span class="citation" data-cites="fic">Claeskens and Hjort (2003)</span> derive a more accurate estimator for the <em>squared</em> bias as</p>
+<p>where <span class="math inline">\(\hat\mu_W\)</span> is the estimate of the focus quantity under the wide model, which is assumed to be unbiased. However, <span class="citation">Claeskens and Hjort (2003)</span> derive a more accurate estimator for the <em>squared</em> bias as</p>
 <p><span class="math display">\[\hat{B^2} = ( \psi_{full} - \psi_S )^2 / n\]</span>,</p>
 <p>where <span class="math inline">\(\psi_{full} = \hat\omega^T\hat\delta, \psi_S = \hat\omega^T (\pi^T Q_S \pi Q^{-1} )\hat\delta\)</span>, <span class="math inline">\(\hat\delta = \hat\gamma\sqrt{n}\)</span>, <span class="math inline">\(\hat\gamma\)</span> is the estimate of <span class="math inline">\(\gamma\)</span> under the wide model, <span class="math inline">\(\hat\omega = J_{10}J_{00}^{-1}\frac{d\mu}{d\theta} - \frac{d\mu}{d\gamma}\)</span>, <span class="math inline">\(Q_S = (\pi Q^{-1} \pi^T)^{-1}\)</span>, <span class="math inline">\(Q^{-1} = J_{11}\)</span>, <span class="math inline">\(J\)</span> is the information matrix (inverse covariance) under the wide model divided by <span class="math inline">\(n\)</span>, and subscripts <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span> select the rows and columns forming the submatrices of <span class="math inline">\(J\)</span> corresponding to parameters <span class="math inline">\(\btheta\)</span> and <span class="math inline">\(\bgamma\)</span> respectively, and <span class="math inline">\(\pi\)</span> is the projection matrix that selects entries of submodel <span class="math inline">\(S\)</span>. TODO tidy this list, clarify. can we get rid of the <span class="math inline">\(n\)</span>?</p>
 <p>## Variance</p>
-<p>The estimator for the variance of <span class="math inline">\(\hat{\mu}_S\)</span> under the wide model, derived by <span class="citation" data-cites="fic">Claeskens and Hjort (2003)</span>, is</p>
+<p>The estimator for the variance of <span class="math inline">\(\hat{\mu}_S\)</span> under the wide model, derived by <span class="citation">Claeskens and Hjort (2003)</span>, is</p>
 <p><span class="math display">\[V = (\hat{\tau}^2 + \hat{\omega}^T Q_0 \hat{\omega}) / n\]</span></p>
 <p>where <span class="math inline">\(\hat{\tau}^2 /n\)</span> is the variance of <span class="math inline">\(\hat{\mu}_S\)</span> under submodel <span class="math inline">\(S\)</span>, and the additional term <span class="math inline">\((\hat{\omega}^T Q_0 \hat{\omega}) / n\)</span> is the increase in variance resulting from the fact that model <span class="math inline">\(S\)</span> is misspecified. <span class="math inline">\(\hat\tau^2 = \frac{d\mu}{d\theta}^T J_{00}^{-1} \frac{d\mu}{d\theta}\)</span>, and <span class="math inline">\(Q_{0} = \pi^T Q_S \pi\)</span>.</p>
-</section>
-<section id="components-of-the-mse" class="level2">
+</div>
+<div id="components-of-the-mse" class="section level2">
 <h2>Components of the MSE</h2>
 <p>Therefore in order to calculate the MSE, we just need to know</p>
 <ul>
@@ -372,12 +375,12 @@ $(document).ready(function () {
 <li><p>the definition of which parameters are included in submodel <span class="math inline">\(S\)</span></p></li>
 </ul>
 <p>This is what the function <code>fic</code> from the <code>fic</code> package does . LEAD INTO …</p>
-</section>
-</section>
-<section id="using-the-fic-package" class="level1">
+</div>
+</div>
+<div id="using-the-fic-package" class="section level1">
 <h1>Using the fic package</h1>
 <hr />
-<section id="references" class="level3 unnumbered">
+<div id="references" class="section level3 unnumbered">
 <h3>References</h3>
 <div id="refs" class="references">
 <div id="ref-aic">
@@ -387,20 +390,20 @@ $(document).ready(function () {
 <p>Burnham, K. P, and D. R. Anderson. 2003. <em>Model Selection and Multimodel Inference: A Practical Information-Theoretic Approach</em>. Springer.</p>
 </div>
 <div id="ref-fic">
-<p>Claeskens, G., and N. Hjort. 2003. “The Focused Information Criterion (with Discussion).” <em>Journal of the American Statistical Association</em> 98 (464):900–945.</p>
+<p>Claeskens, G., and N. Hjort. 2003. “The Focused Information Criterion (with Discussion).” <em>Journal of the American Statistical Association</em> 98 (464): 900–945.</p>
 </div>
 <div id="ref-claeskens:hjort:book">
 <p>———. 2008. <em>Model Selection and Model Averaging</em>. Cambridge University Press.</p>
 </div>
 <div id="ref-kass:wasserman">
-<p>Kass, R. E., and L. Wasserman. 1995. “A Reference Bayesian Test for Nested Hypotheses with Large Samples.” <em>Journal of the American Statistical Association</em> 90:928–34.</p>
+<p>Kass, R. E., and L. Wasserman. 1995. “A Reference Bayesian Test for Nested Hypotheses with Large Samples.” <em>Journal of the American Statistical Association</em> 90: 928–34.</p>
 </div>
 <div id="ref-schwarz">
-<p>Schwarz, G. 1978. “Estimating the Dimension of a Model.” <em>The Annals of Statistics</em> 6 (2):461–64.</p>
+<p>Schwarz, G. 1978. “Estimating the Dimension of a Model.” <em>The Annals of Statistics</em> 6 (2): 461–64.</p>
 </div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
 
