@@ -95,7 +95,7 @@ A vector containing the following components, describing characteristics of the 
 
 \item{FIC}{The focused information criterion (equation 6.1). }
 
-\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7, but square rooted and divided by \eqn{sqrt{n}}), }
+\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7).}
 
 \item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
 

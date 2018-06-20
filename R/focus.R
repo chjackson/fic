@@ -18,41 +18,23 @@ prob_logistic <- function(par, X){
 ##' @rdname focus_fns
 prob_logistic_deriv <- function(par, X){
     p0 <- as.vector(plogis(q = X %*% par))
-    t(X * p0 * (1 - p0))
-}
-
-##' @export
-##' @rdname focus_fns
-mean_normal <- function(par, X){
-    X %*% par
-}
-
-##' @export
-##' @rdname focus_fns
-mean_normal_deriv <- function(par, X){
-    t(X)
+    t(X) * p0 * (1 - p0)
 }
 
 focus_fns <- 
-    list(
-        "prob_logistic" =
+  list("prob_logistic" =
          list( 
              focus = prob_logistic,
              deriv = prob_logistic_deriv
-         ),
-       "mean_normal" =
-         list( 
-             focus = mean_normal,
-             deriv = mean_normal_deriv
          )
        )
 
 ## Construct the arguments to supply to fic() from the built-in focus functions
 
-get_focus <- function(focus, focus_deriv=NULL, par=NULL, X=NULL, ...){
+get_focus <- function(focus, focus_deriv, par=NULL, X=NULL, ...){
     if (is.character(focus)) {
-        if (!(focus %in% names(focus_fns)))
-            stop(sprintf("focus function `%s` not found", focus))
+        if (!focus %in% names(focus_fns))
+            stop(sprintf("focus function \"%s\" not found", focus))
         fi <- match(focus, names(focus_fns))
         args_extra <- list(...)
         focus <- focus_fns[[fi]]$focus

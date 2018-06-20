@@ -8,7 +8,7 @@ output:
       before_body: fic.sty  
   code_folding: show
 vignette: >
- %\VignetteIndexEntry{Using the fic R package for focused model comparison: survival analysis}
+ %\VignetteIndexEntry{Using the fic R package for focused model comparison}
  %\VignetteEngine{knitr::rmarkdown}
  %\VignetteDepends{fic,ggplot2}
  %\VignetteEncoding{UTF-8}
@@ -88,12 +88,4 @@ rbind(
 Weibull has smaller error than exponential, surprisingly.
 Is this because we assume the GG model is true? 
 
-
-## alternative focuses
-
-e.g. hazard ratio, cumulative hazard. 
-
-Refer to Cox regression 
-
-
-## survreg package TODO 
+This would be nive with 
