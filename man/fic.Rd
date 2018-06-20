@@ -6,7 +6,7 @@
 \alias{fic}
 \title{Focused Information Criterion: main user interface}
 \usage{
-\method{fic}{default}(wide, inds, inds0, gamma0 = 0, focus = NULL,
+\method{fic}{default}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
   focus_deriv = NULL, X = NULL, sub = NULL, fns = NULL, tidy = TRUE,
   ...)
 
@@ -19,7 +19,7 @@ fic(x, ...)
 
 A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.}
 
-\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
+\item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
 \item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 
@@ -95,7 +95,7 @@ A vector containing the following components, describing characteristics of the 
 
 \item{FIC}{The focused information criterion (equation 6.1). }
 
-\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7).}
+\item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7, but square rooted and divided by \eqn{sqrt{n}}), }
 
 \item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
 

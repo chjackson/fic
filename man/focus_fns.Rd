@@ -6,11 +6,17 @@
 \alias{prob_logistic_deriv}
 \alias{prob_logistic}
 \alias{prob_logistic_deriv}
+\alias{mean_normal}
+\alias{mean_normal_deriv}
 \title{Built-in focus functions and their derivatives}
 \usage{
 prob_logistic(par, X)
 
 prob_logistic_deriv(par, X)
+
+mean_normal(par, X)
+
+mean_normal_deriv(par, X)
 }
 \arguments{
 \item{par}{Vector of parameter estimates}

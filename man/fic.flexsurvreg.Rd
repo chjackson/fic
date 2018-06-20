@@ -4,20 +4,19 @@
 \alias{fic.flexsurvreg}
 \title{Focused Information Criterion for flexible parametric survival models}
 \usage{
-\method{fic}{flexsurvreg}(wide, inds, inds0, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, X = NULL, sub = NULL, ...)
+\method{fic}{flexsurvreg}(wide, inds, inds0 = NULL, gamma0 = 0,
+  focus = NULL, focus_deriv = NULL, X = NULL, sub = NULL, ...)
 }
 \arguments{
 \item{wide}{Object of class \code{\link{"flexsurvreg"}} containing the wide model.
 These are returned, for example, by the \code{\link{flexsurvreg}} and 
 the \code{\link{flexsurvspline}} functions.}
 
-\item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.
-Do at least covariate selection, selection between gamma, generalised gamma etc.
+\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
-The choice between \code{\link{flexsurvspline}} models with different numbers of knots is not supported, unless perhaps if the knot locations are defined manually so that models are nested within each other, but this has not been investigated.}
+A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.}
 
-\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
+\item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
 \item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 
@@ -58,4 +57,9 @@ function under the submodel to be included in the results.}
 }
 \description{
 Focused information criterion for parametric survival models fitted with the \pkg{flexsurv} package.
+}
+\details{
+Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the "survival" vignette.
+
+The choice between \code{\link{flexsurvspline}} models with different numbers of knots is not supported, unless perhaps if the knot locations are defined manually so that models are nested within each other, but this has not been investigated.
 }

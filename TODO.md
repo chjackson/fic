@@ -1,44 +1,42 @@
-* Check results vector includes everything useful, check formulae 
+## Definitely
 
-* Testing against well understood examples, e.g. in book
+* More model classes and built-in focuses, to include at least 
 
-* Utilities for forming "inds" matrices for all combinations of models, e.g. regression subsets. 
+	- survival vignette 
 
-* More model classes
+	- linear model vignette
 
-   - survival
-     - focus as expected survival over horizon, as in HE mods. short note in mdm?
+	- skewed regression vignette
 
-    - illustrate for LMs: expected outcome at given cov val, particular cov
-    eff, quantile at given cov val
-
-	- other ones from book:
-    	- polynomial regression in logistic
-	    - skewed regression
-		- poisson rate models
-		- polynomial reg with het errors 
-
-	- ???
+* Cox models.  This is fiddly but possible
 
 * Illustrate some algebra/intuitions for when the narrow model will be preferred? 
 
-* Cox models (Gerda has code for this)
-
-* Analytic derivatives for particular focuses
-
-  - interface for this implemented, needs a few more examples and testing
-  - expected value in normal linear regression
-  - though I doubt how useful this is
+* Handle regression intercepts more nicely? cf skewnormal example
 
 * Illustrate averaged/weighted FIC
+  - why can't we use weighted average of FIC - is there a bias which
+    is corrected by doing the algebra on p180-181? 
 
-* Post-selection CIs.  Model averaging weights
-
-* Alternative losses.  Prediction of an event
+* Alternative losses, e.g. error rate for prediction of an event. 
+  - Works well empirically to compute replicate focuses using MVN sample from wide model ests, then use these to calculate MSE of submodel focus MLE. 
+  - Assume this is equivalent to procedure on pp152-3 on book
+  - Can substitute any other loss for MSE 
+  - Todo discuss with Gerda
 
 * Error handling for all functions
-  - can narrow model parameters be in the middle? 
-  
+  - use imagination here, go through all args
+
 * testthat tests
 
-* Vignette + paper
+* Vignettes and JSS paper
+
+
+## Possibly
+  
+* High-dimensional regression 
+ - "They present one method for when you can fit the submodel but not the wide model, and the criterion is computed using estimates from the submodel.  Another method is for when both submodel and wide model are high dimensional, and it uses penalisation."
+
+* Post-selection CIs.  Model averaging weights
+  - bootstrap solution?   bootstrap from the data, do FIC selection each time, then take empirical CI of focus estimate 
+  - recommend in paper 

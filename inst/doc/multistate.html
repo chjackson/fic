@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk" />
 
-<meta name="date" content="2018-02-05" />
+<meta name="date" content="2018-06-20" />
 
 <title>Using the fic R package for focused model comparison: multi-state models</title>
 
@@ -277,6 +277,9 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
+.html-widget {
+  margin-bottom: 20px;
+}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -311,12 +314,12 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Using the fic R package for focused model comparison: multi-state models</h1>
 <h4 class="author"><em>Chris Jackson <a href="mailto:chris.jackson@mrc-bsu.cam.ac.uk">chris.jackson@mrc-bsu.cam.ac.uk</a></em></h4>
-<h4 class="date"><em>2018-02-05</em></h4>
+<h4 class="date"><em>2018-06-20</em></h4>
 
 </div>
 
 
-<section id="focused-model-comparison-for-covariate-selection-in-multi-state-models-fitted-with-msm" class="level2">
+<div id="focused-model-comparison-for-covariate-selection-in-multi-state-models-fitted-with-msm" class="section level2">
 <h2>Focused model comparison for covariate selection in multi-state models fitted with msm</h2>
 <p>Example dataset in package, <code>psor</code>. Four state progression-only model.</p>
 <p>Wide model: model with two binary covariates associated with different effects for all three transition rates.</p>
@@ -367,7 +370,7 @@ inds &lt;- rbind(
     c(1,1,1,0,0,0,0,0,0))
 fic(wide=psor.wide.msm, inds=inds, inds0=inds0, focus=focus_tlos)</code></pre>
 <pre><code>##   vals mods      FIC       rmse  rmse.adj          bias      bias.adj
-## 1    A    1 5.735999 0.12595943 0.1259594 -2.095787e-17 -1.804524e-17
+## 1    A    1 5.735999 0.12595943 0.1259594 -2.095787e-17 -7.876544e-18
 ## 2    A    2 5.235032 0.12144973 0.1197090 -4.421893e-02  0.000000e+00
 ## 3    A    3 9.853610 0.15822896 0.1521346 -1.165617e-01 -9.740202e-02
 ## 4    A    4 4.771357 0.11712111 0.1143717 -7.138451e-02 -2.893414e-02
@@ -384,7 +387,7 @@ fic(wide=psor.wide.msm, inds=inds, inds0=inds0, focus=focus_tlos)</code></pre>
 ## 7 0.09735631</code></pre>
 <p>Very small biases in all cases. RMSE goes down with the variance as covariates are omitted.</p>
 <p>I guess because these covariates are not strongly associated with transition rates.</p>
-</section>
+</div>
 
 
 

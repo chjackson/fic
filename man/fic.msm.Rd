@@ -4,7 +4,7 @@
 \alias{fic.msm}
 \title{Focused Information Criterion for multi-state models for panel data}
 \usage{
-\method{fic}{msm}(wide, inds, inds0, gamma0 = 0, focus = NULL,
+\method{fic}{msm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
   focus_deriv = NULL, X = NULL, sub = NULL, ...)
 }
 \arguments{
@@ -12,7 +12,7 @@
 
 \item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?}
 
-\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
+\item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
 \item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 

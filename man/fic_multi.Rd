@@ -6,7 +6,7 @@
 \title{Focused Information Criterion: core calculation functions}
 \usage{
 fic_core(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
-  focus_deriv = NULL, X = NULL, ...)
+  focus_deriv = NULL, ...)
 
 fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
   focus_deriv = NULL, X = NULL, parsub = NULL, ...)
@@ -16,9 +16,9 @@ fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
 
 \item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.}
 
-\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.}
+\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX}
 
-\item{inds0}{Specification of narrow model, in the same format as \code{inds}.  TODO error checking}
+\item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
 \item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 
@@ -49,6 +49,8 @@ If there are multiple submodels, this should be a matrix with number of rows equ
 This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
 For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
 
+\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+
 \item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
 
 This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
@@ -58,8 +60,6 @@ To compute focused model comparison statistics for the same focus function evalu
 For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
-
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel.
 Only required to return the estimate of the focus quantity alongside 

@@ -89,11 +89,11 @@ We supply the following arguments to the `fic` function.
 * `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0` below.
 If just one submodel is to be assessed, `inds` can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$. 
 
-* `inds0` vector of indicators for which parameters are included in the narrow model, in the same format as `inds`.
+* `inds0` vector of indicators for which parameters are included in the narrow model, in the same format as `inds`.  This can be omitted, in which case the narrow model is assumed to be given by the first row of `inds`.
 
 * `focus` the focus function. 
 
-* `sub` a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the results from `fic` can include the estimate of the focus under the submodels.  If just one submodel is to be assessed, this can be a single fitted model object instead of a list. 
+* `sub` a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the results from `fic` can include the estimate of the focus under the submodels.  Note, if just one submodel is to be assessed, this should still be enclosed in a list, e.g. `list(mod1.glm)`. 
 
 The main `fic` function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
 
@@ -106,38 +106,69 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
 fic1
 ```
 
-
-
 TODO explain the different components of `res` 
 
 
 ### Calling `fic` for an unfamiliar class of models 
 
 Above, the `fic` function recognised the fitted model objects as GLMs, that is, objects of class `"glm"` returned by the `glm()` function in base R.
-But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises.
+But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises. To do this, it needs to know where three things are stored inside the fitted model objects (TODO REFER TO FIC NOTATION)
 
-To do this, it needs to know three pieces of information about the fitted model objects.   TODO illustrate `fns` argument 
+1. `coef`: the vector of maximum likelihood estimates 
+
+2. `nobs`: the number of observations contributing to the model fit 
+
+3. `vcov`: the covariance matrix of the maximum likelihood estimates.  
+
+Given a fitted model object called `mod`, the `fic()` function assumes by default that `coef(mod)`, `nobs(mod)` and `vcov(mod)` respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument `fns` to `fic()`, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a `glm` object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
 
 ```{r}
+fns <- list(coef = function(x)coef(x),
+            nobs = function(x)nobs(x),
+            vcov = function(x)vcov(x))
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns, X=X, sub=sub)
 ```
 
+
+### Built-in model classes supported 
+
+Refer to a list of vignettes. 
+
+Simple linear models, focus as expected outcome at particular covariate value.  mtcars example, in rd doc or vignette
+
+Survival models with flexsurvreg and survreg 
 
 
 ### Testing an automatically-defined set of models 
 
-The following code creates a matrix of indicators for all possible covariate selections between the narrow and wide models.  Models with interactions but not both corresponding main effects are then excluded.  Two alternative sets of names for the models are created.   TODO a function to do this all for you
+The following code creates a matrix of indicators for all possible covariate selections between the narrow and wide models.    
 ```{r}
 combs <- expand.grid(intercept=1, lwtkg=1, age=c(0,1), smoke=c(0,1), ht=c(0,1), ui=c(0,1), smokeage=c(0,1), smokeui=c(0,1))
-combs <- as.matrix(with(combs,
-                        combs[!((smoke==0 & smokeage==1) |
-                                (smoke==0 & smokeui==1) |
-                                (age==0 & smokeage==1) |
-                                (ui==0 & smokeui==1)),]))
-rownames(combs) <- apply(combs, 1, paste, collapse="")
-namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=","))
 ```
 
-We can actually fit the submodels 
+We can supply this to fic to run fic for all combinations of included / excluded parameters
+The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
+
+```{r}
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
+```
+
+However some of these models may not make sense. 
+Models with interactions but not both corresponding main effects are then excluded.  
+Two alternative sets of names for the models are also created 
+
+```{r}
+combs <- with(combs,
+              combs[!((smoke==0 & smokeage==1) |
+                      (smoke==0 & smokeui==1) |
+                      (age==0 & smokeage==1) |
+                      (ui==0 & smokeui==1)),])
+rownames(combs) <- apply(combs, 1, paste, collapse="")
+namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=","))
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
+```
+
+We can actually fit the submodels in a loop by forming a covariate matrix, and subsetting its columns at each iteration.   The list of fitted models can then be passed to the fic function so that so that the focus estimate is displayed alongside the fic results. 
 
 ```{r,warning=FALSE}
 Xobs <- with(birthwt, cbind(intercpt, lwtkg))
@@ -148,13 +179,10 @@ for (i in 1:nmod){
   XZi <- cbind(Xobs, Zobs)[,which(combs[i,]==1)]
   sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
 }
-```
-
-The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
-```{r}
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, sub=sub)
 ficres
 ```
+
 
 TODO Explain why there are NaNs.
 

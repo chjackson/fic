@@ -24,16 +24,26 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
 fic1
 
 ## ------------------------------------------------------------------------
+fns <- list(coef = function(x)coef(x),
+            nobs = function(x)nobs(x),
+            vcov = function(x)vcov(x))
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns, X=X, sub=sub)
 
 ## ------------------------------------------------------------------------
 combs <- expand.grid(intercept=1, lwtkg=1, age=c(0,1), smoke=c(0,1), ht=c(0,1), ui=c(0,1), smokeage=c(0,1), smokeui=c(0,1))
-combs <- as.matrix(with(combs,
-                        combs[!((smoke==0 & smokeage==1) |
-                                (smoke==0 & smokeui==1) |
-                                (age==0 & smokeage==1) |
-                                (ui==0 & smokeui==1)),]))
+
+## ------------------------------------------------------------------------
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
+
+## ------------------------------------------------------------------------
+combs <- with(combs,
+              combs[!((smoke==0 & smokeage==1) |
+                      (smoke==0 & smokeui==1) |
+                      (age==0 & smokeage==1) |
+                      (ui==0 & smokeui==1)),])
 rownames(combs) <- apply(combs, 1, paste, collapse="")
 namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=","))
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 
 ## ----warning=FALSE-------------------------------------------------------
 Xobs <- with(birthwt, cbind(intercpt, lwtkg))
@@ -44,8 +54,6 @@ for (i in 1:nmod){
   XZi <- cbind(Xobs, Zobs)[,which(combs[i,]==1)]
   sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
 }
-
-## ------------------------------------------------------------------------
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, sub=sub)
 ficres
 
