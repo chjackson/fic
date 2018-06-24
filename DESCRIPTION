@@ -1,16 +1,24 @@
 Package: fic
 Title: The Focused Information Criterion for Model Selection
-Version: 0.0.0.9000
-Date: 2017-12-06
-Author:
-    Gerda Claeskens <gerda.claeskens@kuleuven.be> (conception of method), 
-    Nils Lid Hjort <nils@math.uio.no> (conception of method), 
-    Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk> (package design and programming),
-    Howard Thom <howard.thom@bristol.ac.ck> (programming)
+Version: 0.0.9000
+Date: 2018-06-24
+Authors@R: c(person("Christopher","Jackson", role=c("cre","aut"),
+	            email="chris.jackson@mrc-bsu.cam.ac.uk",
+		    comment="(package design and programming)"),
+	     person("Gerda","Claeskens", role="aut",
+	     	     email="gerda.claeskens@kuleuven.be",
+	     	     comment="(conception of method)"),
+	     person("Nils Lid","Hjort", email="nils@math.uio.no", role="aut",
+	     	     comment="(conception of method)"),
+	     person("Howard","Thom",email="howard.thom@bristol.ac.uk", role="ctb")
+	     )
 Description: The Focused Information Criterion and related methods for model selection.  These methods are designed to choose the best model to estimate a quantity of interest (the "focus") so that different models may be chosen for different purposes.
 Maintainer: Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
+Depends:
+    R (>= 2.10)
 Imports:
-    numDeriv
+    numDeriv,
+    mvtnorm
 URL: https://github.com/chjackson/fic
 BugReports: https://github.com/chjackson/fic/issues
 License: GPL-3
@@ -24,5 +32,6 @@ Suggests: knitr,
     stats,
     msm(>= 1.6.6),
     survival,
-    flexsurv
+    flexsurv,
+    sn
 VignetteBuilder: knitr

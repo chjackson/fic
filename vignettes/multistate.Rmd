@@ -42,18 +42,18 @@ focus_tlos <- function(pars){
 We assess the wide model and six further submodels.
 
 ```{r}
-inds0 <- c(1,1,1,0,0,0,0,0,0) # intercepts always included
 inds <- rbind(
-    c(1,1,1,1,1,1,1,1,1),
-    c(1,1,1,0,1,1,1,1,1),
-    c(1,1,1,0,0,1,1,1,1),
-    c(1,1,1,0,0,0,1,1,1),
-    c(1,1,1,0,0,0,0,1,1),
+    c(1,1,1,0,0,0,0,0,0),
     c(1,1,1,0,0,0,0,0,1),
-    c(1,1,1,0,0,0,0,0,0))
-fic(wide=psor.wide.msm, inds=inds, inds0=inds0, focus=focus_tlos)
+    c(1,1,1,0,0,0,0,1,1),
+    c(1,1,1,0,0,0,1,1,1),
+    c(1,1,1,0,0,1,1,1,1),
+    c(1,1,1,0,1,1,1,1,1),
+    c(1,1,1,1,1,1,1,1,1)
+)
+fic(wide=psor.wide.msm, inds=inds, focus=focus_tlos)
 ```
 
-Very small biases in all cases.  RMSE goes down with the variance as covariates are omitted.
+Very small biases in all cases.  RMSE increases with the variance as covariates are added.
 
 I guess because these covariates are not strongly associated with transition rates. 

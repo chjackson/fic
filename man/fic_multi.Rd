@@ -5,8 +5,7 @@
 \alias{fic_multi}
 \title{Focused Information Criterion: core calculation functions}
 \usage{
-fic_core(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
-  focus_deriv = NULL, ...)
+fic_core(par, J, inds, inds0, gamma0 = 0, n, focus_deriv = NULL, ...)
 
 fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
   focus_deriv = NULL, X = NULL, parsub = NULL, ...)
@@ -28,6 +27,15 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 
 \item{n}{Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity?}
 
+\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic.core}.
+
+If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
+
+This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
+For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
+
+\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+
 \item{focus}{An R function with:
 
 \itemize{
@@ -41,15 +49,6 @@ The function should return the focus quantity of interest.  If \code{X} is suppl
 Not required if \code{focus_deriv} is specified.
 
 Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
-
-\item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic.core}.
-
-If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
-
-This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
-For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
-
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 
 \item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
 
@@ -70,5 +69,5 @@ See \code{\link{fic}}
 }
 \description{
 Core FIC calculation functions underlying the user interface in \code{\link{fic}}.
-\code{fic_core} just handles one submodel, while \code{fic_multi} can assess multiple submodels of the same wide model.  For \code{fic_multi}, \code{\link{inds}} and \code{\link{parsub}} can be matrices with one row per submodel, while for \code{fic_core} they must be vectors.
+\code{fic_core} just handles one submodel, while \code{fic_multi} can assess multiple submodels of the same wide model.  For \code{fic_multi}, \code{inds} and \code{parsub} can be matrices with one row per submodel, while for \code{fic_core} they must be vectors.
 }

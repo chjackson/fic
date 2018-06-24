@@ -11,7 +11,6 @@ fic_core <- function(
                        inds0, 
                        gamma0 = 0,
                        n,
-                       focus = NULL,
                        focus_deriv = NULL,
                        ...
                        ) 
@@ -26,10 +25,7 @@ fic_core <- function(
 
     pp <- sum(inds0)     # number of parameters in narrow model
     qq <- sum(inds0==0)  # maximum number of "extra" parameters
-    
-    if ((length(gamma0) != 1) && (length(gamma0) != qq))
-        stop(sprintf("`gamma0` of length %d, but `inds0` has %d entries which are zero.\nLength of gamma0 must either be 1 or match the number of entries of `inds0` which are zero", length(gamma0), qq))
-    gamma0 <- rep(gamma0, length.out = qq)
+    gamma0 <- check_gamma0(gamma0, inds0)
 
     if (any(inds[inds0==1] != 1)){
       dodgy_inds <- paste(which(inds[inds0==1] != 1), collapse=",")
@@ -132,10 +128,55 @@ check_inds0 <- function(inds0, inds, npar){
     inds0
 }
 
+check_gamma0 <- function(gamma0, inds0){
+    qq <- sum(inds0==0)  # maximum number of "extra" parameters
+    if ((length(gamma0) != 1) && (length(gamma0) != qq))
+        stop(sprintf("`gamma0` of length %d, but `inds0` has %d entries which are zero.\nLength of gamma0 must either be 1 or match the number of entries of `inds0` which are zero", length(gamma0), qq))
+    gamma0 <- rep(gamma0, length.out = qq)
+    gamma0
+}
+
+check_X <- function(X, npar){
+    if (!is.null(X)){
+        if (!is.numeric(X)) stop("`X` must be numeric")
+        if (!(is.vector(X) || is.matrix(X))) stop("X must be a vector or a matrix")
+        if (is.vector(X)) {
+            if (length(X) > npar)
+                stop("length of X is %s, this should be at most the number of parameters, %s", length(X), npar)
+            X <- matrix(X, nrow=1)
+        } else {
+            if (ncol(X) > npar)
+                stop(sprintf("Number of columns of X is %s, this should be at most the number of parameters, %s", ncol(X), npar))
+        }
+        if (is.null(rownames(X))) rownames(X) <- seq_len(nrow(X))
+    } else {
+        X <- matrix(nrow=1, ncol=0) 
+    }
+    X
+}
+
+check_parsub <- function(parsub, npar, nmod){
+    if (!is.numeric(parsub)) stop("`parsub` must be numeric")
+    if (!is.matrix(parsub)) {
+        if (length(parsub) != npar)
+            stop("parsub of length ", length(parsub), ", should be ", npar, ", the number of parameters in the wide model")
+        if (nmod != 1)
+            stop("parsub is a vector, should be a matrix with number of columns equal to ", nmod, ", the number of models being assessed")
+        parsub <- matrix(parsub, nrow=1)
+    } else {
+        if (ncol(parsub) != npar)
+            stop("Number of columns of parsub is ", ncol(parsub), ", should be ", npar, ", the number of parameters in the wide model")
+        if (nrow(parsub) != nmod)
+            stop("Number of rows of parsub is ", nrow(parsub), ", should be ", nmod, ", the number of models being assessed")                
+    }
+    parsub
+}
+
+
 ##' Focused Information Criterion: core calculation functions
 ##'
 ##' Core FIC calculation functions underlying the user interface in \code{\link{fic}}.
-##' \code{fic_core} just handles one submodel, while \code{fic_multi} can assess multiple submodels of the same wide model.  For \code{fic_multi}, \code{\link{inds}} and \code{\link{parsub}} can be matrices with one row per submodel, while for \code{fic_core} they must be vectors.
+##' \code{fic_core} just handles one submodel, while \code{fic_multi} can assess multiple submodels of the same wide model.  For \code{fic_multi}, \code{inds} and \code{parsub} can be matrices with one row per submodel, while for \code{fic_core} they must be vectors.
 ##' 
 ##' @param par Vector of maximum likelihood estimates from the wide model
 ##' 
@@ -180,45 +221,10 @@ fic_multi <- function(
     npar <- length(par)
     inds <- check_inds(inds, npar)
     nmod <- nrow(inds)
-
-    ## TODO error check for dims of X (ncoef <= npar?) 
-    if (!is.null(X)){
-        if (!is.numeric(X)) stop("`X` must be numeric")
-        if (!(is.vector(X) || is.matrix(X))) stop("X must be a vector or a matrix")
-        if (is.vector(X)) {
-            if (length(X) > npar)
-                stop("length of X is %s, this should be at most the number of parameters, %s", length(X), npar)
-            X <- matrix(X, nrow=1)
-            nval <- 1
-            ncoef <- length(X)
-        } else {
-            nval <- nrow(X)
-            ncoef <- ncol(X)
-            if (ncoef > npar)
-                stop(sprintf("Number of columns of X is %s, this should be at most the number of parameters, %s", ncoef, npar))
-        }
-        if (is.null(rownames(X))) rownames(X) <- seq_len(nrow(X))
-    } else {
-        nval <- 1
-        ncoef <- 1
-    }
-
+    X <- check_X(X, npar)
     outn <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
-
     if (!is.null(parsub)) {
-        if (!is.numeric(parsub)) stop("`parsub` must be numeric")
-        if (!is.matrix(parsub)) {
-            if (length(parsub) != npar)
-                stop("parsub of length ", length(parsub), ", should be ", npar, ", the number of parameters in the wide model")
-            if (nmod != 1)
-                stop("parsub is a vector, should be a matrix with number of columns equal to ", nmod, ", the number of models being assessed")
-            parsub <- matrix(parsub, nrow=1)
-        } else {
-            if (ncol(parsub) != npar)
-                stop("Number of columns of parsub is ", ncol(parsub), ", should be ", npar, ", the number of parameters in the wide model")
-            if (nrow(parsub) != nmod)
-                stop("Number of rows of parsub is ", nrow(parsub), ", should be ", nmod, ", the number of models being assessed")                
-        }
+        parsub <- check_parsub(parsub, npar, nmod)
         outn <- c(outn, "focus")
     }
    
@@ -239,16 +245,16 @@ fic_multi <- function(
       }
     }
 
-    nout <- length(outn)
+    nval <- nrow(X)  # number of covariate values to evaluate the focus at
+    nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
     res <- array(dim = c(nval, nout, nmod))
     dimnames(res) <- list(vals=rownames(X), outn, mods=rownames(inds))
     for (i in 1:nmod){
         ficres <- fic_core(par=par, J=J, inds=inds[i,], inds0=inds0,
-                             gamma0=gamma0, n=n, focus=focus, focus_deriv=focus_deriv,
+                             gamma0=gamma0, n=n, focus_deriv=focus_deriv,
                              X=X, ...)
-        
-        fres <- if (!is.null(parsub)) focus(par=parsub[i,], X=X, ...) else NULL
-        res[,,i] <- cbind(ficres, fres)
+        focus_val <- if (!is.null(parsub)) focus(par=parsub[i,], X=X, ...) else NULL
+        res[,,i] <- cbind(ficres, focus_val)
     }
     res
 }
@@ -292,6 +298,7 @@ get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
         if (nmod != nrow(inds)){
             stop(sprintf("`sub` of length %s, should be %s, the same as the number of rows of `inds`", nmod, nrow(inds)))
         }
+        gamma0 <- check_gamma0(gamma0, inds0)
         for (i in 1:nmod){
             if (!identical(class(sub[[i]]), class(wide)))
                 stop(sprintf("submodel %s of class %s, should be %s, the same class as `wide`", i, class(sub[[i]])[1], class(wide)[1]))
@@ -394,6 +401,10 @@ get_ics <- function(sub, fns){
 ##'
 ##' If less than three components are specified in \code{fns}, then the missing components are assumed to take their default values.
 ##'
+##' @param B If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)
+##'
+##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments `sub` and `wide`.  `sub` should be a scalar giving the focus estimate from a submodel.  `wide` should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.
+##'
 ##' @param tidy If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.
 ##' 
 ##' @param \dots Other arguments to the focus function can be supplied here.  Currently no examples of this. 
@@ -419,13 +430,14 @@ get_ics <- function(sub, fns){
 ##'
 ##' @keywords models
 ##' 
-##' @examples TODO
+##' @examples ""
 ##'
 ##' @rdname fic
 ##' @export
 fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
                       X=NULL, sub=NULL, fns=NULL,
+                      B=0, loss=loss_mse,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
     res <- try({
@@ -433,15 +445,21 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
         n <- fns$nobs(wide)
         J <- solve(fns$vcov(wide)) / n
     })
-    if (inherits(res, "try-error") &&
-        isTRUE(grep("no applicable method", attr(res, "condition")$message)==1))
-        stop("check that the `fns` argument is specified correctly")
+    if (inherits(res, "try-error"))
+        stop("check that the wide model or the `fns` argument is specified correctly")
     inds <- check_inds(inds, length(par))
     inds0 <- check_inds0(inds0, inds, length(par))
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef, wide)
-    res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
-              focus=focus, focus_deriv=focus_deriv, 
-              parsub=parsub, X=X, ...)
+    if (!is.numeric(B)) stop("`B` should be zero or a positive integer")
+    if (B>0){
+        if (is.null(sub)) stop("`sub` should be specified if using bootstrap method")
+        res <- fic_boot(par=par, cov=fns$vcov(wide), focus=focus, X=X,
+                        parsub=parsub, B=B, loss=loss)
+    } else {
+        res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
+                         focus=focus, focus_deriv=focus_deriv, 
+                         parsub=parsub, X=X, ...)
+    }
     if (tidy){
         res1 <- apply(res, 2, as.data.frame.table)
         res <- do.call("data.frame", lapply(res1, function(x)x$Freq))
@@ -452,8 +470,32 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
 
 ##' @rdname fic
 ##' @export fic
-fic <- function(x,...) UseMethod("fic")
+fic <- function(wide,...) UseMethod("fic")
 
 FIC <- fic
 FIC_multi <- fic_multi
 FIC_core <- fic_core
+
+loss_mse <- function(sub, wide){
+    sqrt(mean((sub - wide)^2))
+}
+
+fic_boot <- function(par, cov, focus, X, parsub, B, loss=loss_mse){
+    pars_rep <- t(mvtnorm::rmvnorm(B, par, cov))
+    nmod <- nrow(parsub)
+    X <- check_X(X, length(par))
+    focus_rep <- focus(pars_rep, X)  # nval x B
+    nval <- nrow(X)
+    outn <- c("loss","focus")
+    nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
+    res <- array(dim = c(nval, nout, nmod))
+    dimnames(res) <- list(vals=rownames(X), outn, mods=rownames(parsub))
+    for (i in 1:nmod){
+        focus_val <- focus(par=parsub[i,], X=X)  # nval x 1 
+        for (j in 1:nval) {
+            res[j,"loss",i] <- loss(focus_val[j], focus_rep[j,])
+        }
+        res[,"focus",i] <- focus_val
+    }
+    res
+}

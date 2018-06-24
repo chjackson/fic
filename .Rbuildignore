@@ -2,3 +2,7 @@
 ^\.Rproj\.user$
 ^data-raw$
 vignettes/*\.html$
+vignettes/figure
+tests/FIClogisticreg.R
+tests/birthwt.R
+TODO.md

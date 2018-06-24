@@ -10,3 +10,16 @@
 #'
 #' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
 "birthwt"
+
+#' Melanoma
+#' 
+#' @format TODO
+#' \describe{
+#'   \item{}{}
+#'   \item{}{}
+#'   ...
+#' }
+#' @source TODO 
+#'
+#' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
+"melanoma"

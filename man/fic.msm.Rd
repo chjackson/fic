@@ -8,7 +8,7 @@
   focus_deriv = NULL, X = NULL, sub = NULL, ...)
 }
 \arguments{
-\item{wide}{Object returned by \code{\link{msm}} containing the wide model.}
+\item{wide}{Object returned by \code{\link[msm]{msm}} containing the wide model.}
 
 \item{inds}{TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?}
 
@@ -46,7 +46,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{sub}{Object returned by \code{\link{msm}} containing the submodel to be assessed.  Optional. Only required if you want the estimate of the focus
+\item{sub}{Object returned by \code{\link[msm]{msm}} containing the submodel to be assessed.  Optional. Only required if you want the estimate of the focus
 function under the submodel to be included in the results.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}

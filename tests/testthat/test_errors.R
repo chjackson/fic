@@ -11,7 +11,7 @@ X <- rbind(vals.smoke, vals.nonsmoke)
 
 
 expect_error(fic(wide=wide.glm, inds=c(inds1,0), inds0=inds0, focus=focus_plogis, X=X),
-             "Length of `inds` must match number of parameters")
+             "`inds` of length")
 expect_error(fic(wide=wide.glm, inds=inds1, inds0=inds0[-1], focus=focus_plogis, X=X),
              "Length of `inds0` must match number of parameters")
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus="foo", X=X), "focus function `foo` not found")
@@ -25,13 +25,16 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, gam
 
 expect_error(
     fic(2, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, gamma0=rep(0, 7)),
-    "invalid for atomic vectors") ## TODO nicer way to detect that something is a fitted model object.  par, n and J should be extracted with no error and be of right form
+    "argument is specified correctly") ## TODO nicer way to detect that something is a fitted model object.  par, n and J should be extracted with no error and be of right form
 
 
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=mod1.glm),
              "`sub` should be a list of fitted model objects")
 
+expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm)), "not found")
+mod2.glm <- glm(low ~ lwtkg + age, data=birthwt, family=binomial)
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm)), "`sub` of length")
+
 
 ## TODO errors for parsub in fic_multi
 
