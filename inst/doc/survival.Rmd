@@ -85,7 +85,7 @@ Refer to Cox regression
 
 ## fic method for "survreg" models
 
-`fic` also has a built-in method for comparing models fitted using the `survreg` function of the `survival` package.  The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the "wide" model.  The focus function is again specified as the restricted mean survival over 8 years, using the `rmst_weibull` function in the `flexsurv` package.  An awkward reparametrisation is necessary here.  The first parameter of the Weibull distribution in `flexsurv` equals 1/exp(par[2]) where `par[2]` is the `Log(scale)` reported by the `survreg` function, as seen in `summary(we)` here.  The second parameter of the Weibull distribution in `flexsurv` equals `exp(par[1])`, the exponential of the `(Intercept)` parameter reported in the `survreg` output. 
+`fic` also has a built-in method for comparing models fitted using the `survreg` function of the `survival` package.  The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the "wide" model.  The focus function is again specified as the restricted mean survival over 8 years, using the `rmst_weibull` function in the `flexsurv` package.  An awkward reparametrisation is necessary here.  The first parameter of the Weibull distribution in `flexsurv` equals `1/exp(par[2])` where `par[2]` is the `Log(scale)` reported by `survreg`, as can be seen in `summary(we)`.  The second parameter of the Weibull distribution in `flexsurv` equals `exp(par[1])`, the exponential of the `(Intercept)` parameter reported in the `survreg` summary output. 
 
 ```{r}
 if (!require("survival")) stop("The `survival` package should be installed to run code in this vignette") 

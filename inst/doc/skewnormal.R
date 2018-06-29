@@ -1,6 +1,6 @@
 ## ------------------------------------------------------------------------
 
-library(sn)
+if (!require("sn")) stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
 plot(density(ais$Hc))
 plot(ais$BMI, ais$Hc, pch=19)

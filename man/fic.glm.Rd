@@ -5,8 +5,8 @@
 \title{Focused Information Criterion for generalized linear models}
 \usage{
 \method{fic}{glm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, X = NULL, sub = NULL, B = 0, loss = loss_mse,
-  ...)
+  focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL, B = 0,
+  loss = loss_mse, ...)
 }
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}
@@ -48,6 +48,8 @@ To compute focused model comparison statistics for the same focus function evalu
 For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
+
+\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate The averaged FIC is then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight.}
 
 \item{sub}{List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.}
 

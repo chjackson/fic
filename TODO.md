@@ -8,15 +8,15 @@
 
 	- skewed regression vignette
 
+* Example and documentation for averaged/weighted AFIC
+
+* Link results in vignette to algebraic definitions, pass to Gerda to check.
+
 * Cox models.  This is fiddly but possible
 
 * Illustrate some algebra/intuitions for when the narrow model will be preferred? 
 
 * Handle regression intercepts more nicely? cf skewnormal example
-
-* Illustrate averaged/weighted FIC
-  - why can't we use weighted average of FIC - is there a bias which
-    is corrected by doing the algebra on p180-181? 
 
 * Alternative losses, e.g. error rate for prediction of an event. 
   - Works well empirically to compute replicate focuses using MVN sample from wide model ests, then use these to calculate MSE of submodel focus MLE. 

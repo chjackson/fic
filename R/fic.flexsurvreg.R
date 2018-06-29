@@ -16,7 +16,7 @@
 ##' @inheritParams fic
 ##' 
 ##' @export
-fic.flexsurvreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, sub=NULL, B=0, loss=loss_mse, ...){
+fic.flexsurvreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, Xwt=NULL, sub=NULL, B=0, loss=loss_mse, ...){
     coef_fn = function(x){        
         if (!is.null(x$fixedpars))
             x$res.t[,"est"][-x$fixedpars]
@@ -27,7 +27,7 @@ fic.flexsurvreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_
         nobs = function(x)nrow(model.frame(x))
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-                focus=focus, focus_deriv=focus_deriv, X=X, sub=sub,
+                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
                 B=B, loss=loss, 
                 fns = flexsurvreg_fns, ...)
 }

@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk" />
 
-<meta name="date" content="2018-06-20" />
+<meta name="date" content="2018-06-29" />
 
 <title>Using the fic R package for focused model comparison: parametric survival modelling</title>
 
@@ -314,7 +314,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Using the fic R package for focused model comparison: parametric survival modelling</h1>
 <h4 class="author"><em>Chris Jackson <a href="mailto:chris.jackson@mrc-bsu.cam.ac.uk">chris.jackson@mrc-bsu.cam.ac.uk</a></em></h4>
-<h4 class="date"><em>2018-06-20</em></h4>
+<h4 class="date"><em>2018-06-29</em></h4>
 
 </div>
 
@@ -325,8 +325,16 @@ $(document).ready(function () {
 <li><p>the selection of the appropriate level of flexibility for a parametric hazard or survival function (given specific “baseline” covariate values).</p></li>
 </ol>
 <p>In this example, focused model comparison is used for the second of these problems. A series of increasingly flexible parametric distributions are fitted to a set of 686 right-censored survival times from patients with primary node positive breast cancer (originally from <span class="citation">Sauerbrei and Royston (1999)</span>, and also provided in the <code>flexsurv</code> package). The exponential, Weibull and generalized gamma models are fitted, which have one, two and three parameters respectively.</p>
-<pre class="r"><code>if (!require(&quot;flexsurv&quot;)) stop(&quot;The `flexsurv` package should be installed to run code in this vignette&quot;) 
-ex &lt;-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
+<pre class="r"><code>if (!require(&quot;flexsurv&quot;)) stop(&quot;The `flexsurv` package should be installed to run code in this vignette&quot;) </code></pre>
+<pre><code>## Loading required package: flexsurv</code></pre>
+<pre><code>## Warning: package 'flexsurv' was built under R version 3.5.0</code></pre>
+<pre><code>## Loading required package: survival</code></pre>
+<pre><code>## 
+## Attaching package: 'flexsurv'</code></pre>
+<pre><code>## The following object is masked from 'package:msm':
+## 
+##     qgeneric</code></pre>
+<pre class="r"><code>ex &lt;-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
 we &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;weibull&quot;)
 gg &lt;- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;gengamma&quot;)
 plot(gg, ci=FALSE, conf.int=FALSE, ylab=&quot;Survival&quot;, xlab=&quot;Years&quot;)
@@ -351,7 +359,7 @@ gamma0 &lt;- c(0,1)
 fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex2, we2, gg))</code></pre>
 <pre><code>##   vals   mods        FIC      rmse  rmse.adj       bias   bias.adj
 ## 1    A    exp 125.505416 0.4314003 0.4389298 -0.4277295 -0.4277295
-## 2    A   weib  44.565059 0.2609930 0.1623138 -0.2325968 -0.1058666
+## 2    A   weib  44.565059 0.2609930 0.2609930 -0.2325968 -0.2301724
 ## 3    A ggamma   8.990856 0.1275144 0.1275144  0.0000000  0.0000000
 ##           se    focus
 ## 1 0.09852323 4.789145
@@ -363,10 +371,10 @@ fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex2, we2, gg))</code><
 y &lt;- rexp(50); cen &lt;- rep(1,50)
 gge &lt;- flexsurvreg(Surv(y, cen) ~ 1, dist=&quot;gengamma&quot;)
 fic(gge, inds=indmat, gamma0=gamma0, focus=focus)</code></pre>
-<pre><code>##   vals   mods        FIC      rmse  rmse.adj          bias      bias.adj
-## 1    A    exp 0.01574785 0.1221141 0.1227341  1.774703e-02  1.774703e-02
-## 2    A   weib 0.01464073 0.1220234 0.1220355 -2.892537e-03 -1.319691e-03
-## 3    A ggamma 0.01517997 0.1220676 0.1220676  3.925231e-18  8.315161e-19
+<pre><code>##   vals   mods        FIC      rmse  rmse.adj          bias     bias.adj
+## 1    A    exp 0.01574785 0.1221141 0.1227341  1.774703e-02 1.774703e-02
+## 2    A   weib 0.01464073 0.1220234 0.1220284 -2.892537e-03 0.000000e+00
+## 3    A ggamma 0.01517997 0.1220676 0.1220676  3.925231e-18 8.956904e-19
 ##          se
 ## 1 0.1214442
 ## 2 0.1220284
@@ -381,7 +389,7 @@ fic(gge, inds=indmat, gamma0=gamma0, focus=focus)</code></pre>
 </div>
 <div id="fic-method-for-survreg-models" class="section level2">
 <h2>fic method for “survreg” models</h2>
-<p><code>fic</code> also has a built-in method for comparing models fitted using the <code>survreg</code> function of the <code>survival</code> package. The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the “wide” model. The focus function is again specified as the restricted mean survival over 8 years, using the <code>rmst_weibull</code> function in the <code>flexsurv</code> package. An awkward reparametrisation is necessary here. The first parameter of the Weibull distribution in <code>flexsurv</code> equals 1/exp(par[2]) where <code>par[2]</code> is the <code>Log(scale)</code> reported by the <code>survreg</code> function, as seen in <code>summary(we)</code> here. The second parameter of the Weibull distribution in <code>flexsurv</code> equals <code>exp(par[1])</code>, the exponential of the <code>(Intercept)</code> parameter reported in the <code>survreg</code> output.</p>
+<p><code>fic</code> also has a built-in method for comparing models fitted using the <code>survreg</code> function of the <code>survival</code> package. The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the “wide” model. The focus function is again specified as the restricted mean survival over 8 years, using the <code>rmst_weibull</code> function in the <code>flexsurv</code> package. An awkward reparametrisation is necessary here. The first parameter of the Weibull distribution in <code>flexsurv</code> equals <code>1/exp(par[2])</code> where <code>par[2]</code> is the <code>Log(scale)</code> reported by <code>survreg</code>, as can be seen in <code>summary(we)</code>. The second parameter of the Weibull distribution in <code>flexsurv</code> equals <code>exp(par[1])</code>, the exponential of the <code>(Intercept)</code> parameter reported in the <code>survreg</code> summary output.</p>
 <pre class="r"><code>if (!require(&quot;survival&quot;)) stop(&quot;The `survival` package should be installed to run code in this vignette&quot;) 
 ex &lt;-  survreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;exponential&quot;)
 we &lt;-  survreg(Surv(recyrs, censrec) ~ 1, data=bc, dist=&quot;weibull&quot;)

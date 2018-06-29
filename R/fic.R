@@ -1,9 +1,4 @@
-##' @aliases fic_core
-##' 
-##' @inheritParams fic_multi
-##' 
-##' @rdname fic_multi
-##' @export
+
 fic_core <- function(
                        par,
                        J, 
@@ -15,32 +10,16 @@ fic_core <- function(
                        ...
                        ) 
 {
+    ## checking now done in fic_multi
     npar <- length(par)
-    if (!is.matrix(J) || (nrow(J)!=ncol(J)))
-        stop("`J` must be a square matrix")
-    if (!is.numeric(J))
-        stop("`J` must be numeric")
-    if (nrow(J) != npar)
-        stop(sprintf("`J` has %d rows and columns, but there are %d parameters.\n`J` must have number of rows and columns equal to the number of parameters", nrow(J), npar))
-
-    pp <- sum(inds0)     # number of parameters in narrow model
-    qq <- sum(inds0==0)  # maximum number of "extra" parameters
-    gamma0 <- check_gamma0(gamma0, inds0)
-
-    if (any(inds[inds0==1] != 1)){
-      dodgy_inds <- paste(which(inds[inds0==1] != 1), collapse=",")
-      warning("Submodel excludes parameters in the narrow model, in position ", dodgy_inds, ". Carrying on and including them. ")
-      inds[inds0==1] <- 1
-    }
-
+    inds <- check_indsinds0(inds, inds0)
     i0 <- which(inds0==1)
     deltahat <- sqrt(n)*(par[-i0] - gamma0)
     J00 <- J[i0, i0, drop=FALSE]
     J10 <- J[-i0, i0, drop=FALSE]
     J01 <- J[i0,-i0, drop=FALSE]
     J11 <- J[-i0,-i0, drop=FALSE]
-    invJ <- solve(J)
-    Q <- invJ[-i0,-i0, drop=FALSE]   # using book notation.  called K in original code.
+    Q <- solve(J)[-i0,-i0, drop=FALSE]   # using book notation.  called K in original code.
 
     dmudtheta <- focus_deriv[i0,,drop=FALSE]
     tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
@@ -50,15 +29,14 @@ fic_core <- function(
 
     indsS <- inds[inds0==0]
     if (sum(indsS) > 0) { 
+        qq <- sum(inds0==0)  # maximum number of "extra" parameters
         Id <-  diag(rep(1,qq))
         Qinv <- solve(Q)  # q x q 
         pi.S <- matrix(Id[indsS*(seq_len(qq)),],ncol=qq) # qs x q
-
         Q.S <- solve(pi.S %*% Qinv %*% t(pi.S)) # qs x qs
         Q0.S <- t(pi.S) %*% Q.S %*% pi.S        # q x q
         G.S <- Q0.S %*% Qinv # called M.S in original code.  q x q
         psi.S <- t(omega)%*% G.S %*% deltahat  # m x 1 
-
         omega.S <- pi.S %*% omega              # qs x m
 
         ## basic FIC estimates (section 6.1) 
@@ -66,19 +44,20 @@ fic_core <- function(
         FIC.S <- bias.S^2  +  2*diag(t(omega.S) %*% Q.S %*% omega.S)  # m x 1  +  diag of m x m 
 
         ## bias-adjusted estimates (section 6.4)
-        sqbias2 <- t(omega) %*% (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% (Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
+        sqbias2 <- t(omega) %*% (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% t(Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
         sqbias2 <- diag(sqbias2)
         sqbias3 <- pmax(sqbias2, 0) # \hat{sqb2}(S) on p152
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
         ## using Q0.S here as in book, rather than G.S (called M.S in code) as in original code.  is this right?
         var.S <- tau0sq  +  diag(t(omega) %*% Q0.S %*% omega)
+
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
         var.S <- tau0sq
         FIC.S <- bias.S^2
     }    
-    mse.adj.S <- var.S + bias.adj.S^2
+    mse.adj.S <- bias.adj.S^2 + var.S
 
     ## unadjusted mse
     mse.S <- FIC.S + tau0sq - diag(t(omega) %*% Q %*% omega) # book p150, eq 6.7 
@@ -95,6 +74,14 @@ fic_core <- function(
     res
 }
 
+check_J <- function(J, npar){
+    if (!is.matrix(J) || (nrow(J)!=ncol(J)))
+        stop("`J` must be a square matrix")
+    if (!is.numeric(J))
+        stop("`J` must be numeric")
+    if (nrow(J) != npar)
+        stop(sprintf("`J` has %d rows and columns, but there are %d parameters.\n`J` must have number of rows and columns equal to the number of parameters", nrow(J), npar))
+}
 
 check_inds <- function(inds, npar){
     if (!(is.vector(inds) || is.matrix(inds) || is.data.frame(inds)))
@@ -126,6 +113,15 @@ check_inds0 <- function(inds0, inds, npar){
             stop(sprintf("`inds0` of length %d, but model has %d parameters.\nLength of `inds0` must match number of parameters", length(inds0), npar))
     }
     inds0
+}
+
+check_indsinds0 <- function(inds, inds0){
+    if (any(inds[inds0==1] != 1)){
+      dodgy_inds <- paste(which(inds[inds0==1] != 1), collapse=",")
+      warning("Submodel excludes parameters in the narrow model, in position ", dodgy_inds, ". Carrying on and including them. ")
+      inds[inds0==1] <- 1
+    }
+    inds
 }
 
 check_gamma0 <- function(gamma0, inds0){
@@ -213,15 +209,20 @@ fic_multi <- function(
                        focus = NULL,
                        focus_deriv = NULL,
                        X = NULL, 
+                       Xwt = NULL, 
                        parsub = NULL,
                        ...
                       )
 
 {
     npar <- length(par)
+    check_J(J, npar)
+    gamma0 <- check_gamma0(gamma0, inds0)
     inds <- check_inds(inds, npar)
     nmod <- nrow(inds)
     X <- check_X(X, npar)
+    nval <- nrow(X)  # number of covariate values to evaluate the focus at
+    if (is.null(Xwt)) Xwt <- rep(1/nval, nval)
     outn <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
     if (!is.null(parsub)) {
         parsub <- check_parsub(parsub, npar, nmod)
@@ -245,15 +246,22 @@ fic_multi <- function(
       }
     }
 
-    nval <- nrow(X)  # number of covariate values to evaluate the focus at
     nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
-    res <- array(dim = c(nval, nout, nmod))
-    dimnames(res) <- list(vals=rownames(X), outn, mods=rownames(inds))
+    ndim1 <- if(nval>1) nval + 1 else 1
+    Xnames <- if(nval>1) c(rownames(X), "ave") else NULL
+    res <- array(dim = c(ndim1, nout, nmod))
+    dimnames(res) <- list(vals=Xnames, outn, mods=rownames(inds))
     for (i in 1:nmod){
         ficres <- fic_core(par=par, J=J, inds=inds[i,], inds0=inds0,
                              gamma0=gamma0, n=n, focus_deriv=focus_deriv,
                              X=X, ...)
         focus_val <- if (!is.null(parsub)) focus(par=parsub[i,], X=X, ...) else NULL
+        if (nval>1){
+            ave <- afic(par=par, J=J, inds=inds[i,], inds0=inds0,
+                        gamma0=gamma0, n=n, focus_deriv=focus_deriv, Xwt=Xwt)
+            ficres <- rbind(ficres, ave=ave)
+            if (!is.null(parsub)) focus_val <- c(focus_val, sum(focus_val*Xwt))
+        }
         res[,,i] <- cbind(ficres, focus_val)
     }
     res
@@ -368,6 +376,8 @@ get_ics <- function(sub, fns){
 ##'
 ##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
 ##'
+##' @param Xwt Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate The averaged FIC is then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight. 
+##' 
 ##' @param sub List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.
 ##'
 ##' @param fns Named list of functions to extract the quantities from the fitted model object that are required for the FIC calculation.  By default this is
@@ -436,7 +446,7 @@ get_ics <- function(sub, fns){
 ##' @export
 fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
-                      X=NULL, sub=NULL, fns=NULL,
+                      X=NULL, Xwt=NULL, sub=NULL, fns=NULL,
                       B=0, loss=loss_mse,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
@@ -458,7 +468,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     } else {
         res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
                          focus=focus, focus_deriv=focus_deriv, 
-                         parsub=parsub, X=X, ...)
+                         parsub=parsub, X=X, Xwt=Xwt, ...)
     }
     if (tidy){
         res1 <- apply(res, 2, as.data.frame.table)
