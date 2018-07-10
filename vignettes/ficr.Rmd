@@ -171,12 +171,10 @@ ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 We can actually fit the submodels in a loop by forming a covariate matrix, and subsetting its columns at each iteration.   The list of fitted models can then be passed to the fic function so that so that the focus estimate is displayed alongside the fic results. 
 
 ```{r,warning=FALSE}
-Xobs <- with(birthwt, cbind(intercpt, lwtkg))
-Zobs <- with(birthwt, cbind(age, smoke, ht, ui, smokeage, smokeui))
 nmod <- nrow(combs)
 sub <- vector(nmod, mode="list")
 for (i in 1:nmod){
-  XZi <- cbind(Xobs, Zobs)[,which(combs[i,]==1)]
+  XZi <- model.matrix(wide.glm)[,which(combs[i,]==1)]
   sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
 }
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, sub=sub)

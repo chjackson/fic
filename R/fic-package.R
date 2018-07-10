@@ -10,4 +10,5 @@
 ##' @references TODO 
 ##' @keywords package
 ##' @import stats
+##' @import tensor
 "_PACKAGE"

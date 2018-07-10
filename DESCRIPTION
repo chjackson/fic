@@ -18,7 +18,9 @@ Depends:
     R (>= 2.10)
 Imports:
     numDeriv,
-    mvtnorm
+    mvtnorm,
+    tensor,
+    abind
 URL: https://github.com/chjackson/fic
 BugReports: https://github.com/chjackson/fic/issues
 License: GPL-3

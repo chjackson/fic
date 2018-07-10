@@ -471,12 +471,20 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
                          parsub=parsub, X=X, Xwt=Xwt, ...)
     }
     if (tidy){
-        res1 <- apply(res, 2, as.data.frame.table)
-        res <- do.call("data.frame", lapply(res1, function(x)x$Freq))
-        res <- cbind(res1[[1]][,1:2], res)
+        res <- tidy.array(res, dim2=2)
     }
     res
 }
+
+## Converts an array into a tidy data frame, with columns given by the
+## `dim2` dimension of the array
+
+tidy.array <- function(arr, dim2){
+    res1 <- apply(arr, dim2, as.data.frame.table)
+    res <- do.call("data.frame", lapply(res1, function(x)x$Freq))
+    cbind(res1[[1]][,-ncol(res1[[1]])], res)
+}
+
 
 ##' @rdname fic
 ##' @export fic

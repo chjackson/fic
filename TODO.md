@@ -8,6 +8,9 @@
 
 	- skewed regression vignette
 
+* X should handle factors, i.e. model frame not model matrix format.  Rename as "newdata" 
+* inds and inds0 to handle factors too?
+
 * Example and documentation for averaged/weighted AFIC
 
 * Link results in vignette to algebraic definitions, pass to Gerda to check.
