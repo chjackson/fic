@@ -185,7 +185,7 @@ check_parsub <- function(parsub, npar, nmod){
 ##' @param parsub Vector of maximum likelihood estimates from the submodel.  
 ##' Only required to return the estimate of the focus quantity alongside 
 ##' the model assessment statistics for the submodel. If omitted, the estimate is omitted.
-##'@param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic.core}.
+##'@param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic_core}.
 ##' 
 ##' If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
 ##'
@@ -294,6 +294,37 @@ get_fns <- function(fns){
     ret
 }
 
+##' Convert inds, inds0 from model.frame (newdata) dimensions to model.matrix (X) dimensions
+##' given a wide model
+##' Replicates 0s or 1s for each factor term to number of parameters for that factor
+##' Needs model.matrix() function to work on the wide model
+##' or else they'll have to use lower level FIC function for the moment
+##' or not have factors in their model. 
+##' Converts vector, data frame or matrix input to matrix output 
+
+expand_inds <- function(inds, wide, name="inds"){
+    if (!(is.vector(inds) || is.matrix(inds) || is.data.frame(inds)))
+        stop("`inds` must be a vector, matrix or data frame")
+    if (is.data.frame(inds))
+        inds <- as.matrix(inds)
+    if (!is.numeric(inds)) stop("`inds` must contain only numeric elements")
+    ass <- attr(model.matrix(wide), "assign")
+    ass <- match(ass, unique(ass))
+    nterms <- length(unique(ass))
+    if(is.vector(inds)) {
+        if (length(inds) != nterms){
+            stop(sprintf("`%s` of length %s, but %s terms in model", name, length(inds), nterms))
+        }
+        inds <- matrix(inds, nrow=1)
+    } else {
+        if (ncol(inds) != nterms){
+            stop(sprintf("`%s` has %s columns, but %s terms in model", name, length(inds), nterms))
+        }
+    }
+    inds[,ass,drop=FALSE]
+}
+
+
 get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
     if (is.null(sub))
         parsub <- NULL
@@ -312,7 +343,7 @@ get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
                 stop(sprintf("submodel %s of class %s, should be %s, the same class as `wide`", i, class(sub[[i]])[1], class(wide)[1]))
             parsub[i,inds0==0] <- gamma0
             if (length(coef_fn(sub[[i]])) != sum(inds[i,]==1)){
-                stop(sprintf("Number of parameters in submodel %s is %s.  This should match the number of non-zero entries of inds[%s,], which is %s here", i, length(coef_fn(sub[[i]])), i, sum(inds[i,]==1)))
+                stop(sprintf("Number of parameters in submodel %s is %s, but %s parameters in terms included in inds[%s,]", i, length(coef_fn(sub[[i]])), sum(inds[i,]==1), i))
             }
             parsub[i,inds[i,]==1] <- coef_fn(sub[[i]])
         }
@@ -457,8 +488,12 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     })
     if (inherits(res, "try-error"))
         stop("check that the wide model or the `fns` argument is specified correctly")
+    ## this wasn't a good idea, only works work well for cov selection
+#    inds <- expand_inds(inds, wide, "inds")
+#    inds0 <- expand_inds(inds0, wide, "inds0")
     inds <- check_inds(inds, length(par))
     inds0 <- check_inds0(inds0, inds, length(par))
+    
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef, wide)
     if (!is.numeric(B)) stop("`B` should be zero or a positive integer")
     if (B>0){

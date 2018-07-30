@@ -86,10 +86,11 @@ We supply the following arguments to the `fic` function.
 
 * `wide` the fitted wide model.  All the model fit statistics are computed using the estimates and covariance matrix from this model.   `fic` will automatically recognise that this is a GLM fitted by the `glm` function in R, and extract the relevant information. 
 
-* `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0` below.
-If just one submodel is to be assessed, `inds` can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$. 
+* `inds` indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0` below.  If just one submodel is to be assessed, `inds` can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$.   
 
-* `inds0` vector of indicators for which parameters are included in the narrow model, in the same format as `inds`.  This can be omitted, in which case the narrow model is assumed to be given by the first row of `inds`.
+Note that `inds` indexes _parameters_ rather than _linear model terms_, that is, in covariate selection problems where one variable is a factor with more than two levels, `inds` should contain separate entries for the coefficient of each factor level relative to the baseline level, not just one entry indicating the presence of the factor as a whole.   _TODO can we construct these automatically?_
+
+* `inds0` vector of indicators for which parameters are included in the narrow model, in the same format as `inds`.  This can be omitted, in which case the narrow model is assumed to be given by the first row of `inds`.  In this case, just the first two parameters are included, the intercept and the coefficient of `lwtkg`.
 
 * `focus` the focus function. 
 
@@ -107,6 +108,10 @@ fic1
 ```
 
 TODO explain the different components of `res` 
+
+As well as the specific covariate categories, the `fic` function calculates 
+model comparison statistics which are averaged over the categories. 
+
 
 
 ### Calling `fic` for an unfamiliar class of models 
@@ -138,24 +143,22 @@ Simple linear models, focus as expected outcome at particular covariate value.  
 
 Survival models with flexsurvreg and survreg 
 
+Emphasise it's not all covariate selection. 
+
 
 ### Testing an automatically-defined set of models 
 
-The following code creates a matrix of indicators for all possible covariate selections between the narrow and wide models.    
+In covariate selection problems, we may want to examine a broad range of models.  The function `all_inds` (a wrapper around `expand.grid`) creates a matrix of indicators that defines all submodels spanned by a given wide model and a narrow model.  This function works for all model classes for which the `terms` function is understood, which includes standard R regression models such as `lm` and `glm`.  Factors are handled naturally. 
 ```{r}
-combs <- expand.grid(intercept=1, lwtkg=1, age=c(0,1), smoke=c(0,1), ht=c(0,1), ui=c(0,1), smokeage=c(0,1), smokeui=c(0,1))
+combs <- all_inds(wide.glm, inds0)
 ```
-
-We can supply this to fic to run fic for all combinations of included / excluded parameters
-The following function calculates the focused model comparison statistics for all of these models, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
+This matrix is passed to `fic` to calculate focused model comparison statistics for all submodels in this example, for a focus defined by the probability of low birth weight at covariate values defined by `X`.
 
 ```{r}
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 ```
 
-However some of these models may not make sense. 
-Models with interactions but not both corresponding main effects are then excluded.  
-Two alternative sets of names for the models are also created 
+Models with interactions but not both corresponding main effects are then excluded, and two alternative sets of names for the models are created.
 
 ```{r}
 combs <- with(combs,
@@ -168,7 +171,7 @@ namesfull <- apply(combs, 1, function(x)paste(colnames(combs)[x==1], collapse=",
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 ```
 
-We can actually fit the submodels in a loop by forming a covariate matrix, and subsetting its columns at each iteration.   The list of fitted models can then be passed to the fic function so that so that the focus estimate is displayed alongside the fic results. 
+We can actually fit the submodels in a loop as follows, by forming a covariate matrix, and subsetting its columns at each iteration.   The list of fitted models can then be passed to the `fic` function so that so that the focus estimate is displayed alongside the fic results. 
 
 ```{r,warning=FALSE}
 nmod <- nrow(combs)
@@ -180,7 +183,6 @@ for (i in 1:nmod){
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, sub=sub)
 ficres
 ```
-
 
 TODO Explain why there are NaNs.
 
@@ -222,16 +224,17 @@ ps
 
 
 
-### Average FIC over a range of focuses 
-
-TODO 
-
 
 ### Other model classes 
 
 Survival (see separate survival vignette for now)
 
 Multi-state
+
+Cox regression 
+
+
+### Bootstrap 
 
 ???
 

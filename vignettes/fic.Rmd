@@ -32,9 +32,9 @@ The Bayesian information criterion (BIC, @schwarz) is
 
 $$ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) $$
 
-These two criteria are based on very different principles.  Thus they often rank models differently.  
+These two criteria are based on very different principles.  Thus they often rank models differently.
 
-The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.   
+The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.
 
 BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see @kass:wasserman ).  If there is a "true" model, the BIC will select it "consistently" as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data - in which case AIC may be more suitable. 
 
@@ -111,6 +111,9 @@ Therefore in order to calculate the MSE, we just need to know
 * the definition of which parameters are included in submodel $S$
 
 This is what the function `fic` from the `fic` package does . LEAD INTO ...
+
+
+## Average FIC 
 
 
 # Using the fic package
