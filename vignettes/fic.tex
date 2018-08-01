@@ -1,0 +1,626 @@
+%\VignetteIndexEntry{Focused model comparison with the fic package for R}
+%\VignetteEngine{knitr::knitr}
+
+% \documentclass[article,shortnames]{jss}
+\documentclass[article,shortnames,nojss,nofooter]{jss}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{bm}
+\usepackage{tabularx}
+\usepackage{graphics}
+\usepackage{alltt}
+\usepackage{amsmath}
+
+
+
+\title{Different models for different purposes: focused model comparison in R}
+\author{Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>}
+\Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
+
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\bdelta}{\boldsymbol{\delta}}
+
+
+\Abstract{
+This is a brief tutorial in the ``focused" model comparison methods developed by Claeskens and Hjort.
+
+These can be implemented in the `fic` R package. 
+
+The method originates from the paper by \citet{fic} , and is developed further in the book by \citet{claeskens:hjort:book} and a series of related papers. 
+
+TODO make abstract more exciting
+}
+
+
+\Keywords{FIC,model comparison,AIC,BIC}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\section{Introduction: principles for model comparison}
+
+To compare a set of statistical models fitted to the same data by maximum likelihood, it is common to rank them according to some ``criterion".  For example, Akaike's information criterion (AIC, \citet{aic}) takes the form 
+
+$$ -2\log \ell(\hat\theta ; \mathbf{x}) + 2p $$
+where $\ell(\hat\theta ; \mathbf{x})$ is the maximised likelihood for the model fitted to the dataset $\mathbf{x}$, the likelihood is maximised at parameters $\hat\theta$, and $p$ is the number of parameters. 
+
+The Bayesian information criterion (BIC, \citet{schwarz}) is
+
+$$ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) $$
+
+These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will select it ``consistently" as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See e.g. \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these criteria.
+
+However both of these methods select one ``best fitting" model for a given dataset.  But that might not always be appropriate. Different models may be better for different purposes.  This is the idea behind ``focused" model comparison.   
+
+\emph{[describe what package does, structure of paper]}
+
+
+\section{Focused model comparison: principles and formulae.}
+
+Suppose the range of models we are willing to use is bounded by 
+
+\begin{itemize}
+\item a \emph{wide model}, in which all models we would use are nested, with parameters $(\btheta,\bgamma)$
+
+\item a \emph{narrow model}, the smallest model we are willing to use, defined by setting $\bgamma=\bgamma_0$ in the wide model. 
+\end{itemize}
+
+\texttt{[list of examples.  covariate selection obvious, but lots more too]}
+
+Suppose also that the purpose of the model is to estimate some \emph{focus} quantity, which could be any function of the basic parameters 
+
+$$\mu = g(\btheta, \bgamma)$$
+
+In focused model comparison, we prefer models which give better estimates of $\mu$.  A typical way to define ``better" is by the \emph{mean square error}.  The mean square error of the estimate $\hat\mu_S$ under a submodel $S$ of the wide model, compared to the true value $\mu$, is 
+
+$$E\left\{(\hat\mu_S - \mu)^2\right\}$$ 
+
+This expectation is calculated under the assumption that the data are generated from the wide model.   While we believe the wide model is the most realistic, we also accept that there may not be enough data to give sufficiently precise estimates of $\mu$.  Therefore we are willing to accept some bias in this estimate, in return for a smaller variance, by selecting a smaller model than the wide model.  The submodel $S$ with the lowest mean square error is the one which makes the optimal trade-off between bias and variance. 
+
+The expected squared error under model $S$ can be decomposed as a sum of the squared bias $B^2$ and the variance $V$. 
+
+\begin{equation}
+  \label{eq:mse}
+\begin{aligned}
+MSE = E\left\{(\hat\mu_S - \mu\right)^2\}  & = (E(\hat\mu_S)- \mu)^2 + E\left\{(\hat\mu_S -  E(\hat\mu_S))^2\right\} \\
+    & = B^2 + V
+\end{aligned}
+\end{equation}
+
+Estimators for these quantities are constructed by \citet{fic} under
+an asymptotic framework in which the data are assumed to be $n$
+independent observations generated from 
+from the wide model, but reparameterised so that $\bgamma = \gamma_0 +
+\bdelta / \sqrt{n}$.  Thus as the sample size increases, we aim to
+detect more subtle departures from the narrow model. 
+
+\emph{[any more basic assumptions?]}
+
+An obvious estimator for the bias $B$ is  
+\( \hat{B} = \hat{\mu_S} - \hat{\mu_W} \),
+where $\hat\mu_W$ is the estimate of the focus quantity under the wide model, which is assumed to be unbiased. 
+However, \citet{fic} derive a more accurate estimator for the \emph{squared} bias as 
+
+$$\widehat{B^2} = ( \psi_{full} - \psi_S )^2 / n,$$
+
+where 
+
+\begin{itemize}
+\item $\psi_{full} = \hat\omega^T\hat\bdelta$ and $\psi_S = \hat\omega^T G_S \hat\bdelta$
+are estimates of $\omega^T\bdelta$ under the wide model and submodel respectively, with $G_S = \pi^T Q_S \pi  Q^{-1}$ \emph{[intuitive explanation?]}
+
+\item 
+  $\hat\gamma$ is the estimate of $\gamma$ under the wide model, and $\hat\delta = \hat\gamma\sqrt{n}$,
+
+\item   $\hat\omega = J_{10}J_{00}^{-1}\frac{d\mu}{d\theta} - \frac{d\mu}{d\gamma}$ is \emph{[intuitive explanation?]},
+
+\item $Q_S = (\pi Q^{-1} \pi^T)^{-1}$, $Q^{-1} = J_{11}$, \emph{[intuitive explanation?]}
+
+\item  $J$ is the information (inverse covariance) matrix under the wide model divided by $n$, and subscripts $0$ and $1$ select the rows and columns forming the submatrices of $J$ that correspond to parameters $\btheta$ and $\bgamma$ respectively,
+
+\item $\pi$ is the projection matrix that selects entries of submodel $S$.
+  
+\end{itemize}
+
+The estimator for the variance of $\hat{\mu}_S$ under the wide model, derived by \citet{fic}, is 
+\[\hat{V} = (\hat{\tau}^2 + \hat{\omega}^T Q_S^0 \hat{\omega}) / n\] 
+
+where $\hat{\tau}^2 /n$ is the variance of $\hat{\mu}_S$ under submodel $S$, and the additional term $(\hat{\omega}^T Q_S^0 \hat{\omega}) / n$ is the increase in variance we accept by using a misspecified model $S$.  $\hat\tau^2 = \frac{d\mu}{d\theta}^T  J_{00}^{-1} \frac{d\mu}{d\theta}$, and $Q_S^0 = \pi^T Q_S \pi$.
+
+Thus we compare models on the basis of the root mean square error, estimated by
+\begin{equation}
+  \label{eq:rmse}
+  \sqrt{\widehat{MSE}} = \sqrt{\widehat{B^2} + \hat{V}}
+\end{equation}
+
+\subsection{Bias-corrected MSE}
+\label{sec:biascorrect}
+
+\citet{fic} derive a further correction for the bias estimator which
+is necessary when the above estimate is negative.  The adjusted squared
+bias estimator is
+
+\begin{equation}
+  \label{eq:bias:adj}
+  \hat{B}^{*2} = max\left\{0,\quad \omega^T (I - G_S) (\hat\bdelta \hat\bdelta^T - Q) (I - G_S)^T \omega / n\right\}
+\end{equation}
+
+The corresponding estimate of the bias $B$ is $sign(\psi_{full} - \psi_S)\sqrt{\hat{B}^{*2}}$, and the bias-corrected root MSE is $\sqrt{\widehat{MSE}} = \sqrt{\hat{B}^{*2} + \hat V}$.
+
+
+\subsection{Ingredients needed for the MSE calculation}
+
+Therefore in order to calculate the MSE, we just need to know
+\begin{itemize}
+\item the estimates $\hat{\btheta}_W$ and $\hat{\bgamma}_W$ under the wide model,
+
+\item the information matrix $J$ or covariance matrix of these estimates,
+
+\item the focus function $\mu(\btheta,\bgamma)$ and its derivatives, evaluated at $\hat{\btheta}_W,\hat{\bgamma}_W$,
+
+\item the definition of which parameters are included in submodel $S$.
+\end{itemize}
+
+\citet{fic} define the ``focused information criterion'' (FIC), which has a slightly simpler form due to excluding terms common to all submodels $S$, and is related to the MSE as
+\begin{equation}
+  \label{eq:fic}
+  FIC = MSE - \hat\tau^2 + \omega^T Q \omega  
+\end{equation}
+Models with lower FIC give better estimates of the focus quantity.  However we prefer to use the (root) MSE as the model comparison statistic, due to its direct interpretation as the error of the focus estimate. 
+
+
+\subsection{Average MSE over a range of focuses}
+
+Often we want a model that performs well in a range of situations.    In covariate selection problems, for example, we might want to estimate a focus quantity accurately for a defined range of covariate values.   We might simply define the ``averaged MSE'' 
+
+\[ AMSE = \int MSE(u) dW(u) du \] 
+
+as a weighted average of the mean squared errors~(\ref{eq:mse}) for focuses defined by different covariate values $u$, weighted by their prevalence $W(u)$.   However \citet{claeskens:hjort:book} derived an alternative formula, which includes a bias correction analogous to~(\ref{eq:bias:adj}) that only needs to be performed once. 
+\begin{equation}
+  \label{eq:amse}
+  AMSE = max(IS,0) + IIS
+\end{equation}
+where $IS = Tr((I - G_S)(\hat\delta \hat\delta^T - Q)(I - G_S)^T A)$, $IIS = Tr(Q_S^0 A)$ 
+\[ A = J_{10} J_{00}^{-1}B_{00}J_{00}^{-1}J_{01} - J_{10}J_{00}^{-1}B_{01} - B_{10}J_{00}^{-1}J_{01} + B_{11} \] 
+
+\[ 
+B = \int 
+\left( 
+  \begin{array}{l}
+  d\mu(u)/d\btheta\\
+  d\mu(u)/d\bgamma
+\end{array}
+\right)
+\left( 
+\begin{array}{l}
+  d\mu(u)/d\btheta\\
+  d\mu(u)/d\bgamma
+\end{array}
+\right)
+^T dW(u) = 
+\left( 
+\begin{array}{ll}
+  B_{00} & B_{01}\\
+  B_{10} & B_{11}
+\end{array}
+\right)
+\] 
+
+This is equivalent to AIC [ where we average over all covariates in the data ?]
+
+\emph{[What about equivalence to AIC where the focus is the log-likelihood? ]}
+
+
+\section{Example: covariate selection in logistic regression }
+
+
+This example is used by \citet{claeskens:hjort:book} (Example 6.1) to illustrate the focused information criterion.  The dataset was originally presented by \citet{hosmer:lemeshow:firstedition}. Data are taken from $n=189$ women with newborn babies, and the binary outcome is whether the baby is born with a weight less than 2500g.   We build a logistic regression model to predict the outcome, but are uncertain about what covariates should be included. 
+
+The data are provided as an object \code{birthwt} in the \code{fic} package.  This is the same as \code{birthwt} in \code{MASS} \citep{venables:ripley} with the addition of a few extra columns defining interactions and transformations as in \citet{claeskens:hjort:book}. 
+
+The following covariates are always included (coefficient vector $\btheta$)
+
+\begin{itemize}
+\item  $x_1$ Weight of mother in kg, \code{lwtkg}
+\end{itemize}
+
+
+The following covariates will be selected from (coefficient vector $\bgamma$)
+
+\begin{itemize}
+
+\item $z_1$ age, in years, \code{age}
+
+\item $z_2$ indicator for smoking, \code{smoke}
+
+\item $z_3$ history of hypertension, \code{ht}
+
+\item $z_4$ uterine irritability, \code{ui}
+
+\item interaction $z_5 = z_1 z_2$ between smoking and age, \code{smokeage}
+
+\item interaction $z_6 = z_2 z_4$ between smoking and uterine irritability, \code{smokeui}
+\end{itemize}
+
+Firstly the wide model, that includes all the above covariates, is defined and fitted.  
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(fic)}
+\hlstd{wide.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{ui} \hlopt{+} \hlstd{smokeage} \hlopt{+} \hlstd{smokeui,}
+                \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+The \emph{focus function} is then defined.  This should be an R function, mapping the parameters \code{par} of the wide model to the quantity of interest.   The focus can optionally have an second argument.  If supplied, this must be called \code{X}, and can be used to supply covariate values at which the focus function should be evaluated.  Here we take the probability of low birth weight as the focus, for two covariate categories: 
+ 
+\begin{enumerate}
+\item smokers with average or typical values of the other covariates.  These values are given in the order supplied when specifying the model (for smokers: intercept, \code{lwtkg}=58.24, \code{age}=22.95, \code{smoke}=1, \code{ht}=0, \code{ui}=0, \code{smokeage}=22.95, \code{smokeui}=0).
+
+\item non-smokers with average values of the other covariates
+
+\end{enumerate}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{focus} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{par}\hlstd{,} \hlkwc{X}\hlstd{)}\hlkwd{plogis}\hlstd{(X} \hlopt{%*%} \hlstd{par)}
+\hlstd{vals.smoke} \hlkwb{<-}    \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{58.24}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{1}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{0}\hlstd{)}
+\hlstd{vals.nonsmoke} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{59.50}\hlstd{,} \hlnum{23.43}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{)}
+\hlstd{X} \hlkwb{<-} \hlkwd{rbind}\hlstd{(vals.smoke, vals.nonsmoke)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+We can illustrate these functions by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{focus}\hlstd{(}\hlkwd{coef}\hlstd{(wide.glm),} \hlkwc{X}\hlstd{=X)}
+\end{alltt}
+\begin{verbatim}
+##                [,1]
+## vals.smoke    0.345
+## vals.nonsmoke 0.168
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+The \code{fic} function can then be used to calculate the mean square error of the focus for one or more given submodels.  For illustration we will compare two models, both including maternal weight, one including age and smoking, but the other including age, smoking and hypertension. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{mod1.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
+\hlstd{mod2.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+We supply the following arguments to the \code{fic} function.
+
+\begin{itemize}
+
+\item \code{wide}: the fitted wide model.  All the model fit statistics are computed using the estimates and covariance matrix from this model.   \code{fic} will automatically recognise that this is a GLM fitted by the \code{glm} function in R, and extract the relevant information. 
+
+\item \code{inds}: indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model, 8 in the case of \code{wide.glm}, which includes the intercept and the coefficients of seven covariates.   It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0} below.  If just one submodel is to be assessed, \code{inds} can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$.    
+  
+  Note that \code{inds} indexes \emph{parameters} rather than \emph{linear model terms}, that is, in covariate selection problems where a variable is a factor with more than two levels, \code{inds} should contain separate entries for the coefficient of each factor level relative to the baseline level, not just one entry indicating the presence of the factor as a whole.   \emph{[TODO can we construct these automatically?]}
+
+\item \code{inds0} vector of indicators for which parameters are included in the narrow model, in the same format as \code{inds}.  This can be omitted, in which case the narrow model is assumed to be given by the first row of \code{inds}.  In this case, just the first two parameters are included, the intercept and the coefficient of \code{lwtkg}.
+\end{itemize}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{inds} \hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlkwc{mod1} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{),}
+              \hlkwc{mod2} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{))}
+\hlstd{inds0} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\begin{itemize}
+\item \code{focus} the focus function. 
+
+\item \code{sub} a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the model comparison statistics can be presented alongside the estimates of the focus under the submodels.  Note, if just one submodel is to be assessed, this should still be enclosed in a list, e.g. \code{list(mod1.glm)}. 
+
+\end{itemize}
+
+The main \code{fic} function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{sub} \hlkwb{<-} \hlkwd{list}\hlstd{(mod1.glm, mod2.glm)}
+\hlstd{fic1} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=inds,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
+\hlstd{fic1}
+\end{alltt}
+\begin{verbatim}
+##            vals mods   FIC   rmse rmse.adj   bias bias.adj
+## 1    vals.smoke mod1 1.187 0.0723   0.0723 0.0548   0.0459
+## 4    vals.smoke mod2 0.783 0.0556   0.0572 0.0237   0.0000
+## 2 vals.nonsmoke mod1 1.305 0.0804   0.0804 0.0765   0.0731
+## 5 vals.nonsmoke mod2 0.755 0.0596   0.0596 0.0525   0.0484
+## 3           ave mod1 1.246 0.0844   0.0764 0.0657   0.0610
+## 6           ave mod2 0.769 0.0678   0.0576 0.0381   0.0329
+##       se focus
+## 1 0.0558 0.398
+## 4 0.0572 0.366
+## 2 0.0334 0.243
+## 5 0.0348 0.215
+## 3 0.0460 0.320
+## 6 0.0473 0.291
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+The object returned by \code{fic} is a matrix containing one row for
+each combination of focus covariate values indicated in the column \code{vals} and submodels indicated in the column \code{mods}.   The focus estimate is returned in the final column \code{focus}, while the remaining columns contain the following model comparison statistics:
+\begin{itemize}
+\item \code{FIC} The FIC as originally defined by \ref{fic} (equation~\ref{eq:fic}),
+\item \code{rmse} The root mean square error of the submodel focus
+  estimate, calculated assuming the wide model is true (equation~\ref{eq:rmse}),
+\item \code{rmse.adj} The bias-adjusted root mean square error (Section~\ref{sec:biascorrect}),
+\item \code{bias} The estimated bias $\sqrt{\widehat{B^2}}$ (which may be undefined if $\widehat{B^2}$ is negative),
+\item \code{bias.adj} The adjusted bias estimate (Section~\ref{sec:biascorrect}),
+\item \code{se} The standard error $\sqrt{\hat{V}}$ of
+  the submodel focus estimate, calculated assuming the wide model is true.
+\end{itemize}
+
+As well as the specific covariate categories, \code{fic} calculates 
+model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}
+
+Recall that \code{mod2} contains an extra covariate.  For each of the
+two focuses, and the average, the unadjusted and adjusted bias
+estimates are lower due to the inclusion of this covariate, while the
+standard error \code{se} is higher.  Given the lower \code{rmse} and
+\code{rmse.adj} under \code{mod2}, the reduction in bias is deemed to
+be worth the increase in uncertainty.
+
+
+\subsection{Comparing a wide range of models }
+
+In covariate selection problems, we may want to examine a broad range
+of models.  The function \code{all_inds} (a wrapper around
+\code{expand.grid}) creates a matrix of indicators that defines all
+submodels spanned by a given wide model (here \code{wide.glm} and a
+narrow model (here defined by \code{inds0}).  This
+function works for all classes of model objects \code{x} for which the \code{terms(x)} function is understood, which includes standard R regression models such as \code{lm} and \code{glm}.  Factors are handled naturally. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{combs} \hlkwb{<-} \hlkwd{all_inds}\hlstd{(wide.glm, inds0)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+The resulting matrix can be used as the \code{inds} argument to
+\code{fic} to calculate focused model comparison statistics for all
+submodels in this example, again for a focus defined by the
+probability of low birth weight at covariate values defined by
+\code{X}.   However before calling \code{fic} again, we redefine
+\code{combs} to exclude
+models with interactions but not both corresponding main effects. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{combs} \hlkwb{<-} \hlkwd{with}\hlstd{(combs,}
+              \hlstd{combs[}\hlopt{!}\hlstd{((smoke}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeage}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
+                      \hlstd{(smoke}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeui}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
+                      \hlstd{(age}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeage}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
+                      \hlstd{(ui}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeui}\hlopt{==}\hlnum{1}\hlstd{)),])}
+\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+We can actually fit the submodels in a loop as follows, by extracting
+the design matrix \code{XZ} of the wide model and removing the first
+column (the intercept).  At each iteration, the
+design matrix of the submodel is defined by extracting the columns of
+\code{XZ} indexed by the corresponding row of \code{combs}.  The
+submodel is fitted by placing this submatrix \code{XZi} on the right hand side of
+the model formula passed to \code{glm} (with \code{-1} appended to
+instruct \code{glm} not to include a second intercept term, since an
+intercept is already included in \code{XZi}).  The list of fitted
+models \code{sub} can then be passed to the \code{fic} function, so
+that so that the focus estimate is displayed alongside the model
+comparison statistics. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{nmod} \hlkwb{<-} \hlkwd{nrow}\hlstd{(combs)}
+\hlstd{sub} \hlkwb{<-} \hlkwd{vector}\hlstd{(nmod,} \hlkwc{mode}\hlstd{=}\hlstr{"list"}\hlstd{)}
+\hlstd{XZ} \hlkwb{<-} \hlkwd{model.matrix}\hlstd{(wide.glm)}
+\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{nmod)\{}
+  \hlstd{XZi} \hlkwb{<-} \hlstd{XZ[,}\hlkwd{which}\hlstd{(combs[i,]}\hlopt{==}\hlnum{1}\hlstd{)]}
+  \hlstd{sub[[i]]} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{XZi} \hlopt{-} \hlnum{1}\hlstd{,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
+\hlstd{\}}
+\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+Notice that some of the \code{rmse} elements of \code{ficres} are
+\code{NaN}, since the first squared bias estimator $\widehat{B^2}$ is
+negative.  The alternative estimate $\sqrt{\widehat{B^{*2}}}$,
+\code{rmse.adj}, can
+simply be used in these cases.  \emph{[this raises the question: why we
+  don't just use the adjusted one all the time.  Is the unadjusted one
+  better in any circumstances?]}
+
+Instead of printing the \code{ficres} object, it is plotted 
+
+Then show how to plot them. TODO condition on ggplot2.  TODO annotate/simplify.
+
+The default \code{plot} method for FIC objects TODO is a simple
+scatterplot of the focus estimate against the adjusted RMSE of the
+submodels.   This illustrates TODO 
+(can we decorate it further?) 
+
+could the fic function label one of the rows as wide or narrow ? would
+help plotting 
+ 
+A more sophisticated plot is illustrated below, which displays interval
+estimates... 
+Could create a method to 
+add 95 limits 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(ggplot2)}
+\hlstd{ress} \hlkwb{<-} \hlkwd{within}\hlstd{(ficres,\{}
+  \hlstd{l95} \hlkwb{=} \hlstd{focus} \hlopt{-} \hlkwd{qnorm}\hlstd{(}\hlnum{0.975}\hlstd{)}\hlopt{*}\hlstd{se}
+  \hlstd{u95} \hlkwb{=} \hlstd{focus} \hlopt{+} \hlkwd{qnorm}\hlstd{(}\hlnum{0.975}\hlstd{)}\hlopt{*}\hlstd{se}
+\hlstd{\})}
+\hlstd{ress} \hlkwb{<-} \hlstd{ress[}\hlkwd{order}\hlstd{(ress}\hlopt{$}\hlstd{rmse.adj,} \hlkwc{decreasing}\hlstd{=}\hlnum{TRUE}\hlstd{),]}
+\hlstd{ress_wide} \hlkwb{<-} \hlstd{ress[ress}\hlopt{$}\hlstd{mods}\hlopt{==}\hlstr{"11111111"}\hlstd{,]}
+\hlstd{wide_est} \hlkwb{<-} \hlkwd{focus}\hlstd{(}\hlkwd{coef}\hlstd{(wide.glm), X)}
+\hlstd{ress}\hlopt{$}\hlstd{wide_est} \hlkwb{<-} \hlstd{wide_est[}\hlkwd{match}\hlstd{(ress}\hlopt{$}\hlstd{vals,} \hlkwd{rownames}\hlstd{(wide_est))]}
+\hlstd{ps} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(ress[ress}\hlopt{$}\hlstd{mods}\hlopt{!=}\hlstr{"11111111"}\hlstd{,],}
+         \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=focus,} \hlkwc{y}\hlstd{=rmse))} \hlopt{+}
+  \hlkwd{facet_grid}\hlstd{(.}\hlopt{~}\hlstd{vals)} \hlopt{+}
+  \hlkwd{xlim}\hlstd{(}\hlnum{0}\hlstd{,} \hlnum{0.6}\hlstd{)} \hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Probability of low birth weight"}\hlstd{)} \hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Root mean square error of estimate"}\hlstd{)} \hlopt{+}
+  \hlkwd{geom_point}\hlstd{()} \hlopt{+}
+  \hlkwd{geom_segment}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=l95,} \hlkwc{xend}\hlstd{=u95,} \hlkwc{yend}\hlstd{=rmse))} \hlopt{+}
+  \hlkwd{geom_point}\hlstd{(}\hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
+  \hlkwd{geom_segment}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=l95,} \hlkwc{xend}\hlstd{=u95,} \hlkwc{yend}\hlstd{=rmse),} \hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
+  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{label}\hlstd{=}\hlstr{"11111111"}\hlstd{,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{,} \hlkwc{size}\hlstd{=}\hlnum{5}\hlstd{)} \hlopt{+}
+  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{label}\hlstd{=mods,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{))} \hlopt{+}
+  \hlkwd{geom_vline}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{xintercept} \hlstd{= wide_est),} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme}\hlstd{(}\hlkwc{text} \hlstd{=} \hlkwd{element_text}\hlstd{(}\hlkwc{size}\hlstd{=}\hlnum{20}\hlstd{),}
+        \hlkwc{axis.text.x} \hlstd{=} \hlkwd{element_text}\hlstd{(}\hlkwc{size}\hlstd{=}\hlnum{20}\hlstd{))} \hlopt{+}
+  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=wide_est,} \hlkwc{y}\hlstd{=} \hlnum{0.12}\hlstd{,} \hlkwc{label}\hlstd{=}\hlstr{"Estimate from wide model"}\hlstd{,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)}
+\hlstd{ps}
+\end{alltt}
+
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_point).}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_segment).}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_text).}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 25 rows containing missing values (geom\_vline).}}
+
+{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 25 rows containing missing values (geom\_text).}}\end{kframe}
+\includegraphics[width=\maxwidth]{fic-unnamed-chunk-11-1} 
+
+\end{knitrout}
+
+
+
+
+
+
+\subsection{Calling ``fic'' for an unfamiliar class of models }
+
+Above, the \code{fic} function recognised the fitted model objects as GLMs, that is, objects of class \code{"glm"} returned by the \code{glm()} function in base R.
+But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises. To do this, it needs to know where three things are stored inside the fitted model objects:
+
+\begin{enumerate}
+\item \code{coef}: the vector of maximum likelihood estimates $(\hat\btheta,\hat\bgamma)$,
+
+\item \code{nobs}: the number of observations $n$ contributing to the model fit,
+
+\item \code{vcov}: the covariance matrix of the maximum likelihood estimates, $(nJ)^{-1}$.
+\end{enumerate}
+
+Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{fns} \hlkwb{<-} \hlkwd{list}\hlstd{(}\hlkwc{coef} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{coef}\hlstd{(x),}
+            \hlkwc{nobs} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{nobs}\hlstd{(x),}
+            \hlkwc{vcov} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{vcov}\hlstd{(x))}
+\hlstd{fic1} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=inds,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{fns}\hlstd{=fns,}
+            \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in get\_parsub(sub, length(par), inds, inds0, gamma0, fns\$coef, wide): `sub` of length 26, should be 2, the same as the number of rows of `inds`}}\end{kframe}
+\end{knitrout}
+
+
+\section{Other model classes }
+
+Refer to a list of vignettes. 
+
+Simple linear models, focus as expected outcome at particular covariate value.  mtcars example, in rd doc or vignette
+
+Survival models with flexsurvreg and survreg.  Multistate. see
+separate vignettes 
+
+Emphasise not all covariate selection. 
+
+
+
+
+\section{Bootstrap}
+
+???
+
+
+
+
+\section{Discussion}
+
+Include post-selection inference, model averaging 
+
+
+\bibliography{fic}
+
+\end{document}
