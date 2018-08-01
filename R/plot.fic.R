@@ -6,7 +6,10 @@
 ##'
 ##' If the focus estimates are available, then the focus estimates are
 ##' plotted against the root MSE.  One plot is made for each covariate
-##' value defining different focuses.
+##' value defining different focuses.  If the wide model estimate is
+##' available, this is illustrated as a solid line on the plot, and if
+##' the narrow model estimate is available, this is showm as a dashed
+##' line.
 ##'
 ##' If the focus estimates are unavailable, then the standard errors
 ##' of the focus estimate are plotted against the corresponding bias.
@@ -32,9 +35,19 @@ plot.fic <- function(x, ylab=NULL, xlab=NULL, pch=19, mfrow=NULL, ...){
     if (is.null(pch)) pch <- 19
     nfocus <- length(unique(x$vals))
     if (is.null(mfrow)) {
-        mfrow <- grDevices::n2mfrow(nfocus)
+        mfrow <- rev(grDevices::n2mfrow(nfocus))
     }
     par(mfrow=mfrow)
+
+    if (!is.null(x$focus))
+        x <- within(x,{
+            l95 = focus - qnorm(0.975)*se
+            u95 = focus + qnorm(0.975)*se
+        })
+
+    iwide <- attr(x, "iwide")
+    inarr <- attr(x, "inarr")
+    col <- scales::hue_pal()(3)[3]
 
     for (i in seq(length=nfocus)){
         val <- unique(x$vals)[i]
@@ -47,12 +60,62 @@ plot.fic <- function(x, ylab=NULL, xlab=NULL, pch=19, mfrow=NULL, ...){
             abline(v=0.0, col="gray")
             points(xi$bias.adj, xi$se, pch=pch, col=gray(prmse))
         } else { 
-            if (is.null(ylab)) ylab <- "Focus"
-            if (is.null(xlab)) xlab <- "RMSE"
-            plot(xi$rmse.adj, xi$focus, xlab=xlab, ylab=ylab, pch=pch, ...)
+            if (is.null(xlab)) xlab <- "Focus"
+            if (is.null(ylab)) ylab <- "RMSE"
+            plot(xi$focus, xi$rmse.adj, type="n",
+                 xlim=range(c(x$l95, x$u95)),
+                 ylim=range(x$rmse.adj),
+                 xlab=xlab, ylab=ylab, ...)
+            if (!is.null(iwide))
+                abline(v=xi$focus[iwide], col=col)
+            if (!is.null(iwide))
+                abline(v=xi$focus[inarr], col=col, lty=2)
+            points(xi$focus, xi$rmse.adj, pch=pch, ...)
+            segments(xi$l95, xi$rmse.adj, xi$u95, xi$rmse.adj)
+            text(min(x$l95), xi$rmse.adj, labels=xi$mods, col="gray60", cex=0.7, pos=4)
         }
         title(val)
     }
 }
 
-## TODO indicate wide and/or narrow models if stored in object
+## TODO decide what to do when no focus 
+
+##' Plot focused model comparison statistics: ggplot2 method
+##'
+##' @inheritParams plot.fic
+##' 
+##' @export
+ggplot_fic <- function(x, ylab=NULL, xlab=NULL){
+    if (!requireNamespace("ggplot2", quietly = TRUE))
+        stop("The `ggplot2` package is required to use this function")
+    if (is.null(x$focus))
+        stop("No focus estimates found. `fic` should be run with the `sub` argument")
+    if (is.null(ylab)) ylab <- "RMSE"
+    if (is.null(xlab)) xlab <- "Focus"
+    x <- within(x,{
+        l95 = focus - qnorm(0.975)*se
+        u95 = focus + qnorm(0.975)*se
+    })
+    iwide <- attr(x, "iwide")
+    inarr <- attr(x, "inarr")
+    indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
+    indnarr <- tapply(1:nrow(x), x$vals, function(x)x[inarr])
+    xwide <- x[indwide,,drop=FALSE]
+    xnarr <- x[indnarr,,drop=FALSE]
+
+    col <- scales::hue_pal()(3)[3]
+    
+    ps <- ggplot(data=x, aes(x=focus, y=rmse.adj))
+    if (!is.null(iwide))
+        ps <- ps + geom_vline(data=xwide, aes(xintercept = focus), col=col)
+    if (!is.null(inarr))
+        ps <- ps + geom_vline(data=xnarr, aes(xintercept = focus), lty=2, col=col)
+    ps <- ps + 
+      facet_grid(.~vals) + 
+      geom_point() +
+      geom_segment(aes(x=l95, xend=u95, yend=rmse.adj)) +
+      xlab(xlab) +
+      ylab(ylab) + 
+      geom_text(aes(x=0, label=mods, hjust=0), col="gray60", size=2.5)
+    ps
+}

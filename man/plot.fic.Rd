@@ -2,19 +2,34 @@
 % Please edit documentation in R/plot.fic.R
 \name{plot.fic}
 \alias{plot.fic}
-\title{What is plotted depends on whether `fic` was called with a `sub`
-argument so that the focus estimates are available in the object
-returned by `fic`.}
+\title{Plot focused model comparison statistics}
 \usage{
 \method{plot}{fic}(x, ylab = NULL, xlab = NULL, pch = 19, mfrow = NULL,
   ...)
 }
+\arguments{
+\item{x}{Output from \code{\link{fic}}.}
+
+\item{ylab}{y=axis label.}
+
+\item{xlab}{x-axis label.}
+
+\item{pch}{Plot point character, by default 19 (solid circle).}
+
+\item{mfrow}{Vector of two numbers giving the number of rows and number of columns respectively in the plot grid, if there are multiple focuses.}
+
+\item{...}{Other options to pass to \code{\link{plot}}.}
+}
 \description{
+Plot focused model comparison statistics.  What is plotted depends
+on whether \code{\link{fic}} was called with a `sub` argument so that the
+focus estimates are available in the object returned by \code{\link{fic}}.
+}
+\details{
 If the focus estimates are available, then the focus estimates are
 plotted against the root MSE.  One plot is made for each covariate
 value defining different focuses.
-}
-\details{
+
 If the focus estimates are unavailable, then the standard errors
 of the focus estimate are plotted against the corresponding bias.
 The plot points are shaded with darkness proportional to the RMSE,

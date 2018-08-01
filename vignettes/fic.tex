@@ -317,7 +317,7 @@ The \emph{focus function} is then defined.  This should be an R function, mappin
 \hlstd{focus} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{par}\hlstd{,} \hlkwc{X}\hlstd{)}\hlkwd{plogis}\hlstd{(X} \hlopt{%*%} \hlstd{par)}
 \hlstd{vals.smoke} \hlkwb{<-}    \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{58.24}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{1}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{0}\hlstd{)}
 \hlstd{vals.nonsmoke} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{59.50}\hlstd{,} \hlnum{23.43}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{)}
-\hlstd{X} \hlkwb{<-} \hlkwd{rbind}\hlstd{(vals.smoke, vals.nonsmoke)}
+\hlstd{X} \hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlstr{"Smokers"}\hlstd{=vals.smoke,} \hlstr{"Non-smokers"}\hlstd{=vals.nonsmoke)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -329,9 +329,9 @@ We can illustrate these functions by calculating the probability of low birth we
 \hlkwd{focus}\hlstd{(}\hlkwd{coef}\hlstd{(wide.glm),} \hlkwc{X}\hlstd{=X)}
 \end{alltt}
 \begin{verbatim}
-##                [,1]
-## vals.smoke    0.345
-## vals.nonsmoke 0.168
+##              [,1]
+## Smokers     0.345
+## Non-smokers 0.168
 \end{verbatim}
 \end{kframe}
 \end{knitrout}
@@ -385,13 +385,13 @@ The main \code{fic} function then returns an object containing the model fit sta
 \hlstd{fic1}
 \end{alltt}
 \begin{verbatim}
-##            vals mods   FIC   rmse rmse.adj   bias bias.adj
-## 1    vals.smoke mod1 1.187 0.0723   0.0723 0.0548   0.0459
-## 4    vals.smoke mod2 0.783 0.0556   0.0572 0.0237   0.0000
-## 2 vals.nonsmoke mod1 1.305 0.0804   0.0804 0.0765   0.0731
-## 5 vals.nonsmoke mod2 0.755 0.0596   0.0596 0.0525   0.0484
-## 3           ave mod1 1.246 0.0844   0.0764 0.0657   0.0610
-## 6           ave mod2 0.769 0.0678   0.0576 0.0381   0.0329
+##          vals mods   FIC   rmse rmse.adj   bias bias.adj
+## 1     Smokers mod1 1.187 0.0723   0.0723 0.0548   0.0459
+## 4     Smokers mod2 0.783 0.0556   0.0572 0.0237   0.0000
+## 2 Non-smokers mod1 1.305 0.0804   0.0804 0.0765   0.0731
+## 5 Non-smokers mod2 0.755 0.0596   0.0596 0.0525   0.0484
+## 3         ave mod1 1.246 0.0844   0.0764 0.0657   0.0610
+## 6         ave mod2 0.769 0.0678   0.0576 0.0381   0.0329
 ##       se focus
 ## 1 0.0558 0.398
 ## 4 0.0572 0.366
@@ -417,9 +417,10 @@ each combination of focus covariate values indicated in the column \code{vals} a
 \end{itemize}
 
 As well as the specific covariate categories, \code{fic} calculates 
-model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}
+model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}.
+TODO EXPLAIN WEIGHTS
 
-Recall that \code{mod2} contains an extra covariate.  For each of the
+Recall that \code{mod2} contains one more covariate than \code{mod1}.  For each of the
 two focuses, and the average, the unadjusted and adjusted bias
 estimates are lower due to the inclusion of this covariate, while the
 standard error \code{se} is higher.  Given the lower \code{rmse} and
@@ -485,7 +486,8 @@ comparison statistics.
   \hlstd{XZi} \hlkwb{<-} \hlstd{XZ[,}\hlkwd{which}\hlstd{(combs[i,]}\hlopt{==}\hlnum{1}\hlstd{)]}
   \hlstd{sub[[i]]} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{XZi} \hlopt{-} \hlnum{1}\hlstd{,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
 \hlstd{\}}
-\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
+\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,}
+              \hlkwc{sub}\hlstd{=sub)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -493,77 +495,57 @@ comparison statistics.
 Notice that some of the \code{rmse} elements of \code{ficres} are
 \code{NaN}, since the first squared bias estimator $\widehat{B^2}$ is
 negative.  The alternative estimate $\sqrt{\widehat{B^{*2}}}$,
-\code{rmse.adj}, can
-simply be used in these cases.  \emph{[this raises the question: why we
+\code{rmse.adj}, can simply be used in these cases.  
+\emph{[this raises the question: why we
   don't just use the adjusted one all the time.  Is the unadjusted one
   better in any circumstances?]}
 
-Instead of printing the \code{ficres} object, it is plotted 
-
-Then show how to plot them. TODO condition on ggplot2.  TODO annotate/simplify.
-
-The default \code{plot} method for FIC objects TODO is a simple
-scatterplot of the focus estimate against the adjusted RMSE of the
-submodels.   This illustrates TODO 
-(can we decorate it further?) 
-
-could the fic function label one of the rows as wide or narrow ? would
-help plotting 
- 
-A more sophisticated plot is illustrated below, which displays interval
-estimates... 
-Could create a method to 
-add 95 limits 
-
+A comparison of many models can be illustrated by a scatterplot of
+the focus estimate against the RMSE of each submodel.  The default
+\code{plot} method for \code{fic} objects accomplishes this using base
+R graphics: try 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{library}\hlstd{(ggplot2)}
-\hlstd{ress} \hlkwb{<-} \hlkwd{within}\hlstd{(ficres,\{}
-  \hlstd{l95} \hlkwb{=} \hlstd{focus} \hlopt{-} \hlkwd{qnorm}\hlstd{(}\hlnum{0.975}\hlstd{)}\hlopt{*}\hlstd{se}
-  \hlstd{u95} \hlkwb{=} \hlstd{focus} \hlopt{+} \hlkwd{qnorm}\hlstd{(}\hlnum{0.975}\hlstd{)}\hlopt{*}\hlstd{se}
-\hlstd{\})}
-\hlstd{ress} \hlkwb{<-} \hlstd{ress[}\hlkwd{order}\hlstd{(ress}\hlopt{$}\hlstd{rmse.adj,} \hlkwc{decreasing}\hlstd{=}\hlnum{TRUE}\hlstd{),]}
-\hlstd{ress_wide} \hlkwb{<-} \hlstd{ress[ress}\hlopt{$}\hlstd{mods}\hlopt{==}\hlstr{"11111111"}\hlstd{,]}
-\hlstd{wide_est} \hlkwb{<-} \hlkwd{focus}\hlstd{(}\hlkwd{coef}\hlstd{(wide.glm), X)}
-\hlstd{ress}\hlopt{$}\hlstd{wide_est} \hlkwb{<-} \hlstd{wide_est[}\hlkwd{match}\hlstd{(ress}\hlopt{$}\hlstd{vals,} \hlkwd{rownames}\hlstd{(wide_est))]}
-\hlstd{ps} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(ress[ress}\hlopt{$}\hlstd{mods}\hlopt{!=}\hlstr{"11111111"}\hlstd{,],}
-         \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=focus,} \hlkwc{y}\hlstd{=rmse))} \hlopt{+}
-  \hlkwd{facet_grid}\hlstd{(.}\hlopt{~}\hlstd{vals)} \hlopt{+}
-  \hlkwd{xlim}\hlstd{(}\hlnum{0}\hlstd{,} \hlnum{0.6}\hlstd{)} \hlopt{+}
-  \hlkwd{xlab}\hlstd{(}\hlstr{"Probability of low birth weight"}\hlstd{)} \hlopt{+}
-  \hlkwd{ylab}\hlstd{(}\hlstr{"Root mean square error of estimate"}\hlstd{)} \hlopt{+}
-  \hlkwd{geom_point}\hlstd{()} \hlopt{+}
-  \hlkwd{geom_segment}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=l95,} \hlkwc{xend}\hlstd{=u95,} \hlkwc{yend}\hlstd{=rmse))} \hlopt{+}
-  \hlkwd{geom_point}\hlstd{(}\hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
-  \hlkwd{geom_segment}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=l95,} \hlkwc{xend}\hlstd{=u95,} \hlkwc{yend}\hlstd{=rmse),} \hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
-  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{label}\hlstd{=}\hlstr{"11111111"}\hlstd{,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{data}\hlstd{=ress_wide,} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{,} \hlkwc{size}\hlstd{=}\hlnum{5}\hlstd{)} \hlopt{+}
-  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlnum{0}\hlstd{,} \hlkwc{label}\hlstd{=mods,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{))} \hlopt{+}
-  \hlkwd{geom_vline}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{xintercept} \hlstd{= wide_est),} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)} \hlopt{+}
-  \hlkwd{theme}\hlstd{(}\hlkwc{text} \hlstd{=} \hlkwd{element_text}\hlstd{(}\hlkwc{size}\hlstd{=}\hlnum{20}\hlstd{),}
-        \hlkwc{axis.text.x} \hlstd{=} \hlkwd{element_text}\hlstd{(}\hlkwc{size}\hlstd{=}\hlnum{20}\hlstd{))} \hlopt{+}
-  \hlkwd{geom_text}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=wide_est,} \hlkwc{y}\hlstd{=} \hlnum{0.12}\hlstd{,} \hlkwc{label}\hlstd{=}\hlstr{"Estimate from wide model"}\hlstd{,} \hlkwc{hjust}\hlstd{=}\hlnum{0}\hlstd{),} \hlkwc{col}\hlstd{=}\hlstr{"red"}\hlstd{)}
-\hlstd{ps}
+\hlkwd{plot}\hlstd{(ficres)}
 \end{alltt}
-
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_point).}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_segment).}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 2 rows containing missing values (geom\_text).}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 25 rows containing missing values (geom\_vline).}}
-
-{\ttfamily\noindent\color{warningcolor}{\#\# Warning: Removed 25 rows containing missing values (geom\_text).}}\end{kframe}
-\includegraphics[width=\maxwidth]{fic-unnamed-chunk-11-1} 
+\end{kframe}
+\end{knitrout}
+Alternatively a graph can be plotted using \code{ggplot2} if this
+package is installed.   This is illustrated here. 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{ggplot_fic}\hlstd{(ficres)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{fic-unnamed-chunk-12-1} 
 
 \end{knitrout}
+There is one panel for each of the two covariate categories (smokers and
+non-smokers) defining the focus (probability of low birth weight) and
+an average over the two categories. 
+The solid blue line is the focus estimate under the wide model, and
+the dashed blue line is the focus estimate under the narrow model.
+ An informal illustration of the uncertainty around the focus estimate from
+each submodel is given by the focus estimate $\pm 1.96 \times
+\sqrt{\hat{V}}$.  
 
+Each submodel is labelled faintly using the row
+names of the matrix supplied as the \code{inds} argument to
+\code{fic}.  In this case, these names were automatically
+constructed by the function \code{all_inds} and contain a string of binary 0/1 
+indicators for the inclusion of eight parameters.
+For smokers, the narrow model (labelled \code{11000000}) and similar smaller models give
+estimates of the probability of low birth weight with the 
+lowest MSE, while by contrast, for non-smokers, the wide model
+(labelled \code{11111111}) and similar larger
+models gives the most accurate focus estimates.   Note that in this
+dataset, there are 115 non-smokers and 74 smokers, thus more data are
+available to identify bigger models for non-smokers.    \emph{[discuss
+average?]}
 
-
-
-
+TODO model labels indicated in faint gray.   transparency? 
 
 \subsection{Calling ``fic'' for an unfamiliar class of models }
 

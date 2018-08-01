@@ -70,7 +70,7 @@ fic_core <- function(
              se       = sqrt(var.S / n)
              )
     colnames(res) <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
-        
+    
     res
 }
 
@@ -271,6 +271,7 @@ fic_multi <- function(
         }
         res[,,i] <- cbind(ficres, focus_val)
     }
+
     res
 }
 
@@ -515,6 +516,12 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     if (tidy){
         res <- tidy.array(res, dim2=2, ord=c("vals","mods"))
     }
+    ## indices for wide and narrow models
+    iwide <- apply(inds, 1, function(x)all(x==1))
+    attr(res, "iwide") <- if (any(iwide)) which(iwide) else NULL
+    inarr <- apply(inds, 1, function(x)all(x==inds0))
+    attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
+
     class(res) <- c("fic",class(res))
     res
 }

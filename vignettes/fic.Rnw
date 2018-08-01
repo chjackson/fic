@@ -266,7 +266,7 @@ The \emph{focus function} is then defined.  This should be an R function, mappin
 focus <- function(par, X)plogis(X %*% par)
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
-X <- rbind(vals.smoke, vals.nonsmoke)
+X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
 @
 
 We can illustrate these functions by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
@@ -327,9 +327,10 @@ each combination of focus covariate values indicated in the column \code{vals} a
 \end{itemize}
 
 As well as the specific covariate categories, \code{fic} calculates 
-model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}
+model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}.
+TODO EXPLAIN WEIGHTS
 
-Recall that \code{mod2} contains an extra covariate.  For each of the
+Recall that \code{mod2} contains one more covariate than \code{mod1}.  For each of the
 two focuses, and the average, the unadjusted and adjusted bias
 estimates are lower due to the inclusion of this covariate, while the
 standard error \code{se} is higher.  Given the lower \code{rmse} and
@@ -385,72 +386,53 @@ for (i in 1:nmod){
   XZi <- XZ[,which(combs[i,]==1)]
   sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
 }
-
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, 
               sub=sub)
-
 @
 
 Notice that some of the \code{rmse} elements of \code{ficres} are
 \code{NaN}, since the first squared bias estimator $\widehat{B^2}$ is
 negative.  The alternative estimate $\sqrt{\widehat{B^{*2}}}$,
-\code{rmse.adj}, can
-simply be used in these cases.  \emph{[this raises the question: why we
+\code{rmse.adj}, can simply be used in these cases.  
+\emph{[this raises the question: why we
   don't just use the adjusted one all the time.  Is the unadjusted one
   better in any circumstances?]}
 
-Instead of printing the \code{ficres} object, it is plotted 
-
-Then show how to plot them. TODO condition on ggplot2.  TODO annotate/simplify.
-
-The default \code{plot} method for FIC objects TODO is a simple
-scatterplot of the focus estimate against the adjusted RMSE of the
-submodels.   This illustrates TODO 
-(can we decorate it further?) 
-
-<<>>=
+A comparison of many models can be illustrated by a scatterplot of
+the focus estimate against the RMSE of each submodel.  The default
+\code{plot} method for \code{fic} objects accomplishes this using base
+R graphics: try 
+<<fig.show="hide">>=
 plot(ficres)
 @ 
+Alternatively a graph can be plotted using \code{ggplot2} if this
+package is installed.   This is illustrated here. 
+<<>>=
+ggplot_fic(ficres)
+@ 
+There is one panel for each of the two covariate categories (smokers and
+non-smokers) defining the focus (probability of low birth weight) and
+an average over the two categories. 
+The solid blue line is the focus estimate under the wide model, and
+the dashed blue line is the focus estimate under the narrow model.
+ An informal illustration of the uncertainty around the estimate of
+ the focus quantity from
+each submodel is given by the estimate $\pm 1.96 \times
+\sqrt{\hat{V}}$.  
 
-could the fic function label one of the rows as wide or narrow ? would
-help plotting 
- 
-A more sophisticated plot is illustrated below, which displays interval
-estimates... 
-Could create a method to 
-add 95 limits 
-
-<<message=FALSE>>=
-library(ggplot2)
-ress <- within(ficres,{
-  l95 = focus - qnorm(0.975)*se
-  u95 = focus + qnorm(0.975)*se
-})
-ress <- ress[order(ress$rmse.adj, decreasing=TRUE),]
-ress_wide <- ress[ress$mods=="11111111",]
-wide_est <- focus(coef(wide.glm), X)
-ress$wide_est <- wide_est[match(ress$vals, rownames(wide_est))]
-ps <- ggplot(ress[ress$mods!="11111111",],
-         aes(x=focus, y=rmse)) +
-  facet_grid(.~vals) + 
-  xlim(0, 0.6) + 
-  xlab("Probability of low birth weight") +
-  ylab("Root mean square error of estimate") + 
-  geom_point() +
-  geom_segment(aes(x=l95, xend=u95, yend=rmse)) +
-  geom_point(data=ress_wide, col="red") +
-  geom_segment(aes(x=l95, xend=u95, yend=rmse), data=ress_wide, col="red") +
-  geom_text(aes(x=0, label="11111111", hjust=0), data=ress_wide, col="red", size=5) +
-  geom_text(aes(x=0, label=mods, hjust=0)) +
-  geom_vline(aes(xintercept = wide_est), col="red") +
-  theme(text = element_text(size=20),
-        axis.text.x = element_text(size=20)) +
-  geom_text(aes(x=wide_est, y= 0.12, label="Estimate from wide model", hjust=0), col="red") 
-ps
-
-@
-
-
+Each submodel is labelled faintly using the row
+names of the matrix supplied as the \code{inds} argument to
+\code{fic}.  In this case, these names were automatically
+constructed by the function \code{all_inds} and contain a string of binary 0/1 
+indicators for the inclusion of eight parameters.
+For smokers, the narrow model (labelled \code{11000000}) and similar smaller models give
+estimates of the probability of low birth weight with the 
+lowest MSE, while by contrast, for non-smokers, the wide model
+(labelled \code{11111111}) and similar larger
+models give the most accurate estimates of the focus quantity.   Note that in this
+dataset, there are 115 non-smokers and 74 smokers, thus more data
+enables bigger models to be identified for non-smokers.    \emph{[discuss
+average?]}
 
 
 
