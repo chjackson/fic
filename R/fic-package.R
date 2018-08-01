@@ -11,4 +11,5 @@
 ##' @keywords package
 ##' @import stats
 ##' @import tensor
+##' @importFrom grDevices n2mfrow
 "_PACKAGE"

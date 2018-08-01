@@ -63,14 +63,21 @@ fic_core <- function(
     mse.S <- FIC.S + tau0sq - diag(t(omega) %*% Q %*% omega) # book p150, eq 6.7 
     res <- cbind(
              FIC      = FIC.S,
-             rmse     = sqrt(mse.S / n),
-             rmse.adj = sqrt(mse.adj.S / n),   # book p157
+             rmse     = sqrt_nowarning(mse.S / n),
+             rmse.adj = sqrt_nowarning(mse.adj.S / n),   # book p157
              bias     = bias.S / sqrt(n),
              bias.adj = bias.adj.S / sqrt(n),
              se       = sqrt(var.S / n)
              )
     colnames(res) <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
         
+    res
+}
+
+sqrt_nowarning <- function(x){
+    res <- x
+    res[x<0] <- NaN
+    res[x>=0] <- sqrt(x[x>=0])
     res
 }
 
@@ -506,18 +513,22 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
                          parsub=parsub, X=X, Xwt=Xwt, ...)
     }
     if (tidy){
-        res <- tidy.array(res, dim2=2)
+        res <- tidy.array(res, dim2=2, ord=c("vals","mods"))
     }
+    class(res) <- c("fic",class(res))
     res
 }
 
 ## Converts an array into a tidy data frame, with columns given by the
-## `dim2` dimension of the array
+## `dim2` dimension of the array, and ordered by the columns indexed
+## by `order`
 
-tidy.array <- function(arr, dim2){
+tidy.array <- function(arr, dim2, ord){
     res1 <- apply(arr, dim2, as.data.frame.table)
     res <- do.call("data.frame", lapply(res1, function(x)x$Freq))
-    cbind(res1[[1]][,-ncol(res1[[1]])], res)
+    resdf <- cbind(res1[[1]][,-ncol(res1[[1]])], res)
+    inds <- do.call(order, args=resdf[,ord])
+    resdf[inds,]
 }
 
 
