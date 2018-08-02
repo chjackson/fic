@@ -18,7 +18,7 @@ fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
 
 \item{gamma0}{Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 
-This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
+This defaults to 0, as in covariate selection, where "excluded" coefficients are fixed to 0. 
 
 This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
@@ -32,7 +32,7 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
 }
 
-The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
 
 Not required if \code{focus_deriv} is specified.
 
@@ -55,7 +55,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate The averaged FIC is then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight.}
+\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.}
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel.
 Only required to return the estimate of the focus quantity alongside 

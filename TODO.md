@@ -1,31 +1,24 @@
 ## Definitely
 
-* More model classes and built-in focuses, to include at least 
+* More model classes and built-in focuses in vignette(s)
 
-	- survival vignette 
+	- survival
 
-	- linear model vignette
+	- linear models
 
-	- skewed regression vignette
+	- skewed regression
 
-* X should handle factors, i.e. model frame not model matrix format.  Rename as "newdata" 
-* inds and inds0 to handle factors too?
+	- multi-state models
 
-* Example and documentation for averaged/weighted AFIC
-
-* Link results in vignette to algebraic definitions, pass to Gerda to check.
-
-* Cox models.  This is fiddly but possible
-
-* Illustrate some algebra/intuitions for when the narrow model will be preferred? 
-
-* Handle regression intercepts more nicely? cf skewnormal example
+* Cox models.  Code written but don't currently trust it
 
 * Alternative losses, e.g. error rate for prediction of an event. 
   - Works well empirically to compute replicate focuses using MVN sample from wide model ests, then use these to calculate MSE of submodel focus MLE. 
   - Assume this is equivalent to procedure on pp152-3 on book
   - Can substitute any other loss for MSE 
   - Todo discuss with Gerda
+
+* Illustrate some algebra/intuitions for when the narrow model will be preferred? 
 
 * Error handling for all functions
   - use imagination here, go through all args

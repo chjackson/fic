@@ -345,7 +345,10 @@ of models.  The function \code{all_inds} (a wrapper around
 \code{expand.grid}) creates a matrix of indicators that defines all
 submodels spanned by a given wide model (here \code{wide.glm} and a
 narrow model (here defined by \code{inds0}).  This
-function works for all classes of model objects \code{x} for which the \code{terms(x)} function is understood, which includes standard R regression models such as \code{lm} and \code{glm}.  Factors are handled naturally. 
+function works for all classes of model objects \code{x} for which the
+\code{terms(x)} function is understood, which includes standard R
+regression models such as \code{lm} and \code{glm}.  \emph{[can we use
+terms.formula more generally, e.g. in flexsurvreg?]} }Factors are handled naturally. 
 <<>>=
 combs <- all_inds(wide.glm, inds0)
 @
@@ -435,6 +438,28 @@ enables bigger models to be identified for non-smokers.    \emph{[discuss
 average?]}
 
 
+\section{Other classes of models} 
+
+Illustrate new concepts.   Could be in separate vignettes.
+
+\paragraph{Linear} Illustrates alternative focuses: expected outcome
+at given covariate values, quantile for given covariate values.
+Polynomial order selection as well as covariate selection. 
+Use a well known dataset, e.g. mtcars? 
+
+\paragraph{Multi-state} Illustrates focuses that are complicated
+functions of the model parameters: package should facilitate this 
+
+\paragraph{Survival} Increasingly flexible parametric models.
+Challenge to express models as nested within each other.  Important
+health economic application: restricted mean survival.
+
+\paragraph{Skew-normal} 
+Novel class of models, user-written model fitting function.  Store
+est, vcov, nobs in result list.    Narrow model parameters could be in
+the middle.
+
+
 
 
 \subsection{Calling ``fic'' for an unfamiliar class of models }
@@ -461,30 +486,29 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
 @
 
 
-\section{Other model classes }
-
-Refer to a list of vignettes. 
-
-Simple linear models, focus as expected outcome at particular covariate value.  mtcars example, in rd doc or vignette
-
-Survival models with flexsurvreg and survreg.  Multistate. see
-separate vignettes 
-
-Emphasise not all covariate selection. 
-
-
 
 
 \section{Bootstrap}
 
-???
+Would like to 
+
+\begin{itemize}
+
+\item illustrate alternative losses to the mean square error 
+
+\item use resampling to illustrate FIC principles
+
+\end{itemize}
+
 
 
 
 
 \section{Discussion}
 
-Include post-selection inference, model averaging 
+Post-selection inference, model averaging 
+
+High dimensional regression 
 
 
 \bibliography{fic}

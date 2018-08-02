@@ -1,0 +1,58 @@
+\begin{thebibliography}{8}
+\newcommand{\enquote}[1]{``#1''}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\providecommand{\urlprefix}{URL }
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\eprint}[2][]{\url{#2}}
+
+\bibitem[{Akaike(1973)}]{aic}
+Akaike H (1973).
+\newblock \enquote{Information theory and an extension of the maximum
+  likelihood principle.}
+\newblock In B~Petrov, F~Csaki (eds.), \emph{2nd International Symposium on
+  Information Theory}, pp. 267--281. Akademiai Kiado, Budapest.
+
+\bibitem[{Burnham and Anderson(2003)}]{burnham:anderson:book}
+Burnham KP, Anderson DR (2003).
+\newblock \emph{Model selection and multimodel inference: a practical
+  information-theoretic approach}.
+\newblock Springer.
+
+\bibitem[{Claeskens and Hjort(2003)}]{fic}
+Claeskens G, Hjort N (2003).
+\newblock \enquote{The focused information criterion (with discussion).}
+\newblock \emph{Journal of the American Statistical Association},
+  \textbf{98}(464), 900--945.
+
+\bibitem[{Claeskens and Hjort(2008)}]{claeskens:hjort:book}
+Claeskens G, Hjort N (2008).
+\newblock \emph{Model selection and model averaging}.
+\newblock Cambridge University Press.
+
+\bibitem[{Hosmer and Lemeshow(1989)}]{hosmer:lemeshow:firstedition}
+Hosmer DW, Lemeshow S (1989).
+\newblock \emph{Applied Logistic Regression}.
+\newblock John Wiley \& Sons.
+
+\bibitem[{Kass and Wasserman(1995)}]{kass:wasserman}
+Kass RE, Wasserman L (1995).
+\newblock \enquote{A reference {Bayesian} test for nested hypotheses with large
+  samples.}
+\newblock \emph{Journal of the American Statistical Association}, \textbf{90},
+  928--934.
+
+\bibitem[{Schwarz(1978)}]{schwarz}
+Schwarz G (1978).
+\newblock \enquote{Estimating the dimension of a model.}
+\newblock \emph{The Annals of Statistics}, \textbf{6}(2), 461--464.
+
+\bibitem[{Venables and Ripley(2002)}]{venables:ripley}
+Venables WN, Ripley BD (2002).
+\newblock \emph{Modern Applied Statistics with \proglang{S}}.
+\newblock 4th edition edition. Springer.
+
+\end{thebibliography}

@@ -370,7 +370,7 @@ get_ics <- function(sub, fns){
 
 ##' Focused Information Criterion: main user interface
 ##'
-##' Focused information criterion for general models.  These methods estimate the bias and variance of estimates of a quantity of interest (the "focus") when parameters are excluded from an "wide" model that is assumed to generate the data.
+##' Focused information criterion for general models.  These methods estimate the bias and variance of estimates of a quantity of interest (the "focus") when smaller submodels are used in place of a "wide" model that is assumed to generate the data but may not give precise enough estimates.
 ##'
 ##' @aliases FIC
 ##'
@@ -378,13 +378,13 @@ get_ics <- function(sub, fns){
 ##'
 ##' @param inds matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 ##'
-##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in `inds0`.
+##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.
 ##'
 ##' @param inds0 Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.
 ##'
 ##' @param gamma0 Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 ##' 
-##' This defaults to 0, as in covariate selection, where excluded coefficients are fixed to 0. 
+##' This defaults to 0, as in covariate selection, where "excluded" coefficients are fixed to 0. 
 ##'
 ##' This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.
 ##' 
@@ -397,7 +397,7 @@ get_ics <- function(sub, fns){
 ##' \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
 ##' }
 ##' 
-##' The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+##' The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
 ##'
 ##' Not required if \code{focus_deriv} is specified.
 ##'
@@ -415,9 +415,9 @@ get_ics <- function(sub, fns){
 ##'
 ##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
 ##'
-##' @param Xwt Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate The averaged FIC is then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight. 
+##' @param Xwt Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.
 ##' 
-##' @param sub List of fitted model objects for each submodel to be assessed.  This is optional, and only required if you want the estimate of the focus function under each submodel to be included in the results.
+##' @param sub List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.
 ##'
 ##' @param fns Named list of functions to extract the quantities from the fitted model object that are required for the FIC calculation.  By default this is
 ##'
@@ -452,7 +452,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' @param B If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)
 ##'
-##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments `sub` and `wide`.  `sub` should be a scalar giving the focus estimate from a submodel.  `wide` should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.
+##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.
 ##'
 ##' @param tidy If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.
 ##' 

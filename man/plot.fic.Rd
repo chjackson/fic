@@ -28,7 +28,10 @@ focus estimates are available in the object returned by \code{\link{fic}}.
 \details{
 If the focus estimates are available, then the focus estimates are
 plotted against the root MSE.  One plot is made for each covariate
-value defining different focuses.
+value defining different focuses.  If the wide model estimate is
+available, this is illustrated as a solid line on the plot, and if
+the narrow model estimate is available, this is showm as a dashed
+line.
 
 If the focus estimates are unavailable, then the standard errors
 of the focus estimate are plotted against the corresponding bias.
