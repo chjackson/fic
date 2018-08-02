@@ -348,7 +348,7 @@ narrow model (here defined by \code{inds0}).  This
 function works for all classes of model objects \code{x} for which the
 \code{terms(x)} function is understood, which includes standard R
 regression models such as \code{lm} and \code{glm}.  \emph{[can we use
-terms.formula more generally, e.g. in flexsurvreg?]} }Factors are handled naturally. 
+terms.formula more generally, e.g. in flexsurvreg?]}  Factors are handled naturally. 
 <<>>=
 combs <- all_inds(wide.glm, inds0)
 @
@@ -477,7 +477,7 @@ But the package can be used to calculate focused model comparison statistics for
 
 Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
 
-<<>>=
+<<eval=FALSE>>=
 fns <- list(coef = function(x)coef(x),
             nobs = function(x)nobs(x),
             vcov = function(x)vcov(x))

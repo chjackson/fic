@@ -11,7 +11,7 @@
 
 <meta name="author" content="Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk" />
 
-<meta name="date" content="2018-06-29" />
+<meta name="date" content="2018-08-02" />
 
 <title>Using the fic R package for focused model comparison: multi-state models</title>
 
@@ -277,9 +277,6 @@ img {
 .tabbed-pane {
   padding-top: 12px;
 }
-.html-widget {
-  margin-bottom: 20px;
-}
 button.code-folding-btn:focus {
   outline: none;
 }
@@ -314,18 +311,17 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">Using the fic R package for focused model comparison: multi-state models</h1>
 <h4 class="author"><em>Chris Jackson <a href="mailto:chris.jackson@mrc-bsu.cam.ac.uk">chris.jackson@mrc-bsu.cam.ac.uk</a></em></h4>
-<h4 class="date"><em>2018-06-29</em></h4>
+<h4 class="date"><em>2018-08-02</em></h4>
 
 </div>
 
 
-<div id="focused-model-comparison-for-covariate-selection-in-multi-state-models-fitted-with-msm" class="section level2">
+<section id="focused-model-comparison-for-covariate-selection-in-multi-state-models-fitted-with-msm" class="level2">
 <h2>Focused model comparison for covariate selection in multi-state models fitted with msm</h2>
 <p>Example dataset in package, <code>psor</code>. Four state progression-only model.</p>
 <p>Wide model: model with two binary covariates associated with different effects for all three transition rates.</p>
-<pre class="r"><code>if (!require(&quot;msm&quot;)) stop(&quot;The `msm` package should be installed to run code in this vignette&quot;) </code></pre>
-<pre><code>## Loading required package: msm</code></pre>
-<pre class="r"><code>psor.q &lt;- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
+<pre class="r"><code>if (!require(&quot;msm&quot;)) stop(&quot;The `msm` package should be installed to run code in this vignette&quot;) 
+psor.q &lt;- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
 psor.wide.msm &lt;- msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
 psor.wide.msm</code></pre>
 <pre><code>## 
@@ -351,7 +347,7 @@ psor.wide.msm</code></pre>
 ## State 3 - State 3                     
 ## State 3 - State 4 1.394 (0.7738,2.511)
 ## 
-## -2 * log-likelihood:  1112.613 
+## -2 * log-likelihood:  1113 
 ## [Note, to obtain old print format, use &quot;printold.msm&quot;]</code></pre>
 <p>This requires version 1.6.6 of <code>msm</code>, available from CRAN since 3 Feb 2017. This version introduced the <code>updatepars.msm</code> function for altering the point estimates from a fitted model a model to a vector of values supplied by the user. This allows functions such as <code>totlos.msm</code> to be used, which define complicated functions of the model parameters.</p>
 <p>Here we use this to define a focus function, which returns the expected total time spent in state 4 over 10 years for people without <code>ollwsdrt</code> or <code>hieffusn</code>, given a vector of parameters <code>pars</code> in the model structure <code>psor.wide.msm</code>.</p>
@@ -370,25 +366,17 @@ psor.wide.msm</code></pre>
     c(1,1,1,1,1,1,1,1,1)
 )
 fic(wide=psor.wide.msm, inds=inds, focus=focus_tlos)</code></pre>
-<pre><code>##   vals mods      FIC       rmse  rmse.adj          bias      bias.adj
-## 1    A    1 1.547294 0.08085056 0.1136853  5.870340e-02  5.870340e-02
-## 2    A    2 1.674484 0.08258382 0.1053649  2.196226e-02  0.000000e+00
-## 3    A    3 2.270819 0.09026753 0.1086252 -2.037505e-02  0.000000e+00
-## 4    A    4 4.771357 0.11712111 0.1171211 -7.138451e-02 -3.838830e-02
-## 5    A    5 9.853610 0.15822896 0.1582290 -1.165617e-01 -1.066707e-01
-## 6    A    6 5.235032 0.12144973 0.1214497 -4.421893e-02 -2.048869e-02
-## 7    A    7 5.735999 0.12595943 0.1259594 -2.095787e-17 -1.462738e-17
-##           se
-## 1 0.09735631
-## 2 0.10536490
-## 3 0.10862519
-## 4 0.11065122
-## 5 0.11686649
-## 6 0.11970903
-## 7 0.12595943</code></pre>
+<pre><code>##   vals mods  FIC   rmse rmse.adj      bias bias.adj     se
+## 1    A    1 1.55 0.0809    0.114  5.87e-02   0.0587 0.0974
+## 2    A    2 1.67 0.0826    0.105  2.20e-02   0.0000 0.1054
+## 3    A    3 2.27 0.0903    0.109 -2.04e-02   0.0000 0.1086
+## 4    A    4 4.77 0.1171    0.117 -7.14e-02  -0.0384 0.1107
+## 5    A    5 9.85 0.1582    0.158 -1.17e-01  -0.1067 0.1169
+## 6    A    6 5.24 0.1214    0.121 -4.42e-02  -0.0205 0.1197
+## 7    A    7 5.74 0.1260    0.126  2.10e-17   0.0000 0.1260</code></pre>
 <p>Very small biases in all cases. RMSE increases with the variance as covariates are added.</p>
 <p>I guess because these covariates are not strongly associated with transition rates.</p>
-</div>
+</section>
 
 
 

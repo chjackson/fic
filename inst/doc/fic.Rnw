@@ -2,64 +2,19 @@
 %\VignetteEngine{knitr::knitr}
 
 % \documentclass[article,shortnames]{jss}
-\documentclass[article,shortnames,nojss,nofooter]{jss}\usepackage[]{graphicx}\usepackage[]{color}
-%% maxwidth is the original width if it is less than linewidth
-%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
-\makeatletter
-\def\maxwidth{ %
-  \ifdim\Gin@nat@width>\linewidth
-    \linewidth
-  \else
-    \Gin@nat@width
-  \fi
-}
-\makeatother
-
-\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
-\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
-\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
-\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
-\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
-\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
-\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
-\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
-\let\hlipl\hlkwb
-
-\usepackage{framed}
-\makeatletter
-\newenvironment{kframe}{%
- \def\at@end@of@kframe{}%
- \ifinner\ifhmode%
-  \def\at@end@of@kframe{\end{minipage}}%
-  \begin{minipage}{\columnwidth}%
- \fi\fi%
- \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
- \colorbox{shadecolor}{##1}\hskip-\fboxsep
-     % There is no \\@totalrightmargin, so:
-     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
- \MakeFramed {\advance\hsize-\width
-   \@totalleftmargin\z@ \linewidth\hsize
-   \@setminipage}}%
- {\par\unskip\endMakeFramed%
- \at@end@of@kframe}
-\makeatother
-
-\definecolor{shadecolor}{rgb}{.97, .97, .97}
-\definecolor{messagecolor}{rgb}{0, 0, 0}
-\definecolor{warningcolor}{rgb}{1, 0, 1}
-\definecolor{errorcolor}{rgb}{1, 0, 0}
-\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
-
-\usepackage{alltt}
+\documentclass[article,shortnames,nojss,nofooter]{jss}
 \usepackage{bm}
 \usepackage{tabularx}
 \usepackage{graphics}
 \usepackage{alltt}
 \usepackage{amsmath}
 
-
+<<echo=FALSE>>=
+options(width=60,digits=3)
+options(prompt="R> ")
+library(knitr)
+opts_chunk$set(fig.path="fic-")
+@
 
 \title{Different models for different purposes: focused model comparison in R}
 \author{Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>}
@@ -82,7 +37,7 @@ TODO make abstract more exciting
 
 
 \Keywords{FIC,model comparison,AIC,BIC}
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+
 \begin{document}
 
 \section{Introduction: principles for model comparison}
@@ -292,15 +247,11 @@ The following covariates will be selected from (coefficient vector $\bgamma$)
 
 Firstly the wide model, that includes all the above covariates, is defined and fitted.  
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{library}\hlstd{(fic)}
-\hlstd{wide.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht} \hlopt{+} \hlstd{ui} \hlopt{+} \hlstd{smokeage} \hlopt{+} \hlstd{smokeui,}
-                \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<>>=
+library(fic)
+wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
+                data=birthwt, family=binomial)
+@ 
 
 The \emph{focus function} is then defined.  This should be an R function, mapping the parameters \code{par} of the wide model to the quantity of interest.   The focus can optionally have an second argument.  If supplied, this must be called \code{X}, and can be used to supply covariate values at which the focus function should be evaluated.  Here we take the probability of low birth weight as the focus, for two covariate categories: 
  
@@ -311,41 +262,24 @@ The \emph{focus function} is then defined.  This should be an R function, mappin
 
 \end{enumerate}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{focus} \hlkwb{<-} \hlkwa{function}\hlstd{(}\hlkwc{par}\hlstd{,} \hlkwc{X}\hlstd{)}\hlkwd{plogis}\hlstd{(X} \hlopt{%*%} \hlstd{par)}
-\hlstd{vals.smoke} \hlkwb{<-}    \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{58.24}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{1}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{22.95}\hlstd{,} \hlnum{0}\hlstd{)}
-\hlstd{vals.nonsmoke} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,} \hlnum{59.50}\hlstd{,} \hlnum{23.43}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{,} \hlnum{0}\hlstd{)}
-\hlstd{X} \hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlstr{"Smokers"}\hlstd{=vals.smoke,} \hlstr{"Non-smokers"}\hlstd{=vals.nonsmoke)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<>>=
+focus <- function(par, X)plogis(X %*% par)
+vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
+@
 
 We can illustrate these functions by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{focus}\hlstd{(}\hlkwd{coef}\hlstd{(wide.glm),} \hlkwc{X}\hlstd{=X)}
-\end{alltt}
-\begin{verbatim}
-##              [,1]
-## Smokers     0.345
-## Non-smokers 0.168
-\end{verbatim}
-\end{kframe}
-\end{knitrout}
+<<>>=
+focus(coef(wide.glm), X=X)
+@
 
 The \code{fic} function can then be used to calculate the mean square error of the focus for one or more given submodels.  For illustration we will compare two models, both including maternal weight, one including age and smoking, but the other including age, smoking and hypertension. 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{mod1.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
-\hlstd{mod2.glm} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{lwtkg} \hlopt{+} \hlstd{age} \hlopt{+} \hlstd{smoke} \hlopt{+} \hlstd{ht,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<>>=
+mod1.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family=binomial)
+mod2.glm <- glm(low ~ lwtkg + age + smoke + ht, data=birthwt, family=binomial)
+@
 
 We supply the following arguments to the \code{fic} function.
 
@@ -359,15 +293,11 @@ We supply the following arguments to the \code{fic} function.
 
 \item \code{inds0} vector of indicators for which parameters are included in the narrow model, in the same format as \code{inds}.  This can be omitted, in which case the narrow model is assumed to be given by the first row of \code{inds}.  In this case, just the first two parameters are included, the intercept and the coefficient of \code{lwtkg}.
 \end{itemize}
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{inds} \hlkwb{<-} \hlkwd{rbind}\hlstd{(}\hlkwc{mod1} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{),}
-              \hlkwc{mod2} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{))}
-\hlstd{inds0} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{1}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{,}\hlnum{0}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<>>=
+inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
+              mod2 = c(1,1,1,1,1,0,0,0))
+inds0 <- c(1,1,0,0,0,0,0,0)
+@ 
 \begin{itemize}
 \item \code{focus} the focus function. 
 
@@ -377,31 +307,11 @@ We supply the following arguments to the \code{fic} function.
 
 The main \code{fic} function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{sub} \hlkwb{<-} \hlkwd{list}\hlstd{(mod1.glm, mod2.glm)}
-\hlstd{fic1} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=inds,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
-\hlstd{fic1}
-\end{alltt}
-\begin{verbatim}
-##          vals mods   FIC   rmse rmse.adj   bias bias.adj
-## 1     Smokers mod1 1.187 0.0723   0.0723 0.0548   0.0459
-## 4     Smokers mod2 0.783 0.0556   0.0572 0.0237   0.0000
-## 2 Non-smokers mod1 1.305 0.0804   0.0804 0.0765   0.0731
-## 5 Non-smokers mod2 0.755 0.0596   0.0596 0.0525   0.0484
-## 3         ave mod1 1.246 0.0844   0.0764 0.0657   0.0610
-## 6         ave mod2 0.769 0.0678   0.0576 0.0381   0.0329
-##       se focus
-## 1 0.0558 0.398
-## 4 0.0572 0.366
-## 2 0.0334 0.243
-## 5 0.0348 0.215
-## 3 0.0460 0.320
-## 6 0.0473 0.291
-\end{verbatim}
-\end{kframe}
-\end{knitrout}
+<<>>=
+sub <- list(mod1.glm, mod2.glm)
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
+fic1
+@
 
 The object returned by \code{fic} is a matrix containing one row for
 each combination of focus covariate values indicated in the column \code{vals} and submodels indicated in the column \code{mods}.   The focus estimate is returned in the final column \code{focus}, while the remaining columns contain the following model comparison statistics:
@@ -435,14 +345,13 @@ of models.  The function \code{all_inds} (a wrapper around
 \code{expand.grid}) creates a matrix of indicators that defines all
 submodels spanned by a given wide model (here \code{wide.glm} and a
 narrow model (here defined by \code{inds0}).  This
-function works for all classes of model objects \code{x} for which the \code{terms(x)} function is understood, which includes standard R regression models such as \code{lm} and \code{glm}.  Factors are handled naturally. 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{combs} \hlkwb{<-} \hlkwd{all_inds}\hlstd{(wide.glm, inds0)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+function works for all classes of model objects \code{x} for which the
+\code{terms(x)} function is understood, which includes standard R
+regression models such as \code{lm} and \code{glm}.  \emph{[can we use
+terms.formula more generally, e.g. in flexsurvreg?]}  Factors are handled naturally. 
+<<>>=
+combs <- all_inds(wide.glm, inds0)
+@
 The resulting matrix can be used as the \code{inds} argument to
 \code{fic} to calculate focused model comparison statistics for all
 submodels in this example, again for a focus defined by the
@@ -450,18 +359,14 @@ probability of low birth weight at covariate values defined by
 \code{X}.   However before calling \code{fic} again, we redefine
 \code{combs} to exclude
 models with interactions but not both corresponding main effects. 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{combs} \hlkwb{<-} \hlkwd{with}\hlstd{(combs,}
-              \hlstd{combs[}\hlopt{!}\hlstd{((smoke}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeage}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
-                      \hlstd{(smoke}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeui}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
-                      \hlstd{(age}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeage}\hlopt{==}\hlnum{1}\hlstd{)} \hlopt{|}
-                      \hlstd{(ui}\hlopt{==}\hlnum{0} \hlopt{&} \hlstd{smokeui}\hlopt{==}\hlnum{1}\hlstd{)),])}
-\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<>>=
+combs <- with(combs,
+              combs[!((smoke==0 & smokeage==1) |
+                      (smoke==0 & smokeui==1) |
+                      (age==0 & smokeage==1) |
+                      (ui==0 & smokeui==1)),])
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
+@
 
 We can actually fit the submodels in a loop as follows, by extracting
 the design matrix \code{XZ} of the wide model and removing the first
@@ -476,21 +381,17 @@ models \code{sub} can then be passed to the \code{fic} function, so
 that so that the focus estimate is displayed alongside the model
 comparison statistics. 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{nmod} \hlkwb{<-} \hlkwd{nrow}\hlstd{(combs)}
-\hlstd{sub} \hlkwb{<-} \hlkwd{vector}\hlstd{(nmod,} \hlkwc{mode}\hlstd{=}\hlstr{"list"}\hlstd{)}
-\hlstd{XZ} \hlkwb{<-} \hlkwd{model.matrix}\hlstd{(wide.glm)}
-\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{nmod)\{}
-  \hlstd{XZi} \hlkwb{<-} \hlstd{XZ[,}\hlkwd{which}\hlstd{(combs[i,]}\hlopt{==}\hlnum{1}\hlstd{)]}
-  \hlstd{sub[[i]]} \hlkwb{<-} \hlkwd{glm}\hlstd{(low} \hlopt{~} \hlstd{XZi} \hlopt{-} \hlnum{1}\hlstd{,} \hlkwc{data}\hlstd{=birthwt,} \hlkwc{family}\hlstd{=binomial)}
-\hlstd{\}}
-\hlstd{ficres} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=combs,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{X}\hlstd{=X,}
-              \hlkwc{sub}\hlstd{=sub)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<warning=FALSE>>=
+nmod <- nrow(combs)
+sub <- vector(nmod, mode="list")
+XZ <- model.matrix(wide.glm)
+for (i in 1:nmod){
+  XZi <- XZ[,which(combs[i,]==1)]
+  sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
+}
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, 
+              sub=sub)
+@
 
 Notice that some of the \code{rmse} elements of \code{ficres} are
 \code{NaN}, since the first squared bias estimator $\widehat{B^2}$ is
@@ -504,31 +405,22 @@ A comparison of many models can be illustrated by a scatterplot of
 the focus estimate against the RMSE of each submodel.  The default
 \code{plot} method for \code{fic} objects accomplishes this using base
 R graphics: try 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{plot}\hlstd{(ficres)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+<<fig.show="hide">>=
+plot(ficres)
+@ 
 Alternatively a graph can be plotted using \code{ggplot2} if this
 package is installed.   This is illustrated here. 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{ggplot_fic}\hlstd{(ficres)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{fic-unnamed-chunk-12-1} 
-
-\end{knitrout}
+<<>>=
+ggplot_fic(ficres)
+@ 
 There is one panel for each of the two covariate categories (smokers and
 non-smokers) defining the focus (probability of low birth weight) and
 an average over the two categories. 
 The solid blue line is the focus estimate under the wide model, and
 the dashed blue line is the focus estimate under the narrow model.
- An informal illustration of the uncertainty around the focus estimate from
-each submodel is given by the focus estimate $\pm 1.96 \times
+ An informal illustration of the uncertainty around the estimate of
+ the focus quantity from
+each submodel is given by the estimate $\pm 1.96 \times
 \sqrt{\hat{V}}$.  
 
 Each submodel is labelled faintly using the row
@@ -540,12 +432,35 @@ For smokers, the narrow model (labelled \code{11000000}) and similar smaller mod
 estimates of the probability of low birth weight with the 
 lowest MSE, while by contrast, for non-smokers, the wide model
 (labelled \code{11111111}) and similar larger
-models gives the most accurate focus estimates.   Note that in this
-dataset, there are 115 non-smokers and 74 smokers, thus more data are
-available to identify bigger models for non-smokers.    \emph{[discuss
+models give the most accurate estimates of the focus quantity.   Note that in this
+dataset, there are 115 non-smokers and 74 smokers, thus more data
+enables bigger models to be identified for non-smokers.    \emph{[discuss
 average?]}
 
-TODO model labels indicated in faint gray.   transparency? 
+
+\section{Other classes of models} 
+
+Illustrate new concepts.   Could be in separate vignettes.
+
+\paragraph{Linear} Illustrates alternative focuses: expected outcome
+at given covariate values, quantile for given covariate values.
+Polynomial order selection as well as covariate selection. 
+Use a well known dataset, e.g. mtcars? 
+
+\paragraph{Multi-state} Illustrates focuses that are complicated
+functions of the model parameters: package should facilitate this 
+
+\paragraph{Survival} Increasingly flexible parametric models.
+Challenge to express models as nested within each other.  Important
+health economic application: restricted mean survival.
+
+\paragraph{Skew-normal} 
+Novel class of models, user-written model fitting function.  Store
+est, vcov, nobs in result list.    Narrow model parameters could be in
+the middle.
+
+
+
 
 \subsection{Calling ``fic'' for an unfamiliar class of models }
 
@@ -562,45 +477,38 @@ But the package can be used to calculate focused model comparison statistics for
 
 Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlstd{fns} \hlkwb{<-} \hlkwd{list}\hlstd{(}\hlkwc{coef} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{coef}\hlstd{(x),}
-            \hlkwc{nobs} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{nobs}\hlstd{(x),}
-            \hlkwc{vcov} \hlstd{=} \hlkwa{function}\hlstd{(}\hlkwc{x}\hlstd{)}\hlkwd{vcov}\hlstd{(x))}
-\hlstd{fic1} \hlkwb{<-} \hlkwd{fic}\hlstd{(}\hlkwc{wide}\hlstd{=wide.glm,} \hlkwc{inds}\hlstd{=inds,} \hlkwc{inds0}\hlstd{=inds0,} \hlkwc{focus}\hlstd{=focus,} \hlkwc{fns}\hlstd{=fns,}
-            \hlkwc{X}\hlstd{=X,} \hlkwc{sub}\hlstd{=sub)}
-\end{alltt}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in get\_parsub(sub, length(par), inds, inds0, gamma0, fns\$coef, wide): `sub` of length 26, should be 2, the same as the number of rows of `inds`}}\end{kframe}
-\end{knitrout}
-
-
-\section{Other model classes }
-
-Refer to a list of vignettes. 
-
-Simple linear models, focus as expected outcome at particular covariate value.  mtcars example, in rd doc or vignette
-
-Survival models with flexsurvreg and survreg.  Multistate. see
-separate vignettes 
-
-Emphasise not all covariate selection. 
+<<eval=FALSE>>=
+fns <- list(coef = function(x)coef(x),
+            nobs = function(x)nobs(x),
+            vcov = function(x)vcov(x))
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns, 
+            X=X, sub=sub)
+@
 
 
 
 
 \section{Bootstrap}
 
-???
+Would like to 
+
+\begin{itemize}
+
+\item illustrate alternative losses to the mean square error 
+
+\item use resampling to illustrate FIC principles
+
+\end{itemize}
+
 
 
 
 
 \section{Discussion}
 
-Include post-selection inference, model averaging 
+Post-selection inference, model averaging 
+
+High dimensional regression 
 
 
 \bibliography{fic}
