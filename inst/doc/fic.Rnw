@@ -486,7 +486,9 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
 @
 
 
+\section{Cox proportional hazards regression} 
 
+Theory more extensive.  Illustration with melanoma data
 
 \section{Bootstrap}
 
