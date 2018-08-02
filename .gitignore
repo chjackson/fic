@@ -28,3 +28,4 @@ vignettes/*.pdf
 *~
 .dropbox.attr
 .DS_Store
+.unison*
