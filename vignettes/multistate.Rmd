@@ -42,6 +42,7 @@ focus_tlos <- function(pars){
 We assess the wide model and six further submodels.
 
 ```{r}
+library(fic)
 inds <- rbind(
     c(1,1,1,0,0,0,0,0,0),
     c(1,1,1,0,0,0,0,0,1),

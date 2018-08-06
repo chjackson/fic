@@ -152,16 +152,17 @@ fic_coxph_core <- function(wide,
         G.S <- Q0.S %*% Qinv # called M.S in original code.  q x q
         ## G.S is q x q,  G.S %*% deltahat is q x 1
         psi.S <- tensor(omega - kappa, as.numeric(G.S %*% deltahat), 1, 1)
-        psi.S2 <- t(omega[,1,]) %*% G.S %*% deltahat
 
         ## unadjusted FIC estimates
         bias.S <- psi.full - psi.S # ntimes x ncov 
         ## array equivalent of
-        ## FIC.S <- bias.S^2  +  2*diag(t(omega - kappa) %*% Q0.S %*% (omega - kappa))  # m x 1  +  diag of m x m
+        ## FIC.S <- bias.S^2  +
+        ##     2*diag(t(omega - kappa) %*% Q0.S %*% (omega - kappa))
+        ## m x 1  +  diag of m x m
         ## where Q0.S is qxq, omega x kappa is q x ntimes x ncov  
-        WQ0 <- tensor(omega - kappa, Q0.S, 1, 1)
-        WQ0W <- tensor(WQ0, omega - kappa, 3, 1)
-        FIC.S <- bias.S^2  +  2*diag.array(WQ0W)
+        WQ0S <- tensor(omega - kappa, Q0.S, 1, 1)
+        WQ0SW <- tensor(WQ0S, omega - kappa, 3, 1)
+        FIC.S <- bias.S^2  +  2*diag.array(WQ0SW)
 
         ## bias-adjusted estimates
         ## omega is q x ntimes x ncov,  IDI is q x q 
@@ -170,7 +171,7 @@ fic_coxph_core <- function(wide,
         sqbias2 <- array(diag.array(sqbias2), dim=c(ntimes, ncov))
         sqbias3 <- pmax(sqbias2, 0)
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
-        var.S <- tau0sq  +  diag.array(WQ0W)
+        var.S <- tau0sq  +  diag.array(WQ0SW)
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
