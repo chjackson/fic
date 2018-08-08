@@ -302,36 +302,6 @@ get_fns <- function(fns){
     ret
 }
 
-##' Convert inds, inds0 from model.frame (newdata) dimensions to model.matrix (X) dimensions
-##' given a wide model
-##' Replicates 0s or 1s for each factor term to number of parameters for that factor
-##' Needs model.matrix() function to work on the wide model
-##' or else they'll have to use lower level FIC function for the moment
-##' or not have factors in their model. 
-##' Converts vector, data frame or matrix input to matrix output 
-
-expand_inds <- function(inds, wide, name="inds"){
-    if (!(is.vector(inds) || is.matrix(inds) || is.data.frame(inds)))
-        stop("`inds` must be a vector, matrix or data frame")
-    if (is.data.frame(inds))
-        inds <- as.matrix(inds)
-    if (!is.numeric(inds)) stop("`inds` must contain only numeric elements")
-    ass <- attr(model.matrix(wide), "assign")
-    ass <- match(ass, unique(ass))
-    nterms <- length(unique(ass))
-    if(is.vector(inds)) {
-        if (length(inds) != nterms){
-            stop(sprintf("`%s` of length %s, but %s terms in model", name, length(inds), nterms))
-        }
-        inds <- matrix(inds, nrow=1)
-    } else {
-        if (ncol(inds) != nterms){
-            stop(sprintf("`%s` has %s columns, but %s terms in model", name, length(inds), nterms))
-        }
-    }
-    inds[,ass,drop=FALSE]
-}
-
 
 get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
     if (is.null(sub))

@@ -22,11 +22,15 @@ This defaults to 0, as in covariate selection, where "excluded" coefficients are
 
 This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
-\item{focus}{\code{"hr"} for the hazard ratio between individuals with covariate values of \code{X} and 0. 
+\item{focus}{Three built-in focus quantities are supported:
+
+\code{"hr"} for the hazard ratio between individuals with covariate values of \code{X} and 0. 
 
 \code{"survival"} for the survival probability at time or times given in \code{t}.
 
-\code{"cumhaz"} for the cumulative hazart at time or times given in \code{t}.}
+\code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
+
+Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respetc to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate}
 
 \item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
 

@@ -8,13 +8,22 @@
 ##'
 ##' @param t times to evaluate the focus at.  Only relevant for survival and cumulative hazard focuses, as the hazard ratio is constant through time.
 ##'
-##' @param focus \code{"hr"} for the hazard ratio between individuals with covariate values of \code{X} and 0. 
+##' @param focus Three built-in focus quantities are supported:
+##'
+##' \code{"hr"} for the hazard ratio between individuals with covariate values of \code{X} and 0. 
 ##'
 ##' \code{"survival"} for the survival probability at time or times given in \code{t}.
 ##'
-##' \code{"cumhaz"} for the cumulative hazart at time or times given in \code{t}.
+##' \code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
+##'
+##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respetc to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate
 ##' 
 ##' @rdname fic.coxph
+##'
+##' @import abind
+##'
+##' @importFrom survival basehaz
+##' 
 ##' @export
 fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
                       focus, X=NULL, t=NULL, sub=NULL, tidy=TRUE)  ## TODO defaults for X, t etc 
@@ -110,7 +119,7 @@ fic_coxph_core <- function(wide,
     tind <- outer(H0u$time[-1], t, "<=") # 57 x 3 
     integrand <- t(En) * H0u$hazard[-1] * diff(H0u$time)# 57 x 10 
     Fhat <- matrix(nrow=npar, ncol=ntimes)
-    ## suspect original code for Fhat was wrong.  we want the sum of the cum hazards, not the sum of the jumps in the cum hazards.
+    ## sum of the cum hazards, not the sum of the jumps in the cum hazards as in original code
     for (i in 1:npar){
         Fhat[i,] <- colSums(integrand[,i]*tind)
     }
@@ -136,6 +145,7 @@ fic_coxph_core <- function(wide,
     JF.rep <- array(JF, dim=c(qq, ntimes, ncov))
     ## dmudH0 is ntimes x ncov.  replicate to q x ntimes x ncov 
     dmudH0.rep <- array(dmudH0, dim=c(1, ntimes, ncov))[rep(1,qq),,,drop=FALSE]
+
     kappa <- JF.rep * dmudH0.rep # should be q x ntimes x ncov 
     ## deltahat is q vector, omega-kappa is q x ntimes x ncov
     ## this returns their "matrix product" with 1st dim of each summed over 
@@ -218,11 +228,16 @@ get_focus_cox <- function(focus, focus_deriv=NULL, focus_dH=NULL, par=NULL, H0=N
         deriv_args <- c(par=list(par), H0=list(H0), X=list(X), t=list(t), args_extra)
         focus_deriv <- do.call(cox_focus_fns[[fi]]$deriv, deriv_args)
         focus_dH <- do.call(cox_focus_fns[[fi]]$dH, deriv_args)
+        if (!("X" %in% names(formals(focus))))
+            formals(focus) <- c(formals(focus), alist(X=))
+        if (!("t" %in% names(formals(focus))))
+            formals(focus) <- c(formals(focus), alist(t=))
+        res <- list(focus=focus, focus_deriv=focus_deriv, focus_dH=focus_dH)
+    } else if (is.list(focus)){
+        res <- focus 
     }
-    ## add unused X argument to function if it doesn't already have one
-    if (!("X" %in% names(formals(focus))))
-        formals(focus) <- c(formals(focus), alist(X=))
-    list(focus=focus, focus_deriv=focus_deriv, focus_dH=focus_dH)
+    res
+    ## add unused X and t argument to function if it doesn't already have one
 }
 
 ## HRs between given X and 0
@@ -249,8 +264,21 @@ cox_hr_dH <- function(par, H0, X, t){
     array(0, dim=c(ntimes, ncov))
 }
 
-##' Return baseline cumulative hazard from fitted model at given times
-##' Assumes hazard is piecewise constant, thus cumulative hazard is piecewise linear
+##' Interpolate cumulative hazard function from a fitted Cox model
+##'
+##' Returns the baseline cumulative hazard from the fitted model at
+##' the requested times.  Linear interpolation is used, assuming the
+##' hazard is piecewise constant, thus the cumulative hazard is
+##' piecewise linear.
+##'
+##' @param H0 output from \code{\link[survival]{basehaz}}, containing estimates of the baseline cumulative hazard at a series of times.
+##'
+##' @param t vector of times for which cumulative hazard estimates are required.
+##'
+##' @return Fitted cumulative hazard at \code{t}.
+##' 
+##' @export
+##' 
 get_H0 <- function(H0, t){
     H0 <- rbind(c(0, 0), H0) # cum haz always 0 at time 0 
     approx(H0$time, H0$hazard, xout=t)$y
@@ -272,10 +300,6 @@ cox_cumhaz_deriv <- function(par, H0, X, t) {
     out.rep <- array(out, dim=c(1,ntimes,ncov))[rep(1,npar),,,drop=FALSE] # npar x ntimes x ncov
     Xrep * out.rep
 }
-
-## what specifically is this the derivative with respect to?
-## each unique hazard between pairs of event times?
-## and evaluated at the user-supplied times
 
 cox_cumhaz_dH <- function(par, H0, X, t) {
     ntimes <- length(t)
@@ -314,6 +338,3 @@ cox_focus_fns <- list(
                 deriv  = cox_survival_deriv,
                 dH     = cox_survival_dH)
 )
-
-## TODO can we support user-specified focuses
-## Would need to be able to numerically differentiate wrt H0(t)

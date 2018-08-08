@@ -2,12 +2,21 @@
 % Please edit documentation in R/fic.coxph.R
 \name{get_H0}
 \alias{get_H0}
-\title{Return baseline cumulative hazard from fitted model at given times
-Assumes hazard is piecewise constant, thus cumulative hazard is piecewise linear}
+\title{Interpolate cumulative hazard function from a fitted Cox model}
 \usage{
 get_H0(H0, t)
 }
+\arguments{
+\item{H0}{output from \code{\link[survival]{basehaz}}, containing estimates of the baseline cumulative hazard at a series of times.}
+
+\item{t}{vector of times for which cumulative hazard estimates are required.}
+}
+\value{
+Fitted cumulative hazard at \code{t}.
+}
 \description{
-Return baseline cumulative hazard from fitted model at given times
-Assumes hazard is piecewise constant, thus cumulative hazard is piecewise linear
+Returns the baseline cumulative hazard from the fitted model at
+the requested times.  Linear interpolation is used, assuming the
+hazard is piecewise constant, thus the cumulative hazard is
+piecewise linear.
 }

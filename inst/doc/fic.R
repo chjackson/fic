@@ -54,9 +54,6 @@ for (i in 1:nmod){
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, 
               sub=sub)
 
-## ----fig.show="hide"--------------------------------------
-plot(ficres)
-
 ## ---------------------------------------------------------
 ggplot_fic(ficres)
 
@@ -66,4 +63,12 @@ ggplot_fic(ficres)
 #              vcov = function(x)vcov(x))
 #  fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
 #              X=X, sub=sub)
+
+## ---------------------------------------------------------
+wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt + epith + 
+                ulcer + depth + age, data=melanoma)
+
+## ---------------------------------------------------------
+inds0 <- expand_inds(c(1,0,0,0,0,0,0), wide)
+inds0
 
