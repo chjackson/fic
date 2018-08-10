@@ -114,8 +114,12 @@ check_inds0 <- function(inds0, inds, npar){
     } else { 
         if (!is.numeric(inds0)) 
             stop("`inds0` must be numeric")
+        if (is.matrix(inds0)){
+            if (nrow(inds0)>1) stop("if `inds0` is a matrix it must only have 1 row")
+            inds0 <- as.vector(inds0)
+        }
         if (!is.vector(inds0))
-            stop("`inds0` must be a vector")
+            stop("`inds0` must be a vector or a matrix with 1 row")
         if (length(inds0) != npar)
             stop(sprintf("`inds0` of length %d, but model has %d parameters.\nLength of `inds0` must match number of parameters", length(inds0), npar))
     }
@@ -371,7 +375,13 @@ get_ics <- function(sub, fns){
 ##'
 ##' Not required if \code{focus_deriv} is specified.
 ##'
-##' Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}. 
+##' Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  Currently these include:
+##'
+##' \code{"prob_logistic"}, the probability of the outcome in a logistic regression model
+##'
+##' \code{"mean_normal"} the mean outcome in a normal linear regression model
+##'
+##' See \code{\link{focus_fns}} for the functions underlying these.
 ##'
 ##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.
 ##'

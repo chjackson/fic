@@ -3,24 +3,21 @@
 \docType{data}
 \name{melanoma}
 \alias{melanoma}
-\title{Melanoma}
+\title{Malignant melanoma survival data}
 \format{A data frame with 205 rows and the following columns:
 \describe{
   \item{ptno}{Patient identification number}
-  \item{death}{Survival status: 1 2 3 4 }
-  \item{days}{Survival or censoring time}
-  \item{depth}{}
-  \item{infilt}{}
-  \item{mucous}{}
-  \item{epith}{}
-  \item{ulcer}{}
-  \item{thick}{}
+  \item{death}{Survival status: 1 = dead from illness, 2 = censored, 4 = dead from other causes}
+  \item{days}{Survival time in days}
+  \item{depth}{Invasion depth: factor with levels 1, 2, 3}
+  \item{infilt}{Infection infiltration level, a measure of resistance to the tumour: factor with levels 1 (high resistance), 2, 3, 4 (low resistance)}
+  \item{epith}{Indicator for epithelioid cells present}
+  \item{ulcer}{Indicator for ulceration}
+  \item{thick}{Thickness of the tumour in 1/100 mm}
   \item{sex}{Sex. Factor with levels \code{"female","male"} and reference level \code{"female"}}
   \item{age}{Age in years}
-  \item{qq}{}
   \item{years}{Survival time in years (instead of days)}
-  \item{thick_centred}{Centred version of \code{thick}, defined as }
-  ...
+  \item{thick_centred}{Version of \code{thick} centred around its mean and rescaled, defined as (\code{thick} - 292)/100. }
 }}
 \source{
 The supporting material from Claeskens and Hjort (2008), at \url{https://feb.kuleuven.be/public/u0043181/modelselection/datasets/melanoma_data.txt}.
@@ -29,9 +26,11 @@ The supporting material from Claeskens and Hjort (2008), at \url{https://feb.kul
 melanoma
 }
 \description{
-Melanoma
+Data originally analysed by Andersen et al (1993) on the survival of 205 patients in Denmark with malignant melanoma, and used by Claeskens and Hjort (2008) to illustrate focused model selection in Cox regression.
 }
 \references{
 Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
+
+Andersen, P. K., Borgan, O., Gill, R. D., & Keiding, N. (2012). Statistical models based on counting processes. Springer.
 }
 \keyword{datasets}

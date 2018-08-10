@@ -29,7 +29,7 @@
 ##' @param ... Other options to pass to \code{\link{plot}}.
 ##'
 ##' @export
-plot.fic <- function(x, ylab=NULL, xlab=NULL, pch=19, mfrow=NULL, ...){
+plot.fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
     if (is.array(x))
         x <- tidy.array(x, dim2=2, ord=c("vals","mods"))
     if (is.null(pch)) pch <- 19
@@ -56,22 +56,26 @@ plot.fic <- function(x, ylab=NULL, xlab=NULL, pch=19, mfrow=NULL, ...){
             prmse <- xi$rmse.adj / max(xi$rmse.adj)
             if (is.null(ylab)) ylab <- "SE"
             if (is.null(xlab)) xlab <- "Bias"
-            plot(xi$bias.adj, xi$se, type="n", xlab=xlab, ylab=ylab, ...)
+            plot(xi$bias.adj, xi$se, type="n",
+                 xlim=xlim, ylim=ylim,
+                 xlab=xlab, ylab=ylab, ...)
             abline(v=0.0, col="gray")
             points(xi$bias.adj, xi$se, pch=pch, col=gray(prmse))
         } else { 
             if (is.null(xlab)) xlab <- "Focus"
             if (is.null(ylab)) ylab <- "RMSE"
+            if (is.null(xlim)) xlim <- range(c(x$l95, x$u95))
+            if (is.null(ylim)) ylim <- range(x$rmse.adj)
             plot(xi$focus, xi$rmse.adj, type="n",
-                 xlim=range(c(x$l95, x$u95)),
-                 ylim=range(x$rmse.adj),
+                 xlim=xlim, ylim=ylim,
                  xlab=xlab, ylab=ylab, ...)
             if (!is.null(iwide))
                 abline(v=xi$focus[iwide], col=col)
-            if (!is.null(iwide))
+            if (!is.null(inarr))
                 abline(v=xi$focus[inarr], col=col, lty=2)
             points(xi$focus, xi$rmse.adj, pch=pch, ...)
-            segments(xi$l95, xi$rmse.adj, xi$u95, xi$rmse.adj)
+            if (ci) 
+                segments(xi$l95, xi$rmse.adj, xi$u95, xi$rmse.adj)
             text(min(x$l95), xi$rmse.adj, labels=xi$mods, col="gray60", cex=0.7, pos=4)
         }
         title(val)
@@ -85,7 +89,7 @@ plot.fic <- function(x, ylab=NULL, xlab=NULL, pch=19, mfrow=NULL, ...){
 ##' @inheritParams plot.fic
 ##' 
 ##' @export
-ggplot_fic <- function(x, ylab=NULL, xlab=NULL){
+ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
     if (!requireNamespace("ggplot2", quietly = TRUE))
         stop("The `ggplot2` package is required to use this function")
     if (is.null(x$focus))
@@ -98,24 +102,30 @@ ggplot_fic <- function(x, ylab=NULL, xlab=NULL){
     })
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
-    indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
-    indnarr <- tapply(1:nrow(x), x$vals, function(x)x[inarr])
-    xwide <- x[indwide,,drop=FALSE]
-    xnarr <- x[indnarr,,drop=FALSE]
-
     col <- scales::hue_pal()(3)[3]
     
     ps <- ggplot(data=x, aes(x=focus, y=rmse.adj))
-    if (!is.null(iwide))
+    if (!is.null(iwide)){
+        indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
+        xwide <- x[indwide,,drop=FALSE]
         ps <- ps + geom_vline(data=xwide, aes(xintercept = focus), col=col)
-    if (!is.null(inarr))
+    }
+    if (!is.null(inarr)){
+        indnarr <- tapply(1:nrow(x), x$vals, function(x)x[inarr])
+        xnarr <- x[indnarr,,drop=FALSE]
         ps <- ps + geom_vline(data=xnarr, aes(xintercept = focus), lty=2, col=col)
+    }
     ps <- ps + 
       facet_grid(.~vals) + 
       geom_point() +
-      geom_segment(aes(x=l95, xend=u95, yend=rmse.adj)) +
       xlab(xlab) +
-      ylab(ylab) + 
+      ylab(ylab)
+    if (!is.null(xlim))
+        ps <- ps + xlim(xlim)
+    if (ci)
+        ps <- ps +
+            geom_segment(aes(x=l95, xend=u95, yend=rmse.adj))
+    ps <- ps +
       geom_text(aes(x=0, label=mods, hjust=0), col="gray60", size=2.5)
     ps
 }

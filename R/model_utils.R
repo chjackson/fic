@@ -46,6 +46,8 @@ expand_inds <- function(inds, wide, name="inds"){
 all_inds <- function(wide, inds0=NULL, intercept=TRUE){
     tt <- terms(wide)
     labs <- attr(tt, "term.labels")
+    if (inherits(wide, "coxph"))
+        intercept <- FALSE
     if (intercept) labs <- c("(Intercept)",labs)
     inds_short <- do.call(expand.grid, Map(function(x)c(0,1), labs))
     ass <- attr(model.matrix(wide), "assign")

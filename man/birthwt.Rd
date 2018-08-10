@@ -4,11 +4,27 @@
 \name{birthwt}
 \alias{birthwt}
 \title{Risk Factors Associated with Low Infant Birth Weight}
-\format{A data frame with 189 rows and 19 variables.  First 10 columns documented in \code{\link[MASS]{birthwt}}.  Additional 9 columns defined in Claeskens and Hjort (2008).
+\format{A data frame with 189 rows and 19 variables.  The first 10 columns are included in the dataset of the same name in the \pkg{MASS} package.  The remaining 9 columns are defined in Claeskens and Hjort (2008), and are included in this dataset for convenience.
 \describe{
-  \item{}{}
-  \item{}{}
-  ...
+    \item{low}{indicator of birth weight less than 2.5 kg}
+    \item{age}{mother's age in years}
+    \item{lwt}{mother's weight in pounds at last menstrual period}
+    \item{race}{mother's race (‘1’ = white, ‘2’ = black, ‘3’ = other)}
+    \item{smoke}{smoking status during pregnancy}
+    \item{ptl}{number of previous premature labours}
+    \item{ht}{history of hypertension}
+    \item{ui}{presence of uterine irritability}
+    \item{ftv}{number of physician visits during the first trimester}
+    \item{bwt}{birth weight in grams}
+  \item{smokeui}{Binary indicator for both smoking and uterine irritation}
+  \item{smokeage}{Interaction between age and binary (0/1) smoking status, that is, \code{age} for smokers and zero for non-smokers.}
+  \item{intercpt}{Intercept term (all 1)}
+  \item{raceother}{Binary indicator for \code{race} "other"}
+  \item{raceblack}{Binary indicator for \code{race} "black"}
+  \item{ftv2p}{Binary indicator for \code{ftv}, number of physician visits during the first trimester, 2 or more}
+  \item{ftv1}{Binary indicator for \code{ftv} 1}
+  \item{ptd}{Binary indicator for \code{ptl}, number of previous premature labours, 1 or more}
+  \item{lwtkg}{Weight measured in kg, as used in Claeskens and Hjort.  Note \code{lwt}, as used in \pkg{MASS}, is in pounds.}
 }}
 \source{
 \pkg{MASS} package (Venables, W. N. and Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth edition. Springer); originally from Hosmer, D.W. and Lemeshow, S. (1989) Applied Logistic Regression. New York: Wiley

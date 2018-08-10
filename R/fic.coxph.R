@@ -57,8 +57,15 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
         res[,,,i] <- abind(ficres, focus_val)
     }    
     if (tidy) {
-        res <- tidy.array(res, dim2=3)
+        res <- tidy.array(res, dim2=3, ord=c("vals","tvals","mods"))
     }
+    ## indices for wide and narrow models
+    iwide <- apply(inds, 1, function(x)all(x==1))
+    attr(res, "iwide") <- if (any(iwide)) which(iwide) else NULL
+    inarr <- apply(inds, 1, function(x)all(x==inds0))
+    attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
+
+    class(res) <- c("fic",class(res))
     res
 }
 
@@ -108,7 +115,7 @@ fic_coxph_core <- function(wide,
     survt <- model.frame(wide)[,attr(terms(model.frame(wide)), "response")]
     dead <- survt[,"status"]
     ti <- survt[,"time"] 
-    deathtimes <- ti[dead==1]
+    deathtimes <- unique(ti[dead==1])
     H0u <- rbind(c(0,0), H0[H0$time %in% deathtimes,])
     pred <- predict(wide)
     XZ <- model.matrix(wide)
