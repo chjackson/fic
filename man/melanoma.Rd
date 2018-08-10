@@ -20,7 +20,7 @@
   \item{thick_centred}{Version of \code{thick} centred around its mean and rescaled, defined as (\code{thick} - 292)/100. }
 }}
 \source{
-The supporting material from Claeskens and Hjort (2008), at \url{https://feb.kuleuven.be/public/u0043181/modelselection/datasets/melanoma_data.txt}.
+The supporting material from Claeskens and Hjort (2008), at \url{https://feb.kuleuven.be/public/u0043181/modelselection/datasets/melanoma_data.txt}.    Versions of this dataset are also given in the \pkg{MASS} and \pkg{boot} packages.
 }
 \usage{
 melanoma

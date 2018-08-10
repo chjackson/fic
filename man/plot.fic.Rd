@@ -4,8 +4,8 @@
 \alias{plot.fic}
 \title{Plot focused model comparison statistics}
 \usage{
-\method{plot}{fic}(x, ylab = NULL, xlab = NULL, pch = 19, mfrow = NULL,
-  ...)
+\method{plot}{fic}(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
+  ylim = NULL, pch = 19, mfrow = NULL, ...)
 }
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}

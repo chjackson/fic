@@ -63,7 +63,8 @@ all_inds <- function(wide, inds0=NULL, intercept=TRUE){
 ##' Convert `newdata` to a design matrix excluding the intercept
 ##'
 ##' Numerics are allowed for character factor levels
-##' 
+##'
+##' @export
 newdata_to_X <- function(newdata, wide){
     tt <- terms(wide)
     faclevs <- .getXlevels(tt, model.frame(wide)) # list of levels of all factors

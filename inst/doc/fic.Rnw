@@ -168,10 +168,10 @@ Thus we compare models on the basis of the root mean square error, estimated by
 \citet{fic} define the ``focused information criterion'' (FIC), which has a slightly simpler form due to excluding terms common to all submodels $S$, and is related to the MSE as
 \begin{equation}
   \label{eq:fic}
-  FIC_S = MSE_S - \hat\tau_0^2 + \hat\omega^T Q \hat\omega  
+  FIC_S = n MSE_S - \hat\tau_0^2 + \hat\omega^T Q \hat\omega  
 \end{equation}
 Models with lower FIC give better estimates of the focus quantity.  However we prefer to use the (root) MSE as the model comparison statistic, due to its direct interpretation as the error of the focus estimate. 
-
+\emph{FIC would need knowledge of $n$}
 
 \subsection{Bias-corrected MSE}
 \label{sec:biascorrect}
@@ -246,7 +246,14 @@ In order to calculate the MSE and related focused model comparison statistics fo
   \item \emph{[doubtful we also need to know n]}
 \end{itemize}
 
-This allows the \code{fic} package to implement focused model selection for any class of models and focuses.  Derivatives of the focus function can be calculated numerically, for which robust software exists e.g. numDeriv REF 
+This allows the \pkg{fic} package to implement focused model
+selection for any class of models and focuses.  Derivatives of the
+focus function can be calculated numerically in general, for which
+robust software exists --- \pkg{numDeriv} \citep{numDeriv} is used here.
+Analytic derivatives are implemented in \pkg{fic} for two built-in
+focuses (the outcome probability in logistic regression, and the mean
+outcome in linear regression), but we have noticed no loss in accuracy
+from using numerical methods. 
 
 
 \section{Example: covariate selection in logistic regression }
@@ -287,7 +294,13 @@ wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
                 data=birthwt, family=binomial)
 @ 
 
-The \emph{focus function} is then defined.  This should be an R function, mapping the parameters \code{par} of the wide model to the quantity of interest.   The focus can optionally have an second argument.  If supplied, this must be called \code{X}, and can be used to supply covariate values at which the focus function should be evaluated.  Here we take the probability of low birth weight as the focus, for two covariate categories: 
+The \emph{focus function} is then defined.  This should be an R
+function, mapping the parameters \code{par} of the wide model to the
+quantity of interest.   The focus can optionally have an second
+argument.  If supplied, this must be called \code{X}, and can be used
+to supply covariate values at which the focus function should be
+evaluated. 
+ Here we take the probability of low birth weight as the focus, for two covariate categories: 
  
 \begin{enumerate}
 \item smokers with average or typical values of the other covariates.  These values are given in the order supplied when specifying the model (for smokers: intercept, \code{lwtkg}=58.24, \code{age}=22.95, \code{smoke}=1, \code{ht}=0, \code{ui}=0, \code{smokeage}=22.95, \code{smokeui}=0).
@@ -333,7 +346,12 @@ inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
 inds0 <- c(1,1,0,0,0,0,0,0)
 @ 
 \begin{itemize}
-\item \code{focus} the focus function.  \emph{[TODO explain about built in focuses]}
+\item \code{focus} the focus function.  As well as an R function, 
+  this argument can alternatively be supplied as a character string
+  naming a built-in focus function supplied by the \pkg{fic} package.
+  Currently these just include \code{"prob_logistic''}, the outcome
+  probability in a logistic regression, and \code{"mean_normal''}, the
+  mean outcome in a normal linear regression.
 
 \item \code{sub} a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the model comparison statistics can be presented alongside the estimates of the focus under the submodels.  Note, if just one submodel is to be assessed, this should still be enclosed in a list, e.g. \code{list(mod1.glm)}. 
 
@@ -414,6 +432,8 @@ intercept is already included in \code{XZi}).  The list of fitted
 models \code{sub} can then be passed to the \code{fic} function, so
 that so that the focus estimate is displayed alongside the model
 comparison statistics. 
+
+\emph{[can we fit all the submodels automatically, if requested? at least for built in model classes]}
 
 <<warning=FALSE>>=
 nmod <- nrow(combs)
@@ -505,7 +525,9 @@ But the package can be used to calculate focused model comparison statistics for
 
 \item \code{nobs}: the number of observations $n$ contributing to the model fit,
 
-\item \code{vcov}: the covariance matrix of the maximum likelihood estimates, $(nJ)^{-1}$.
+\item \code{vcov}: the covariance matrix of the maximum likelihood
+  estimates, $(nJ)^{-1}$.  \emph{[not sure this is needed in theory
+    unless want FIC on $\sqrt{n}$ scale]}
 \end{enumerate}
 
 Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
@@ -595,8 +617,44 @@ The required covariate values and/or time point(s) are supplied as the \code{X} 
 
 Supplying alternative focuses requires the user to supply a list of three functions as the \code{"focus"} argument to \code{fic}: one for the focus, and two for its derivatives with respect to $(\btheta,\bgamma)$ and $H_0(t)$ respectively.  The format of these functions is shown in the package source file \code{R/fic.coxph.R}, see also \code{help(fic.coxph) TODO EXAMPLES}.
 
+In the melanoma example, all possible submodels spanning the wide and
+narrow model are compared.  As before, a matrix of indicators
+describing these models is constructed, and the submodels are fitted.
+<<>>=
+combs <- all_inds(wide,inds0,intercept=FALSE)
+nmod <- nrow(combs)
+sub <- vector(nmod, mode="list")
+for (i in 1:nmod){
+  XZi <- model.matrix(wide)[,which(combs[i,]==1)]
+  sub[[i]] <- coxph(Surv(years, death==1) ~ XZi - 1, data=melanoma)
+}
+@ 
 
+The focus is defined as the 5 year survival probability
+(\code{focus=''survival'',t=5}) for the covariate values defined by
+\code{X}, here taken as men and women separately, with
+average age and mean observed tumour thickness among men and women,
+infiltration level 4,
+epithelioid cells and ulceration present, and invasion depth 2.  The
+utility \code{newdata_to_X}  is used to convert the user-defined data
+frame \code{newdata} that identifies these covariate values, with one 
+variable per covariate or factor, to a design matrix \code{X}, with
+one column for each of the 10 parameter values. 
+<<>>=
+newdata <- with(melanoma,
+                data.frame(sex = c("female","male"),
+                           thick_centred = tapply(thick_centred, sex, mean),
+                           infilt=4, epith=1, ulcer=1, depth=2,
+                           age = tapply(age, sex, mean)))
+X <- newdata_to_X(newdata, wide)
+ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5, sub=sub)
+plot(ficall, xlim=c(0,1), ci=FALSE)
+ggplot_fic(ficall, ci=FALSE)
+@ 
 
+\emph{[doesn't quite match fig 6.5 in book.]}
+
+\emph{[note big range of estimates with low FIC, model uncertainty]}
 
 \section{Bootstrap}
 

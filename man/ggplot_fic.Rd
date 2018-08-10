@@ -4,7 +4,8 @@
 \alias{ggplot_fic}
 \title{Plot focused model comparison statistics: ggplot2 method}
 \usage{
-ggplot_fic(x, ylab = NULL, xlab = NULL)
+ggplot_fic(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
+  ylim = NULL)
 }
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}

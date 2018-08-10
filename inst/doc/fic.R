@@ -72,3 +72,23 @@ wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt + epith +
 inds0 <- expand_inds(c(1,0,0,0,0,0,0), wide)
 inds0
 
+## ---------------------------------------------------------
+combs <- all_inds(wide,inds0,intercept=FALSE)
+nmod <- nrow(combs)
+sub <- vector(nmod, mode="list")
+for (i in 1:nmod){
+  XZi <- model.matrix(wide)[,which(combs[i,]==1)]
+  sub[[i]] <- coxph(Surv(years, death==1) ~ XZi - 1, data=melanoma)
+}
+
+## ---------------------------------------------------------
+newdata <- with(melanoma,
+                data.frame(sex = c("female","male"),
+                           thick_centred = tapply(thick_centred, sex, mean),
+                           infilt=4, epith=1, ulcer=1, depth=2,
+                           age = tapply(age, sex, mean)))
+X <- newdata_to_X(newdata, wide)
+ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5, sub=sub)
+plot(ficall, xlim=c(0,1), ci=FALSE)
+ggplot_fic(ficall, ci=FALSE)
+

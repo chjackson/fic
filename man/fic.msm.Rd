@@ -33,7 +33,13 @@ The function should return the focus quantity of interest.  If \code{X} is suppl
 
 Not required if \code{focus_deriv} is specified.
 
-Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  See \code{\link{focus_fns}}.}
+Alternatively, \code{focus} can be a character string naming a built-in focus function supplied by the \pkg{fic} package.  Currently these include:
+
+\code{"prob_logistic"}, the probability of the outcome in a logistic regression model
+
+\code{"mean_normal"} the mean outcome in a normal linear regression model
+
+See \code{\link{focus_fns}} for the functions underlying these.}
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.}
 
