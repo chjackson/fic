@@ -380,7 +380,7 @@ fic1
 The object returned by \code{fic} is a matrix containing one row for
 each combination of focus covariate values indicated in the column \code{vals} and submodels indicated in the column \code{mods}.   The focus estimate is returned in the final column \code{focus}, while the remaining columns contain the following model comparison statistics:
 \begin{itemize}
-\item \code{FIC} The FIC as originally defined by \ref{fic} (equation~\ref{eq:fic}),
+\item \code{FIC} The FIC as originally defined by \citet{fic} (equation~\ref{eq:fic}),
 \item \code{rmse} The root mean square error of the submodel focus
   estimate, calculated assuming the wide model is true (equation~\ref{eq:rmse}),
 \item \code{rmse.adj} The bias-adjusted root mean square error (Section~\ref{sec:biascorrect}),
@@ -651,7 +651,9 @@ Would like to
 
 \begin{itemize}
 
-\item illustrate alternative losses to the mean square error 
+\item illustrate alternative losses to the mean square error.     Could easily do losses of the $L_p$ error form, that is mean $(\mu_s - mu_{true})^p$ instead of mean square error.  
+
+  Would also be nice to work this out for health economic decision problems. 
 
 \item use resampling to illustrate FIC principles
 
