@@ -57,7 +57,9 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 
 \item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.}
 
-\item{sub}{List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.}
+\item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results. 
+
+TODO put mtcars in rd example}
 
 \item{B}{If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)}
 
@@ -69,9 +71,4 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 Focused information criterion for linear models fitted with lm().
 Used to compare models with different covariates (more generally,
 different linear terms).
-}
-\details{
-(something about sub argument)
-
-TODO put mtcars in rd example
 }

@@ -44,27 +44,27 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 
 \item{t}{times to evaluate the focus at.  Only relevant for survival and cumulative hazard focuses, as the hazard ratio is constant through time.}
 
-\item{sub}{List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.}
+\item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.}
 
 \item{tidy}{If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for Cox models fitted with \code{coxph} from the \code{survival} package.  Only three built-in focuses are handled, with currently no support for user-defined focuses.  This has not been fully tested and is not yet recommended for use.
+Focused model comparison for Cox models fitted with \code{coxph} from the \code{survival} package.  Built-in focuses include the hazard ratio, survival and cumulative hazard.
 }
 \section{User-defined focuses}{
 
 
 Each function should have four arguments:
 
-\code{par}{Vector of estimated coefficients, the log hazard ratios in the Cox model.}
+\code{par} Vector of estimated coefficients, the log hazard ratios in the Cox model.
 
-\code{H0}{Cumulative hazard estimate at a set of times, in the form of the output from \code{\link[survival]{basehaz}}.   The function \code{\link{get_H0}} can be used on this estimate to obtain the estimate at any other times by interpolation.}
+\code{H0}  Cumulative hazard estimate at a set of times, in the form of the output from \code{\link[survival]{basehaz}}.   The function \code{\link{get_H0}} can be used on this estimate to obtain the estimate at any other times by interpolation.
 
-\code{X}{Matrix of covariates, with \code{ncov} rows and \code{npar} columns, where \code{ncov} is the number of alternative covariate values definining alternative focuses we want to compare models for, and \code{npar} is the number of coefficients in the model.}
+\code{X}  Matrix of covariates, with \code{ncov} rows and \code{npar} columns, where \code{ncov} is the number of alternative covariate values definining alternative focuses we want to compare models for, and \code{npar} is the number of coefficients in the model.
 
-\code{t}{Vector of times defining alternative focus quantities (such as the survival)}
+\code{t}  Vector of times defining alternative focus quantities (such as the survival)
 
 For examples, examine the source for the built-in functions
 

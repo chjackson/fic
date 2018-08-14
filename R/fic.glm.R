@@ -4,7 +4,7 @@
 ##' Used to compare models with different covariates (more generally,
 ##' different linear terms).
 ##'
-##' (something about sub argument)
+##' @param sub If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results. 
 ##'
 ##' @inheritParams fic
 ##'
