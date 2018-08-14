@@ -68,11 +68,11 @@ The Bayesian information criterion (BIC, \citet{schwarz}) is
 
 $$ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) $$
 
-These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will select it ``consistently" as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See e.g. \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these criteria.
+These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will select it ``consistently" as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See e.g. \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these, and other similar model comparison criteria.
 
-However both of these methods select one ``best fitting" model for a given dataset.  But that might not always be appropriate. Different models may be better for different purposes.  This is the idea behind ``focused" model comparison.   
+However both of these methods select one ``best fitting" model for a given dataset.  But different models may be better for different purposes, for example to estimate different quantities of interest.  Such quantities are termed the ``focus'' of a model, and this is the idea behind ``focused" model comparison.
 
-\emph{[describe what package does, structure of paper]}
+This paper describes the \pkg{fic} R package.   This compares a set of models according to how accurately they estimate a focus quantity.  The models should all be nested in a single ``wide'' model that is assumed to generate the data.   Section \ref{sec:formulae} gives an informal introduction to the principles, and sets out the formulae,  as developed by \citet{fic} and \citet{claeskens:hjort:book}.  Section \ref{sec:software} explains how general-purpose software is constructed to enable these quantities to be evaluated for any class of models and focuses, with the minimum of user effort.   A worked example of using the \pkg{fic} package is given in Section \ref{sec:example}.   \emph{[TODO decide what's going into other worked examples]} .   The extension of the theory to deal with Cox proportional hazards regression models is described in Section \ref{sec:cox} with a worked example. 
 
 
 \section{Focused model comparison: principles and formulae}
@@ -86,7 +86,7 @@ Suppose the range of models we are willing to use is bounded by
 \item a \emph{narrow model}, the smallest model we are willing to use, defined by setting $\bgamma=\bgamma_0$ in the wide model. 
 \end{itemize}
 
-\texttt{[list of examples.  covariate selection obvious, but lots more too]}
+A typical example is covariate selection in regression models, where $\btheta$ are the coefficients of ``protected'' covariates which are always included, and $\bgamma$ are the coefficients of optional covariates that may or may not be included.   More generally, we wish to choose the appropriate level of flexibility for the distribution of some outcome.  \emph{[ref other worked examples]}
 
 Suppose also that the purpose of the model is to estimate some \emph{focus} quantity, which could be any function of the basic parameters 
 
@@ -228,10 +228,11 @@ B & =& \int
 
 This is equivalent to AIC [ where we average over all covariates in the data ?]
 
-\emph{[What about equivalence to AIC where the focus is the log-likelihood? ]}
+\emph{[Is it also equivalent to AIC when the focus is the log-likelihood? ]}
 
 
 \section{Software for focused model comparison}
+\label{sec:software} 
 
 In order to calculate the MSE and related focused model comparison statistics for a submodel $S$, we just need to know
 \begin{itemize}
@@ -243,22 +244,37 @@ In order to calculate the MSE and related focused model comparison statistics fo
 
 \item the definition of which parameters are included in submodel $S$ and which are included in the narrow model $N$. 
 
-  \item \emph{[doubtful we also need to know n]}
+\item \emph{[if we want FIC instead of MSE, we also need to know $n$]}
 \end{itemize}
 
-This allows the \pkg{fic} package to implement focused model
-selection for any class of models and focuses.  Derivatives of the
-focus function can be calculated numerically in general, for which
-robust software exists --- \pkg{numDeriv} \citep{numDeriv} is used here.
-Analytic derivatives are implemented in \pkg{fic} for two built-in
-focuses (the outcome probability in logistic regression, and the mean
-outcome in linear regression), but we have noticed no loss in accuracy
-from using numerical methods. 
+This allows the \pkg{fic} package to implement focused model selection
+for any class of models and focuses.  The estimates and covariance
+matrix are routinely computed by functions for fitting models by
+maximum likelihood.   Therefore the user simply needs to supply 
+
+\begin{itemize}
+\item an R object containing the wide model 
+\item a definition of the focus function $\mu()$
+\item indicators for what submodels they want to compare 
+\end{itemize}
+
+In addition the software needs to know where to look inside the wide
+model object for the estimates and covariance matrix, but this
+information can be built into the software for a range of
+commonly-used models.
+
+Derivatives of the focus function can be calculated numerically in
+general, for which robust software exists --- \pkg{numDeriv}
+\citep{numDeriv} is used here.  Analytic derivatives are implemented
+in \pkg{fic} for two built-in focuses (the outcome probability in
+logistic regression, and the mean outcome in linear regression), but
+we have noticed no loss in accuracy from using numerical methods.
 
 
 \section{Example: covariate selection in logistic regression }
+\label{sec:example}
 
-The use of the \code{fic} package is illustrated for covariate selection in logistic regression, using the example originally presented in \citet{claeskens:hjort:book} (Example 6.1).  The dataset was originally presented by \citet{hosmer:lemeshow:firstedition}. Data are taken from $n=189$ women with newborn babies, and the binary outcome is whether the baby is born with a weight less than 2500g.   We build a logistic regression model to predict the outcome, but are uncertain about what covariates should be included. 
+The use of the \code{fic} package is illustrated for covariate selection in logistic regression, using the example originally presented in \citet{claeskens:hjort:book} (Example 6.1).  The dataset was originally presented by \citet{hosmer:lemeshow:firstedition}. Data are taken from $n=189$ women with newborn babies, and the binary outcome is whether the baby is born with a weight of less than 2500g.   We build a logistic regression model to predict the outcome, but are uncertain about what covariates should be included. 
 
 The data are provided as an object \code{birthwt} in the \code{fic} package.  This is the same as \code{birthwt} in \code{MASS} \citep{venables:ripley} with the addition of a few extra columns defining interactions and transformations as in \citet{claeskens:hjort:book}. 
 
@@ -289,7 +305,6 @@ The following covariates will be selected from (coefficient vector $\bgamma$)
 Firstly the wide model, that includes all the above covariates, is defined and fitted.  
 
 <<>>=
-library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
 @ 
@@ -311,13 +326,12 @@ evaluated.
 
 <<>>=
 focus <- function(par, X)plogis(X %*% par)
+@
+We can illustrate this function by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
+<<>>=
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
-@
-
-We can illustrate these functions by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
-<<>>=
 focus(coef(wide.glm), X=X)
 @
 
@@ -355,9 +369,10 @@ inds0 <- c(1,1,0,0,0,0,0,0)
 
 \end{itemize}
 
-The main \code{fic} function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
+The main \code{fic} function then returns the model fit statistics and the estimate of the focus quantity for each model. 
 
 <<>>=
+library(fic)
 fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 @
@@ -385,8 +400,7 @@ estimates from the submodels can then be returned alongside the model
 comparison statistics.
 
 As well as the specific covariate categories, \code{fic} calculates 
-model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}.
-TODO EXPLAIN WEIGHTS
+model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}.  An equally-weighted average is computed by default. Arbitrary weights can be supplied in the argument \code{Xwt} to \code{fic}.
 
 Recall that \code{mod2} contains one more covariate than \code{mod1}.  For each of the
 two focuses, and the average, the unadjusted and adjusted bias
@@ -398,23 +412,22 @@ be worth the increase in uncertainty.
 
 \subsection{Comparing a wide range of models }
 
-In covariate selection problems, we may want to examine a broad range
-of models.  The function \code{all_inds} (a wrapper around
+We may want to examine a broad range
+of models, particularly in regression contexts.  The function \code{all_inds} (a wrapper around
 \code{expand.grid}) creates a matrix of indicators that defines all
-submodels spanned by a given wide model (here \code{wide.glm} and a
+submodels with different covariates, spanned by a given wide model (here \code{wide.glm} and a
 narrow model (here defined by \code{inds0}).  This
 function works for all classes of model objects \code{x} for which the
 \code{terms(x)} function is understood, which includes standard R
-regression models such as \code{lm} and \code{glm}.  \emph{[can we use
+regression models such as \code{lm} and \code{glm}.  \emph{[TODO can we use
 terms.formula more generally, e.g. in flexsurvreg?]}  Factors are handled naturally. 
 <<>>=
 combs <- all_inds(wide.glm, inds0)
 @
 The resulting matrix can be used as the \code{inds} argument to
-\code{fic} to calculate focused model comparison statistics for all
-submodels in this example, again for a focus defined by the
+\code{fic} to compare all submodels in this example, again for a focus defined by the
 probability of low birth weight at covariate values defined by
-\code{X}.   However before calling \code{fic} again, we redefine
+\code{X}.   Before calling \code{fic} again, we redefine
 \code{combs} to exclude
 models with interactions but not both corresponding main effects. 
 <<>>=
@@ -464,8 +477,8 @@ lowest MSE, while by contrast, for non-smokers, the wide model
 (labelled \code{11111111}) and similar larger
 models give the most accurate estimates of the focus quantity.   Note that in this
 dataset, there are 115 non-smokers and 74 smokers, thus more data
-enables bigger models to be identified for non-smokers.    \emph{[discuss
-average?]}
+enables bigger models to be identified for non-smokers.  Wider 
+models are also preferred for describing the average population.
 
 \emph{[Write some warning against fishing.  If fitting a large number of models, 
   uncertainty should be acknowledged.  ref discussion about post-selection inference  ]}
@@ -474,22 +487,23 @@ average?]}
 
 Illustrate new concepts.   Could be in separate vignettes.
 
+
 \paragraph{Linear} Illustrates alternative focuses: expected outcome
 at given covariate values, quantile for given covariate values.
 Polynomial order selection as well as covariate selection. 
 Use a well known dataset, e.g. mtcars? 
 
-\paragraph{Multi-state} Illustrates focuses that are complicated
-functions of the model parameters: package should facilitate this 
+\paragraph{Skew-normal} 
+Novel class of models, user-written model fitting function.  Store
+est, vcov, nobs in result list.    Narrow model parameters could be in
+the middle.
 
 \paragraph{Survival} Increasingly flexible parametric models.
 Challenge to express models as nested within each other.  Important
 health economic application: restricted mean survival.
 
-\paragraph{Skew-normal} 
-Novel class of models, user-written model fitting function.  Store
-est, vcov, nobs in result list.    Narrow model parameters could be in
-the middle.
+\paragraph{Multi-state} Illustrates focuses that are complicated
+functions of the model parameters: package should facilitate this 
 
 
 
@@ -509,7 +523,7 @@ But the package can be used to calculate focused model comparison statistics for
     unless want FIC on $\sqrt{n}$ scale]}
 \end{enumerate}
 
-Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class?)
+Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class, as in skew normal suggested above)
 
 <<eval=FALSE>>=
 fns <- list(coef = function(x)coef(x),

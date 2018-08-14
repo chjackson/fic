@@ -5,17 +5,16 @@ library(knitr)
 opts_chunk$set(fig.path="fic-")
 
 ## ---------------------------------------------------------
-library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
 
 ## ---------------------------------------------------------
 focus <- function(par, X)plogis(X %*% par)
+
+## ---------------------------------------------------------
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
-
-## ---------------------------------------------------------
 focus(coef(wide.glm), X=X)
 
 ## ---------------------------------------------------------
@@ -28,6 +27,7 @@ inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
 inds0 <- c(1,1,0,0,0,0,0,0)
 
 ## ---------------------------------------------------------
+library(fic)
 fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 
