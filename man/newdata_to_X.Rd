@@ -2,10 +2,21 @@
 % Please edit documentation in R/model_utils.R
 \name{newdata_to_X}
 \alias{newdata_to_X}
-\title{Convert `newdata` to a design matrix excluding the intercept}
+\title{Convert data frame of covariate values to a design matrix, excluding the intercept}
 \usage{
 newdata_to_X(newdata, wide)
 }
+\arguments{
+\item{newdata}{Data frame where each row is a vector of covariate values defining an alternative focus quantity.}
+
+\item{wide}{Wide model which includes these covariates.}
+}
+\value{
+"Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts
+}
 \description{
+Convert data frame of covariate values to a design matrix, excluding the intercept
+}
+\details{
 Numerics are allowed for character factor levels
 }

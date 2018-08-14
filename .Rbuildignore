@@ -3,6 +3,9 @@
 ^data-raw$
 vignettes/*\.html$
 vignettes/figure
+vignettes/fic.bbl
+vignettes/fic.blg
 tests/FIClogisticreg.R
 tests/birthwt.R
 TODO.md
+.dropbox.attr

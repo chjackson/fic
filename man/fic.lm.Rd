@@ -5,7 +5,7 @@
 \title{Focused Information Criterion for linear models}
 \usage{
 \method{fic}{lm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL, B = 0,
+  focus_deriv = NULL, X = NULL, Xwt = NULL, sub = "auto", B = 0,
   loss = loss_mse, ...)
 }
 \arguments{
@@ -67,5 +67,11 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 }
 \description{
 Focused information criterion for linear models fitted with lm().
-This can be used, for example, to compare models with different covariates.  TODO put mtcars in rd example
+Used to compare models with different covariates (more generally,
+different linear terms).
+}
+\details{
+(something about sub argument)
+
+TODO put mtcars in rd example
 }

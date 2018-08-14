@@ -452,6 +452,15 @@ get_ics <- function(sub, fns){
 ##'
 ##' \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 ##'
+##' The following are returned as attributes of the model object, thus can be extracted with the \code{\link{attr}} function.
+##'
+##' \item{iwide}{Index of the wide model in the vector of submodels, or \code{NULL} if the wide model is not included. }
+##'
+##' \item{inarr}{Index of the narrow model in the vector of submodels, or \code{NULL} if the wide model is not included. }
+##'
+##' \item{sub}{List of fitted submodel objects.}
+##'
+##'
 ##' 
 ##' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
 ##'
@@ -476,12 +485,10 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     })
     if (inherits(res, "try-error"))
         stop("check that the wide model or the `fns` argument is specified correctly")
-    ## this wasn't a good idea, only works work well for cov selection
-#    inds <- expand_inds(inds, wide, "inds")
-#    inds0 <- expand_inds(inds0, wide, "inds0")
     inds <- check_inds(inds, length(par))
     inds0 <- check_inds0(inds0, inds, length(par))
-    
+    if (isTRUE(sub=="auto"))
+        sub <- fit_submodels(wide, inds)
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef, wide)
     if (!is.numeric(B)) stop("`B` should be zero or a positive integer")
     if (B>0){
@@ -501,6 +508,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     attr(res, "iwide") <- if (any(iwide)) which(iwide) else NULL
     inarr <- apply(inds, 1, function(x)all(x==inds0))
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
+    attr(res, "sub") <- sub
 
     class(res) <- c("fic",class(res))
     res

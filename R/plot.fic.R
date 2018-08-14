@@ -18,9 +18,15 @@
 ##'
 ##' @param x Output from \code{\link{fic}}.
 ##'
+##' @param ci Plot interval estimates? (\code{TRUE} or \code{FALSE}).
+##' 
+##' @param xlab x-axis label.
+##'
 ##' @param ylab y=axis label.
 ##'
-##' @param xlab x-axis label.
+##' @param xlim x-axis limits (pair of numbers)
+##'
+##' @param ylim y-axis limits
 ##'
 ##' @param pch Plot point character, by default 19 (solid circle).
 ##'
@@ -28,8 +34,10 @@
 ##' 
 ##' @param ... Other options to pass to \code{\link{plot}}.
 ##'
+##' @import graphics grDevices
+##'
 ##' @export
-plot.fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
+plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
     if (is.array(x))
         x <- tidy.array(x, dim2=2, ord=c("vals","mods"))
     if (is.null(pch)) pch <- 19
@@ -39,12 +47,10 @@ plot.fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL, pch
     }
     par(mfrow=mfrow)
 
-    if (!is.null(x$focus))
-        x <- within(x,{
-            l95 = focus - qnorm(0.975)*se
-            u95 = focus + qnorm(0.975)*se
-        })
-
+    if (!is.null(x$focus)){
+        x$l95 = x$focus - qnorm(0.975)*x$se
+        x$u95 = x$focus + qnorm(0.975)*x$se
+    }
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
     col <- scales::hue_pal()(3)[3]
@@ -87,6 +93,8 @@ plot.fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL, pch
 ##' Plot focused model comparison statistics: ggplot2 method
 ##'
 ##' @inheritParams plot.fic
+##'
+##' @importFrom scales hue_pal
 ##' 
 ##' @export
 ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
@@ -96,24 +104,22 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
         stop("No focus estimates found. `fic` should be run with the `sub` argument")
     if (is.null(ylab)) ylab <- "RMSE"
     if (is.null(xlab)) xlab <- "Focus"
-    x <- within(x,{
-        l95 = focus - qnorm(0.975)*se
-        u95 = focus + qnorm(0.975)*se
-    })
+    x$l95 = x$focus - qnorm(0.975)*x$se
+    x$u95 = x$focus + qnorm(0.975)*x$se
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
     col <- scales::hue_pal()(3)[3]
     
-    ps <- ggplot(data=x, aes(x=focus, y=rmse.adj))
+    ps <- ggplot(data=x, aes_string(x='focus', y='rmse.adj'))
     if (!is.null(iwide)){
         indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
         xwide <- x[indwide,,drop=FALSE]
-        ps <- ps + geom_vline(data=xwide, aes(xintercept = focus), col=col)
+        ps <- ps + geom_vline(data=xwide, aes_string(xintercept = 'focus'), col=col)
     }
     if (!is.null(inarr)){
         indnarr <- tapply(1:nrow(x), x$vals, function(x)x[inarr])
         xnarr <- x[indnarr,,drop=FALSE]
-        ps <- ps + geom_vline(data=xnarr, aes(xintercept = focus), lty=2, col=col)
+        ps <- ps + geom_vline(data=xnarr, aes_string(xintercept = 'focus'), lty=2, col=col)
     }
     ps <- ps + 
       facet_grid(.~vals) + 
@@ -124,8 +130,8 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
         ps <- ps + xlim(xlim)
     if (ci)
         ps <- ps +
-            geom_segment(aes(x=l95, xend=u95, yend=rmse.adj))
+            geom_segment(aes_string(x='l95', xend='u95', yend='rmse.adj'))
     ps <- ps +
-      geom_text(aes(x=0, label=mods, hjust=0), col="gray60", size=2.5)
+      geom_text(aes_string(x=0, label='mods', hjust=0), col="gray60", size=2.5)
     ps
 }

@@ -5,7 +5,7 @@
 \title{Focused Information Criterion for generalized linear models}
 \usage{
 \method{fic}{glm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL, B = 0,
+  focus_deriv = NULL, X = NULL, Xwt = NULL, sub = "auto", B = 0,
   loss = loss_mse, ...)
 }
 \arguments{
@@ -67,5 +67,9 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 }
 \description{
 Focused information criterion for generalized linear models fitted with glm().
-This can be used, for example, to compare models with different covariates.
+Used to compare models with different covariates (more generally,
+different linear terms).
+}
+\details{
+(something about sub argument)
 }

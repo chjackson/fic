@@ -19,6 +19,9 @@ Depends:
 Imports:
     numDeriv,
     mvtnorm,
+    ggplot2,
+    scales,
+    survival,
     tensor,
     abind
 URL: https://github.com/chjackson/fic
@@ -30,10 +33,8 @@ RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown,
     testthat,
-    ggplot2,
     stats,
     msm(>= 1.6.6),
-    survival,
     flexsurv,
     sn
 VignetteBuilder: knitr

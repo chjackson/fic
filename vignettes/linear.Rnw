@@ -1,0 +1,19 @@
+%\VignetteIndexEntry{Using the fic R package for focused model comparison: linear regression}
+%\VignetteEngine{knitr::knitr}
+
+\documentclass[nojss,nofooter]{jss}
+
+\begin{document}
+Linear regression 
+
+mtcars dataset: mpg as outcome, rest as predictors ? 
+
+Covariate selection 
+
+Quantile 
+
+Polynomial order selection 
+
+Focuses: expected outcome or quantile at particular covariate value
+
+\end{document}

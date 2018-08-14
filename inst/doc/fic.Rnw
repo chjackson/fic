@@ -353,15 +353,12 @@ inds0 <- c(1,1,0,0,0,0,0,0)
   probability in a logistic regression, and \code{"mean_normal''}, the
   mean outcome in a normal linear regression.
 
-\item \code{sub} a list of the fitted submodels to be assessed.  This is optional, and is only needed so that the model comparison statistics can be presented alongside the estimates of the focus under the submodels.  Note, if just one submodel is to be assessed, this should still be enclosed in a list, e.g. \code{list(mod1.glm)}. 
-
 \end{itemize}
 
 The main \code{fic} function then returns an object containing the model fit statistics and the estimate of the focus quantity for each model. 
 
 <<>>=
-sub <- list(mod1.glm, mod2.glm)
-fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 @
 
@@ -377,6 +374,15 @@ each combination of focus covariate values indicated in the column \code{vals} a
 \item \code{se} The standard error $\sqrt{\hat{V}}$ of
   the submodel focus estimate, calculated assuming the wide model is true.
 \end{itemize}
+
+The submodels are fitted automatically within the \code{fic} function
+in order to produce the focus estimate, so it was not really necessary
+to fit \code{mod1.glm} and \code{mod2.glm} by hand, as above.  As the
+wide model has class \code{glm}, it is recognised as a GLM, so
+\code{fic} assumes that our submodels correspond to models with
+different covariates included, as indicated by \code{inds}.  The focus
+estimates from the submodels can then be returned alongside the model
+comparison statistics.
 
 As well as the specific covariate categories, \code{fic} calculates 
 model comparison statistics which are averaged over the categories, indicated by a value of \code{ave} in the column \code{vals}.
@@ -418,33 +424,6 @@ combs <- with(combs,
                       (age==0 & smokeage==1) |
                       (ui==0 & smokeui==1)),])
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
-@
-
-We can actually fit the submodels in a loop as follows, by extracting
-the design matrix \code{XZ} of the wide model and removing the first
-column (the intercept).  At each iteration, the
-design matrix of the submodel is defined by extracting the columns of
-\code{XZ} indexed by the corresponding row of \code{combs}.  The
-submodel is fitted by placing this submatrix \code{XZi} on the right hand side of
-the model formula passed to \code{glm} (with \code{-1} appended to
-instruct \code{glm} not to include a second intercept term, since an
-intercept is already included in \code{XZi}).  The list of fitted
-models \code{sub} can then be passed to the \code{fic} function, so
-that so that the focus estimate is displayed alongside the model
-comparison statistics. 
-
-\emph{[can we fit all the submodels automatically, if requested? at least for built in model classes]}
-
-<<warning=FALSE>>=
-nmod <- nrow(combs)
-sub <- vector(nmod, mode="list")
-XZ <- model.matrix(wide.glm)
-for (i in 1:nmod){
-  XZi <- XZ[,which(combs[i,]==1)]
-  sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
-}
-ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, 
-              sub=sub)
 @
 
 Notice that some of the \code{rmse} elements of \code{ficres} are
@@ -594,6 +573,7 @@ To illustrate the method, \citet{fic:cox} study a dataset from 205 patients with
 
 We compare models ranging from a wide model \code{wide} that includes 7 terms in the regression model formula, to a narrow model that includes only sex.  
 <<>>=
+library(survival)
 wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt + epith + 
                 ulcer + depth + age, data=melanoma)
 @ 
@@ -618,16 +598,11 @@ The required covariate values and/or time point(s) are supplied as the \code{X} 
 Supplying alternative focuses requires the user to supply a list of three functions as the \code{"focus"} argument to \code{fic}: one for the focus, and two for its derivatives with respect to $(\btheta,\bgamma)$ and $H_0(t)$ respectively.  The format of these functions is shown in the package source file \code{R/fic.coxph.R}, see also \code{help(fic.coxph) TODO EXAMPLES}.
 
 In the melanoma example, all possible submodels spanning the wide and
-narrow model are compared.  As before, a matrix of indicators
-describing these models is constructed, and the submodels are fitted.
+narrow model are compared. As before, a matrix of indicators
+describing these models is constructed, and the submodels are fitted
+automatically within the \code{fic} function.
 <<>>=
 combs <- all_inds(wide,inds0,intercept=FALSE)
-nmod <- nrow(combs)
-sub <- vector(nmod, mode="list")
-for (i in 1:nmod){
-  XZi <- model.matrix(wide)[,which(combs[i,]==1)]
-  sub[[i]] <- coxph(Surv(years, death==1) ~ XZi - 1, data=melanoma)
-}
 @ 
 
 The focus is defined as the 5 year survival probability
@@ -647,7 +622,7 @@ newdata <- with(melanoma,
                            infilt=4, epith=1, ulcer=1, depth=2,
                            age = tapply(age, sex, mean)))
 X <- newdata_to_X(newdata, wide)
-ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5, sub=sub)
+ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
 plot(ficall, xlim=c(0,1), ci=FALSE)
 ggplot_fic(ficall, ci=FALSE)
 @ 

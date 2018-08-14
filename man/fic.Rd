@@ -116,6 +116,14 @@ A vector containing the following components, describing characteristics of the 
 \item{bias.adj}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias, and divided by the square root of the sample size. }
 
 \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
+
+The following are returned as attributes of the model object, thus can be extracted with the \code{\link{attr}} function.
+
+\item{iwide}{Index of the wide model in the vector of submodels, or \code{NULL} if the wide model is not included. }
+
+\item{inarr}{Index of the narrow model in the vector of submodels, or \code{NULL} if the wide model is not included. }
+
+\item{sub}{List of fitted submodel objects.}
 }
 \description{
 Focused information criterion for general models.  These methods estimate the bias and variance of estimates of a quantity of interest (the "focus") when smaller submodels are used in place of a "wide" model that is assumed to generate the data but may not give precise enough estimates.

@@ -1,19 +1,10 @@
----
-title: "Using the fic R package for focused model comparison: skew-normal models"
-date: "`r Sys.Date()`"
-author: Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
-output: 
-  html_document: 
-    includes:
-      before_body: fic.sty
-  code_folding: show
-vignette: >
- %\VignetteIndexEntry{Using the fic R package for focused model comparison: skew-normal models}
- %\VignetteEngine{knitr::rmarkdown}
- %\VignetteDepends{fic,ggplot2}
- %\VignetteEncoding{UTF-8}
-bibliography: fic.bib
----
+%\VignetteIndexEntry{Using the fic R package for focused model comparison: skew-normal models}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{fic,msm}
+
+\documentclass[nojss,nofooter]{jss}
+
+\begin{document}
 
 
 Illustrates focused model comparison for a novel class of models. 
@@ -23,9 +14,7 @@ This needs narrow model pars to be in the middle!
 Mixture of covariate selection and flexibility selection.  Covariate coefficients are subset of model parameters 
 
 
-
-```{r}
-
+<<>>=
 if (!require("sn")) stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
 plot(density(ais$Hc))
@@ -59,8 +48,7 @@ snlm <- function(reg=FALSE, skew=FALSE){
     vcov <- solve(opt$hessian)
     list(loglik=-opt$minimum, est=opt$estimate, vcov=vcov, nobs=nrow(ais))
 }
-
-```
+@ 
 
 Four models 
 
@@ -73,23 +61,18 @@ Four models
 4. linear regression term, skewed error 
 
 
-```{r}
-
-
+<<>>=
 (mod1 <- snlm(reg=FALSE, skew=FALSE))
 (mod2 <- snlm(reg=TRUE, skew=FALSE))
 (mod3 <- snlm(reg=FALSE, skew=TRUE))
 (mod4 <- snlm(reg=TRUE, skew=TRUE))
+@ 
 
 
-```
+\subsection{Mean at particular cov value, shouldn't need skewness to be known.}
 
 
-## Mean at particular cov value, shouldn't need skewness to be known. 
-
-
-```{r}
-
+<<>>=
 focus <- function(par, X){
     X %*% par[1:2]
 }
@@ -103,28 +86,25 @@ med.bmi <- rbind(male=c(1, 23.56), female=c(1, 21.82))
 inds <- rbind(c(1,0,1), c(1,1,1))
 fic(mod2, inds=inds, inds0=c(1,0,1), fns=fns, focus=focus, X=med.bmi,
     sub=list(mod1, mod2))
-
-
-
-```
+@ 
 
 models 3 and 4 have worse FIC, rmse as expected 
 FIC values here near those in book but not exactly
-MLEs are the same, but book states
-xbar - x  =  mean(ais$BMI) - 21.82 which is not 1.141 for females as stated in book 
-presumably also algebraic vs numeric calculations somewhere, e.g. info matrix?
+%MLEs are the same, but book states
+%xbar - x  =  mean(ais$BMI) - 21.82 which is not 1.141 for females as stated in book 
+%presumably also algebraic vs numeric calculations somewhere, e.g. info matrix?
 
 
-## Median at particular cov value, skewness may affect this. should pick biggest model. 
+\subsection{Median at particular cov value, skewness may affect this. should pick biggest model. }
 
-## Third central moment -- pick skewed model if degree of skewness sufficiently big 
-
+\subsection{Third central moment -- pick skewed model if degree of skewness sufficiently big}
 
 todo should the focus function (mean) involve the error term for skew models?
 
-```{r}
-
+<<>>=
 inds <- rbind(c(1,0,1,0), c(1,1,1,0), c(1,0,1,1), c(1,1,1,1))
+@ 
 
 
-```
+
+\end{document}

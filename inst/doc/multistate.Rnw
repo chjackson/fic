@@ -1,47 +1,38 @@
----
-title: "Using the fic R package for focused model comparison: multi-state models"
-date: "`r Sys.Date()`"
-author: Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
-output: 
-  html_document: 
-    includes:
-      before_body: fic.sty  
-  code_folding: show
-vignette: >
- %\VignetteIndexEntry{Using the fic R package for focused model comparison: multi-state models}
- %\VignetteEngine{knitr::rmarkdown}
- %\VignetteDepends{fic,ggplot2,msm}
- %\VignetteEncoding{UTF-8}
-bibliography: fic.bib
----
+%\VignetteIndexEntry{Using the fic R package for focused model comparison: multi-state models}
+%\VignetteEngine{knitr::knitr}
+%\VignetteDepends{fic,msm}
 
-## Focused model comparison for covariate selection in multi-state models fitted with msm 
+\documentclass[nojss,nofooter]{jss}
+
+\begin{document}
+
+\section{Focused model comparison for covariate selection in multi-state models fitted with msm}
 
 Example dataset in package, `psor`.  Four state progression-only model.
 
 Wide model: model with two binary covariates associated with different effects for all three transition rates.
 
-```{r}
+<<>>=
 if (!require("msm")) stop("The `msm` package should be installed to run code in this vignette") 
 psor.q <- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
 psor.wide.msm <- msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
 psor.wide.msm
-```
+@ 
 
 This requires version 1.6.6 of `msm`, available from CRAN since 3 Feb 2017.  This version introduced the `updatepars.msm` function for altering the point estimates from a fitted model a model to a vector of values supplied by the user.  This allows functions such as `totlos.msm` to be used, which define complicated functions of the model parameters.
 
 Here we use this to define a focus function, which returns the expected total time spent in state 4 over 10 years for people without `ollwsdrt` or `hieffusn`, given a vector of parameters `pars` in the model structure `psor.wide.msm`. 
 
-```{r}
+<<>>=
 focus_tlos <- function(pars){
     x.new <- updatepars.msm(psor.wide.msm, pars)
     totlos.msm(x.new, covariates=0, t=10)["State 4"]
 }
-```
+@
 
 We assess the wide model and six further submodels.
 
-```{r}
+<<>>=
 library(fic)
 inds <- rbind(
     c(1,1,1,0,0,0,0,0,0),
@@ -53,8 +44,10 @@ inds <- rbind(
     c(1,1,1,1,1,1,1,1,1)
 )
 fic(wide=psor.wide.msm, inds=inds, focus=focus_tlos)
-```
+@ 
 
 Very small biases in all cases.  RMSE increases with the variance as covariates are added.
 
 I guess because these covariates are not strongly associated with transition rates. 
+
+\end{document}

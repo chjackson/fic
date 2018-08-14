@@ -20,6 +20,8 @@
 
 * Illustrate some algebra/intuitions for when the narrow model will be preferred? 
 
+* Make sure all help pages complete
+
 * Error handling for all functions
   - use imagination here, go through all args
 

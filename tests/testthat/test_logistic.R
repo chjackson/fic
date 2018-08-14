@@ -38,7 +38,7 @@ num <- fic_multi(par=par, J=J,  inds=inds, inds0=inds0, n=n, focus=focus_plogis,
 ficall <- fic(wide.glm, inds=inds, inds0=inds0, focus=focus_plogis, X=X)
 
 test_that("Multiple submodels",{
-    expect_equivalent(as.vector(num[,"FIC",]), ficall$FIC)
+    expect_equivalent(as.vector(t(num[,"FIC",])), ficall$FIC)
 })
 
 parsub <- rbind(c(coef(mod1.glm), 0, 0, 0, 0),

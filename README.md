@@ -7,6 +7,6 @@ See the package vignettes (work in progress) for an introduction:
 
 [Different models for different purposes: focused model comparison in R](https://chjackson.github.io/fic/inst/doc/fic.pdf)
 
-[Survival analysis example](https://chjackson.github.io/fic/inst/doc/survival.html)
+[Survival analysis example](https://chjackson.github.io/fic/inst/doc/survival.pdf)
 
-[Multi-state models example](https://chjackson.github.io/fic/inst/doc/multistate.html)
+[Multi-state models example](https://chjackson.github.io/fic/inst/doc/multistate.pdf)

@@ -4,15 +4,21 @@
 \alias{plot.fic}
 \title{Plot focused model comparison statistics}
 \usage{
-\method{plot}{fic}(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
+\method{plot}{fic}(x, ci = TRUE, xlab = NULL, ylab = NULL, xlim = NULL,
   ylim = NULL, pch = 19, mfrow = NULL, ...)
 }
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
-\item{ylab}{y=axis label.}
+\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).}
 
 \item{xlab}{x-axis label.}
+
+\item{ylab}{y=axis label.}
+
+\item{xlim}{x-axis limits (pair of numbers)}
+
+\item{ylim}{y-axis limits}
 
 \item{pch}{Plot point character, by default 19 (solid circle).}
 

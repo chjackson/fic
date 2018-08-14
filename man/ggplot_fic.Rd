@@ -10,9 +10,15 @@ ggplot_fic(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
+\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).}
+
 \item{ylab}{y=axis label.}
 
 \item{xlab}{x-axis label.}
+
+\item{xlim}{x-axis limits (pair of numbers)}
+
+\item{ylim}{y-axis limits}
 }
 \description{
 Plot focused model comparison statistics: ggplot2 method

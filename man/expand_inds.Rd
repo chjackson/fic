@@ -2,22 +2,27 @@
 % Please edit documentation in R/model_utils.R
 \name{expand_inds}
 \alias{expand_inds}
-\title{Convert inds, inds0 from model.frame (newdata) dimensions to model.matrix (X) dimensions
-given a wide model
-Replicates 0s or 1s for each factor term to number of parameters for that factor
-Needs model.matrix() function to work on the wide model
-or else they'll have to use lower level FIC function for the moment
-or not have factors in their model. 
-Converts vector, data frame or matrix input to matrix output}
+\title{Convert 0/1 indicators for inclusion of regression terms to
+indicators for inclusion of parameters}
 \usage{
-expand_inds(inds, wide, name = "inds")
+expand_inds(inds, wide)
+}
+\arguments{
+\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+
+A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
+
+\item{wide}{Fitted model object containing the wide model.}
 }
 \description{
-Convert inds, inds0 from model.frame (newdata) dimensions to model.matrix (X) dimensions
-given a wide model
-Replicates 0s or 1s for each factor term to number of parameters for that factor
-Needs model.matrix() function to work on the wide model
-or else they'll have to use lower level FIC function for the moment
-or not have factors in their model. 
-Converts vector, data frame or matrix input to matrix output
+If a regression term is a factor, then the 0 or 1 indicating its
+inclusion/exclusion is replicated to a length given by the number
+of factor levels minus 1, that is, the number of parameters
+pertaining to that factor.
+}
+\details{
+This function only works for classes of models for which the
+\code{model.matrix} function is understood and returns objects
+with an \code{"assign"} attribute. This includes all the
+commonly-used models in base R.
 }

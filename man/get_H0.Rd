@@ -20,3 +20,6 @@ the requested times.  Linear interpolation is used, assuming the
 hazard is piecewise constant, thus the cumulative hazard is
 piecewise linear.
 }
+\details{
+This does not extrapolate.  If \code{t} is outside the observed event times, then \code{NA} will be returned.
+}

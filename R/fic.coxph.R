@@ -16,17 +16,38 @@
 ##'
 ##' \code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
 ##'
-##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respetc to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate
+##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate
 ##' 
 ##' @rdname fic.coxph
 ##'
 ##' @import abind
 ##'
 ##' @importFrom survival basehaz
+##'
+##' @section User-defined focuses:
+##'
+##' Each function should have four arguments:
+##'
+##' \code{par}{Vector of estimated coefficients, the log hazard ratios in the Cox model.}
+##'
+##' \code{H0}{Cumulative hazard estimate at a set of times, in the form of the output from \code{\link[survival]{basehaz}}.   The function \code{\link{get_H0}} can be used on this estimate to obtain the estimate at any other times by interpolation.}
+##'
+##' \code{X}{Matrix of covariates, with \code{ncov} rows and \code{npar} columns, where \code{ncov} is the number of alternative covariate values definining alternative focuses we want to compare models for, and \code{npar} is the number of coefficients in the model.}
+##'
+##' \code{t}{Vector of times defining alternative focus quantities (such as the survival)}
+##'
+##' For examples, examine the source for the built-in functions
+##'
+##' \code{cox_hr,cox_hr_deriv,cox_hr_dH} for the hazard ratio between \code{X} and \code{0}
+##'
+##' \code{cox_cumhaz,cox_cumhaz_deriv,cox_cumhaz_dH} for the cumulative hazard
+##'
+##' \code{cox_survival,cox_survival_deriv,cox_survival_dH} for the survival 
+##'
 ##' 
 ##' @export
 fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
-                      focus, X=NULL, t=NULL, sub=NULL, tidy=TRUE)  ## TODO defaults for X, t etc 
+                      focus, X=NULL, t=NULL, sub="auto", tidy=TRUE, ...)  ## TODO defaults for X, t etc 
 {
     if (!inherits(wide, "coxph")) stop("\"wide\" must be an object of class \"coxph\"")
     ## TODO work out where all error checks go
@@ -38,6 +59,8 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     X <- check_X(X, length(par))
     if (is.null(t)) t <- 1 # e.g. for hazard ratio, which is indep of time
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
+    if (isTRUE(sub=="auto"))
+        sub <- fit_submodels(wide, inds)
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, coef, wide)
     H0 <- basehaz(wide, centered=FALSE)
     fl <- get_focus_cox(focus, par=par, X=X, H0=H0, t=t)
@@ -51,8 +74,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     dimnames(res) <- list(tvals=t, vals=rownames(X), outn, mods=rownames(inds))
     for (i in 1:nmod){
         ficres <- fic_coxph_core(wide=wide, inds=inds[i,], inds0=inds0,
-                                 gamma0=gamma0, n=n, focus=fl,
-                                 X=X, t=t)
+                                 gamma0=gamma0, focus=fl, X=X, t=t)
         focus_val <- if (!is.null(parsub)) fl$focus(par=parsub[i,], X=X, H0=H0, t=t) else NULL
         res[,,,i] <- abind(ficres, focus_val)
     }    
@@ -64,6 +86,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     attr(res, "iwide") <- if (any(iwide)) which(iwide) else NULL
     inarr <- apply(inds, 1, function(x)all(x==inds0))
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
+    attr(res, "sub") <- sub
 
     class(res) <- c("fic",class(res))
     res
@@ -74,7 +97,6 @@ fic_coxph_core <- function(wide,
                            inds,
                            inds0, 
                            gamma0 = 0,
-                           n, 
                            focus = NULL, # list returned by get_focus_cox.
                            X=NULL,
                            t=NULL,
@@ -241,7 +263,11 @@ get_focus_cox <- function(focus, focus_deriv=NULL, focus_dH=NULL, par=NULL, H0=N
             formals(focus) <- c(formals(focus), alist(t=))
         res <- list(focus=focus, focus_deriv=focus_deriv, focus_dH=focus_dH)
     } else if (is.list(focus)){
-        res <- focus 
+        args <- list(par, H0, X, t)
+        res <- list(
+            focus = focus$focus,
+            focus_deriv = focus$focus_deriv(par, H0, X, t),
+            focus_dH = focus$focus_dH(par, H0, X, t))
     }
     res
     ## add unused X and t argument to function if it doesn't already have one
@@ -283,6 +309,8 @@ cox_hr_dH <- function(par, H0, X, t){
 ##' @param t vector of times for which cumulative hazard estimates are required.
 ##'
 ##' @return Fitted cumulative hazard at \code{t}.
+##'
+##' @details This does not extrapolate.  If \code{t} is outside the observed event times, then \code{NA} will be returned.
 ##' 
 ##' @export
 ##' 

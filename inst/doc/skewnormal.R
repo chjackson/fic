@@ -1,5 +1,4 @@
 ## ------------------------------------------------------------------------
-
 if (!require("sn")) stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
 plot(density(ais$Hc))
@@ -34,19 +33,13 @@ snlm <- function(reg=FALSE, skew=FALSE){
     list(loglik=-opt$minimum, est=opt$estimate, vcov=vcov, nobs=nrow(ais))
 }
 
-
 ## ------------------------------------------------------------------------
-
-
 (mod1 <- snlm(reg=FALSE, skew=FALSE))
 (mod2 <- snlm(reg=TRUE, skew=FALSE))
 (mod3 <- snlm(reg=FALSE, skew=TRUE))
 (mod4 <- snlm(reg=TRUE, skew=TRUE))
 
-
-
 ## ------------------------------------------------------------------------
-
 focus <- function(par, X){
     X %*% par[1:2]
 }
@@ -61,12 +54,6 @@ inds <- rbind(c(1,0,1), c(1,1,1))
 fic(mod2, inds=inds, inds0=c(1,0,1), fns=fns, focus=focus, X=med.bmi,
     sub=list(mod1, mod2))
 
-
-
-
 ## ------------------------------------------------------------------------
-
 inds <- rbind(c(1,0,1,0), c(1,1,1,0), c(1,0,1,1), c(1,1,1,1))
-
-
 

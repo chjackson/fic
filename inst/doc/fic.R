@@ -28,8 +28,7 @@ inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
 inds0 <- c(1,1,0,0,0,0,0,0)
 
 ## ---------------------------------------------------------
-sub <- list(mod1.glm, mod2.glm)
-fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X, sub=sub)
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 
 ## ---------------------------------------------------------
@@ -43,17 +42,6 @@ combs <- with(combs,
                       (ui==0 & smokeui==1)),])
 ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 
-## ----warning=FALSE----------------------------------------
-nmod <- nrow(combs)
-sub <- vector(nmod, mode="list")
-XZ <- model.matrix(wide.glm)
-for (i in 1:nmod){
-  XZi <- XZ[,which(combs[i,]==1)]
-  sub[[i]] <- glm(low ~ XZi - 1, data=birthwt, family=binomial)
-}
-ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X, 
-              sub=sub)
-
 ## ---------------------------------------------------------
 ggplot_fic(ficres)
 
@@ -65,6 +53,7 @@ ggplot_fic(ficres)
 #              X=X, sub=sub)
 
 ## ---------------------------------------------------------
+library(survival)
 wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt + epith + 
                 ulcer + depth + age, data=melanoma)
 
@@ -74,12 +63,6 @@ inds0
 
 ## ---------------------------------------------------------
 combs <- all_inds(wide,inds0,intercept=FALSE)
-nmod <- nrow(combs)
-sub <- vector(nmod, mode="list")
-for (i in 1:nmod){
-  XZi <- model.matrix(wide)[,which(combs[i,]==1)]
-  sub[[i]] <- coxph(Surv(years, death==1) ~ XZi - 1, data=melanoma)
-}
 
 ## ---------------------------------------------------------
 newdata <- with(melanoma,
@@ -88,7 +71,7 @@ newdata <- with(melanoma,
                            infilt=4, epith=1, ulcer=1, depth=2,
                            age = tapply(age, sex, mean)))
 X <- newdata_to_X(newdata, wide)
-ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5, sub=sub)
+ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
 plot(ficall, xlim=c(0,1), ci=FALSE)
 ggplot_fic(ficall, ci=FALSE)
 
