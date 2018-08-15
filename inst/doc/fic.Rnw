@@ -516,10 +516,11 @@ But the package can be used to calculate focused model comparison statistics for
 \begin{enumerate}
 \item \code{coef}: the vector of maximum likelihood estimates $(\hat\btheta,\hat\bgamma)$,
 
-\item \code{nobs}: the number of observations $n$ contributing to the model fit,
-
 \item \code{vcov}: the covariance matrix of the maximum likelihood
-  estimates, $(nJ)^{-1}$.  \emph{[not sure this is needed in theory
+  estimates, $(nJ)^{-1}$.  
+
+\item \code{nobs}: the number of observations $n$ contributing to the model fit
+  \emph{[not sure this is needed in theory
     unless want FIC on $\sqrt{n}$ scale]}
 \end{enumerate}
 
