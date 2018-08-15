@@ -305,6 +305,7 @@ The following covariates will be selected from (coefficient vector $\bgamma$)
 Firstly the wide model, that includes all the above covariates, is defined and fitted.  
 
 <<>>=
+library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
 @ 
@@ -372,7 +373,6 @@ inds0 <- c(1,1,0,0,0,0,0,0)
 The main \code{fic} function then returns the model fit statistics and the estimate of the focus quantity for each model. 
 
 <<>>=
-library(fic)
 fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 @
@@ -651,9 +651,9 @@ Would like to
 
 \begin{itemize}
 
-\item illustrate alternative losses to the mean square error.     Could easily do losses of the $L_p$ error form, that is mean $(\mu_s - mu_{true})^p$ instead of mean square error.  
+\item illustrate alternative losses to the mean square error.     Could easily do losses of the $L_p$ error form, that is mean $(\mu_s - \mu_{true})^p$ instead of mean square error, with existing theory.
 
-  Would also be nice to work this out for health economic decision problems. 
+  Would also be nice to work this out for more general losses of the form $L(\mu_s, \mu_{true})$ as exemplified by health economic decision problems (the ``focus'' is a choice between finite decisions, and the ``accuracy of the estimate'' is the expected value of perfect information$\ldots$)
 
 \item use resampling to illustrate FIC principles
 

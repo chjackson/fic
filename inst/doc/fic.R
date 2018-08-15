@@ -5,6 +5,7 @@ library(knitr)
 opts_chunk$set(fig.path="fic-")
 
 ## ---------------------------------------------------------
+library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
 
@@ -27,7 +28,6 @@ inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
 inds0 <- c(1,1,0,0,0,0,0,0)
 
 ## ---------------------------------------------------------
-library(fic)
 fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 
