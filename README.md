@@ -6,7 +6,7 @@ Under development.  To install the package, do
 ```r
 install.packages("devtools") # if devtools not already installed
 library(devtools)
-install_github('chjackson/fic)
+install_github("chjackson/fic")
 ```
 
 See the package vignettes (work in progress) for an introduction:
