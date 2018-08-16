@@ -13,14 +13,11 @@
 ##' 
 ##' @export
 fic.survreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, Xwt=NULL, sub=NULL, B=0, loss=loss_mse, ...){
-    coef_fn = function(x){        
-        x$icoef
-    }
-    flexsurvreg_fns <- list(
+    survreg_fns <- list(
         coef = function(x){x$icoef},
         nobs = function(x)nrow(model.frame(x))
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
         focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub, B=B, loss=loss, 
-        fns = flexsurvreg_fns, ...)
+        fns = survreg_fns, ...)
 }
