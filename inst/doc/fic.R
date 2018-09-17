@@ -75,3 +75,12 @@ ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
 plot(ficall, xlim=c(0,1), ci=FALSE)
 ggplot_fic(ficall, ci=FALSE)
 
+## ---------------------------------------------------------
+par(mfrow=c(1,2))
+plot(ficall$FIC[ficall$vals=="female"], ficall$focus[ficall$vals=="female"], 
+     xlim=c(5,20), ylim=c(0.2, 0.9), 
+     ylab = "5yr survival estimates, women", xlab="FIC")
+plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"], 
+     xlim=c(0,20), ylim=c(0.2, 0.9),
+     ylab = "5yr survival estimates, men", xlab="FIC")
+

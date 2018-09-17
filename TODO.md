@@ -1,3 +1,7 @@
+* rows of combs should be labelled by terms, not parameters
+
+* error for wrong X dim in fic.coxph 
+
 ## Definitely
 
 * More model classes and built-in focuses in vignette(s)

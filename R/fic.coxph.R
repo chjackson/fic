@@ -19,6 +19,8 @@
 ##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate
 ##'
 ##' @param sub If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.
+##'
+##' @details Stratified Cox models are not currently supported
 ##' 
 ##' @rdname fic.coxph
 ##'
@@ -53,6 +55,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
 {
     if (!inherits(wide, "coxph")) stop("\"wide\" must be an object of class \"coxph\"")
     ## TODO work out where all error checks go
+    if (!is.null(attr(wide$terms, "specials")$strata)) stop("Stratified Cox models are not currently supported")
     par <- coef(wide)
     inds <- check_inds(inds, length(par))
     inds0 <- check_inds0(inds0, inds, length(par))
@@ -62,7 +65,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     if (is.null(t)) t <- 1 # e.g. for hazard ratio, which is indep of time
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
     if (isTRUE(sub=="auto"))
-        sub <- fit_submodels(wide, inds)
+        sub <- fit_submodels_coxph(wide, inds)
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, coef, wide)
     H0 <- basehaz(wide, centered=FALSE)
     fl <- get_focus_cox(focus, par=par, X=X, H0=H0, t=t)
@@ -77,7 +80,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     for (i in 1:nmod){
         ficres <- fic_coxph_core(wide=wide, inds=inds[i,], inds0=inds0,
                                  gamma0=gamma0, focus=fl, X=X, t=t)
-        focus_val <- if (!is.null(parsub)) fl$focus(par=parsub[i,], X=X, H0=H0, t=t) else NULL
+        focus_val <- if (!is.null(parsub)) fl$focus(par=parsub[i,], X=X, H0=attr(sub[[i]],"basehaz"), t=t) else NULL
         res[,,,i] <- abind(ficres, focus_val)
     }    
     if (tidy) {
@@ -141,24 +144,24 @@ fic_coxph_core <- function(wide,
     ti <- survt[,"time"] 
     deathtimes <- unique(ti[dead==1])
     H0u <- rbind(c(0,0), H0[H0$time %in% deathtimes,])
-    pred <- predict(wide)
+    pred <- linpred(wide)
     XZ <- model.matrix(wide)
     Yiu <- outer(ti, deathtimes, ">=")
     Gn0 <- colMeans(exp(pred) * Yiu)
     Gn1 <- t(XZ) %*% (exp(pred)*Yiu) / nrow(XZ)
     En <- t(t(Gn1) / Gn0) # npar x ndeaths
-    tind <- outer(H0u$time[-1], t, "<=") # 57 x 3 
-    integrand <- t(En) * H0u$hazard[-1] * diff(H0u$time)# 57 x 10 
+    tind <- outer(H0u$time[-1], t, "<=") # ndeaths x ntimes
+    integrand <- t(En) * diff(H0u$hazard) # ndeaths x npar
     Fhat <- matrix(nrow=npar, ncol=ntimes)
-    ## sum of the cum hazards, not the sum of the jumps in the cum hazards as in original code
     for (i in 1:npar){
         Fhat[i,] <- colSums(integrand[,i]*tind)
     }
     F0 <- Fhat[inds0==1,,drop=FALSE] # 
     F1 <- Fhat[inds0==0,,drop=FALSE]
     i0 <- which(inds0==1)
+    i1 <- which(inds0==0)
     dmudbeta <- focus_deriv[i0,,,drop=FALSE]    # p x ntimes x ncov 
-    dmudgamma <- focus_deriv[-i0,,,drop=FALSE]  # q x ntimes x ncov
+    dmudgamma <- focus_deriv[i1,,,drop=FALSE]  # q x ntimes x ncov
     pp <- length(i0)
     integrand <- H0u$hazard[-1] * diff(H0u$time) / Gn0
     intdHg <- colSums(integrand*tind)
@@ -236,6 +239,19 @@ fic_coxph_core <- function(wide,
     res
 }
 
+## Linear predictor from a Cox model
+## note predict.coxph centres covariates around their means 
+
+
+linpred <- function(mod, centered=FALSE){ 
+    mm <- model.matrix(mod)
+    if (centered) {
+        xbar <- matrix(mod$means, nrow=nrow(mm), ncol=ncol(mm), byrow=TRUE)
+        mm <- mm - xbar
+    }
+    as.numeric(mm %*% coef(mod))
+}
+
 
 ## Generalization of matrix diagonal to 4D n x m x n x m arrays 
 ## Returns matrix with i,j element given by i,j,i,j element of array 
@@ -286,7 +302,7 @@ cox_hr <- function(par, H0, X, t) {
 }
 
 cox_hr_deriv <- function(par, H0, X, t){
-    npar <- ncol(X)
+    npar <- length(par)
     ntimes <- length(t) 
     ncov <- nrow(X)
     e <- as.vector(exp(X %*% par))
@@ -329,7 +345,7 @@ cox_cumhaz <- function(par, H0, X, t) {
 cox_cumhaz_deriv <- function(par, H0, X, t) {
     H0t <- get_H0(H0, t)
     ncov <- nrow(X)
-    npar <- ncol(X)
+    npar <- length(par)
     ntimes <- length(t) 
     ## X is ncov x npar
     Xrep <- array(t(X), dim=c(npar, 1, ncov))[,rep(1,ntimes),,drop=FALSE] # npar x ntimes x ncov 
@@ -350,7 +366,7 @@ cox_survival <- function(par, H0, X, t) {
 
 cox_survival_deriv <- function(par, H0, X, t) {
     ncov <- nrow(X)
-    npar <- ncol(X)
+    npar <- length(par)
     ntimes <- length(t)
     surv <- cox_survival(par, H0, X, t) # ntimes x ncov 
     surv.rep <- array(surv, dim=c(1, ntimes, ncov))[rep(1,npar),,,drop=FALSE]

@@ -123,3 +123,21 @@ fit_submodels <- function(wide, inds){
     }
     sub
 }
+
+### Can't seem to just do fit_submodels and then extract basehaz
+### externally, since then basehaz seems to see the wrong XZi, for some
+### strange reason related to environments.
+
+fit_submodels_coxph <- function(wide, inds){
+    nmod <- nrow(inds)
+    sub <- vector(nmod, mode="list")
+    XZ <- model.matrix(wide)
+    for (i in 1:nmod){
+        XZi <- XZ[,which(inds[i,]==1),drop=FALSE]
+        call <- wide$call
+        call$formula <- update(as.formula(call$formula), . ~ XZi - 1)
+        sub[[i]] <- eval(call)
+        attr(sub[[i]], "basehaz") <- basehaz(sub[[i]], centered=FALSE)
+    }
+    sub
+}

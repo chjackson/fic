@@ -53,6 +53,9 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 \description{
 Focused model comparison for Cox models fitted with \code{coxph} from the \code{survival} package.  Built-in focuses include the hazard ratio, survival and cumulative hazard.
 }
+\details{
+Stratified Cox models are not currently supported
+}
 \section{User-defined focuses}{
 
 
