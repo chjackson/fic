@@ -1,3 +1,19 @@
+Hi Gerda,
+
+Good news on the Cox regression.   After fixing a couple of bugs in my code, it now creates a FIC plot for the melanoma data (vignette p17) which looks just the same as figure 6.5 in your book. 
+
+So I think my code is now doing what the code you used for the book is doing.
+
+The only thing I don't understand is that the FICs produced by your code in this example are in a range between 0 and 1, rather than 0 to 30 in the book.   Is the code using a different definition of the FIC?  The focus values are identical I think, it's just the FIC values which are different.
+
+If this can be explained simply, I'm happy to declare the Cox regression stuff finished and move on to another topic!
+
+Chris
+
+
+
+
+
 * rows of combs should be labelled by terms, not parameters
 
 * error for wrong X dim in fic.coxph 

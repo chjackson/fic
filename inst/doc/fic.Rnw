@@ -647,10 +647,10 @@ We can compare with Fig 6.5 of \cite{claeskens:hjort:book}
 <<>>=
 par(mfrow=c(1,2))
 plot(ficall$FIC[ficall$vals=="female"], ficall$focus[ficall$vals=="female"], 
-     xlim=c(5,20), ylim=c(0.2, 0.9), 
+     xlim=c(0,30), ylim=c(0, 1), 
      ylab = "5yr survival estimates, women", xlab="FIC")
 plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"], 
-     xlim=c(0,20), ylim=c(0.2, 0.9),
+     xlim=c(0,30), ylim=c(0.2, 0.9),
      ylab = "5yr survival estimates, men", xlab="FIC")
 @ 
 
