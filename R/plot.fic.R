@@ -132,6 +132,6 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
         ps <- ps +
             geom_segment(aes_string(x='l95', xend='u95', yend='rmse.adj'))
     ps <- ps +
-      geom_text(aes_string(x=0, label='mods', hjust=0), col="gray60", size=2.5)
+      geom_text(aes_string(x=-Inf, label='mods', hjust=0), col="gray60", size=2.5)
     ps
 }
