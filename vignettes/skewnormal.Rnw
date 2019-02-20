@@ -1,110 +1,257 @@
-%\VignetteIndexEntry{Using the fic R package for focused model comparison: skew-normal models}
+%\VignetteIndexEntry{Examples of focused model comparison: skew-normal models}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{fic,msm}
 
 \documentclass[nojss,nofooter]{jss}
 
+\author{Christopher Jackson\\\email{chris.jackson@mrc-bsu.cam.ac.uk}}
+\title{Examples of focused model comparison: skew-normal models}
+\Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
+
+\Abstract{
+The following example (from \citet{claeskens:hjort:book}) illustrates 
+how focused model comparison can be performed using the \pkg{fic}
+package in a situation where: 
+\begin{itemize}
+\item a novel class of models is defined and fitted by custom R functions 
+\item a simple model is extended in two different directions to define the models being compared
+\end{itemize}
+}
+\Keywords{models}
+
 \begin{document}
 
 
-Illustrates focused model comparison for a novel class of models. 
+An outcome $y_i$ and a covariate $x_i$ are observed for individuals
+$i=1,\ldots,n$.    Four different models are compared: two normal
+models with a constant variance, one without (1) and one with (2) a
+linear regression term,  and two ``skew-normal''
+models without (3) and with (4) the linear regression term.   
+The skew-normal model is
+defined by an error term $\sigma\epsilon_i$, where the $\epsilon_i$ 
+are independently distributed with a density
+$f(u|\lambda) = \lambda \Phi(u) ^{\lambda - 1} \phi(u)$.  
+All four models
+are nested in the ``wide'' model (4).  
+\begin{enumerate}
+\item[(1)] $y_i \sim N(\beta_0, \sigma^2) $
+\item[(2)] $y_i \sim N(\beta_0 + \beta_1 x_i, \sigma^2) $
+\item[(3)] $y_i = \beta_0 + \sigma\epsilon_i$
+\item[(4)] $y_i = \beta_0 + \beta_1 x_i + \sigma\epsilon_i $
+\end{enumerate}
 
-This needs narrow model pars to be in the middle! 
+%%https://www-sciencedirect-com.ezp.lib.cam.ac.uk/science/article/pii/S0047259X08000341#b3 
+%% explains relation to standard skew normal param 
 
-Mixture of covariate selection and flexibility selection.  Covariate coefficients are subset of model parameters 
+\section{Fitting the models} 
 
-
+To implement this class of models in R, firstly we define the log density function of the general skew-normal model with mean, scale and skewness parameters $\mu,\sigma,\lambda$ indicated by
+arguments \code{mean}, \code{sigma} and \code{lambda}. 
+This defines the distribution of $y_i$ in model (3) with
+mean $\mu_i = \beta_0$,  and in (4) with $\mu_i = \beta_0 +
+\beta_1x_i$.  
+Models (1) and (2) are defined by setting $\lambda=1$ in models  (3) and (4)
+respectively. 
 <<>>=
-if (!require("sn")) stop("The `sn` package should be installed to run code in this vignette") 
+ldsnorm <- function(x, mean, sd, lambda){
+    log(lambda) + (lambda-1)*pnorm(x, mean, sd, log=TRUE) +
+        dnorm(x, mean, sd, log=TRUE)
+}
+@ 
+
+The models are fitted to data from the Australian Institute of Sports (Cook
+and Weisberg, 1994 REF), available as \code{ais} from the \pkg{sn}
+package REF. 
+The outcome $y_i$ is haematocrit level \code{Hc}, and the covariate is
+body mass index \code{BMI}.   Figure ?? illustrates the skewed 
+distribution of the outcome and a mild association between the variables. 
+<<>>=
+if (!require("sn"))
+    stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
-plot(density(ais$Hc))
-plot(ais$BMI, ais$Hc, pch=19)
+par(mfrow=c(1,2))
+plot(density(ais$Hc), xlab="Haematocrit level")
+plot(ais$BMI, ais$Hc, pch=19,
+     xlab="Body mass index", ylab="Haematocrit level")
+@ 
 
-ldsnorm <- function(x, mean, sd, skew){
-    log(skew) + (skew-1)*pnorm(x, mean, sd, log=TRUE) + dnorm(x, mean, sd, log=TRUE)
+The following defines the minus log likelihood for these data as a function of four parameters $\beta_0, \beta_1, \sigma$ and $\lambda$.
+
+<<>>=
+mloglik <- function(b0, b1, sd, lambda){
+    -sum(ldsnorm(ais$Hc, b0 + b1*ais$BMI, sd, lambda))
 }
+@
 
-mloglik <- function(b0, b1, sd, skew){
-    ret <- -sum(ldsnorm(ais$Hc, b0 + b1*ais$BMI, sd, skew))
-    ret
+Then to obtain the maximum likelihood estimates under models 1 to  4,
+\code{mloglik} is rewritten as a function of a single vector \code{par}, containing either 2, 3
+or 4 parameters to be minimised over, depending on the model.  Note here that
+models 1 and 3 have $\beta_2$ fixed at 0, and models 1 and 2 have $\lambda$
+fixed at 1. The positive parameters $\sigma$ and $\lambda$ will be
+estimated by unconstrained maximisation on the log scale. 
+These functions can be passed to the \code{nlm} function for
+optimisation. 
+<<>>=
+fn1 <- function(par) mloglik(par[1], 0, exp(par[2]), 1)
+fn2 <- function(par) mloglik(par[1], par[2], exp(par[3]), 1)
+fn3 <- function(par) mloglik(par[1], 0, exp(par[2]), exp(par[3]))
+fn4 <- function(par) mloglik(par[1], par[2], exp(par[3]), exp(par[4]))
+@ 
+
+\code{nlm} also requires plausible initial values for the parameters. 
+A vector of these (\code{ini}) is obtained as follows by fitting model (2) 
+with \code{lm} and extracting
+the coefficients with \code{coef} (for $\beta_0$ and $\beta_1$) and the
+residual standard deviation for $\log(\sigma)$.  An initial value of 0
+is used for $\log(\lambda)$.   \footnote{Note these are the exact
+  maximum likelihood estimates for model 2.  The added value of
+  \code{nlm} in fitting models 1 and 2, compared to simply using \code{lm}, is to conveniently provide the covariance matrix at the maximum likelihood estimates, which is required for focused model comparison }
+<<>>=
+lm2 <- lm(Hc ~ BMI, data=ais)
+cf <- unname(coef(lm2))
+ini <- c(beta0=cf[1], beta1=cf[2], 
+         logsigma=log(summary(lm2)$sigma), loglambda=0)
+@
+The appropriate objective function
+(\code{fn1}--\code{fn4}) is then optimised for each model, starting
+from the given initial values\footnote{A warning message of \code{NA/Inf replaced by maximum positive value}
+can be ignored and is the result of
+\code{nlm} trying out extreme and implausible values on the way to
+finding the maximum likelihood.}. 
+<<warning=FALSE>>=
+opt1 <- nlm(fn1, ini[c("beta0","logsigma")], hessian=TRUE)
+opt2 <- nlm(fn2, ini[c("beta0","beta1","logsigma")], hessian=TRUE)
+opt3 <- nlm(fn3, ini[c("beta0","logsigma","loglambda")], hessian=TRUE)
+opt4 <- nlm(fn4, ini, hessian=TRUE)
+@ 
+
+
+Finally, the information required by the \code{fic} function (the
+estimates and covariance matrices) is
+extracted from the \code{nlm} results and arranged into a list, for
+each of the four models. 
+<<>>=
+mod1 <- list(est=opt1$estimate, vcov=solve(opt1$hessian) )
+mod2 <- list(est=opt2$estimate, vcov=solve(opt2$hessian) )
+mod3 <- list(est=opt3$estimate, vcov=solve(opt3$hessian) )
+mod4 <- list(est=opt4$estimate, vcov=solve(opt4$hessian) )
+@ 
+
+dsn also provided with sn package
+
+\section{Focused model comparison}
+
+We now perform a focused comparison of the four models.  Two
+alternative focuses are investigated: the mean and median outcome at a
+covariate value of interest.   Expressions for the mean and median of 
+the skew normal, in the parameterisation used here, are given by
+\citet{claeskens:hjort:book} and encoded in the following R functions: 
+
+<<>>=
+mean_snorm <- function(mu, sigma, lambda){
+    f <- function(u){u*exp(ldsnorm(u, 0, 1, lambda))}
+    mu + sigma * integrate(f, -Inf, Inf)$value
 }
-
-snlm <- function(reg=FALSE, skew=FALSE){
-    inilm <- lm(Hc ~ BMI, data=ais)
-    ini <- c(coef(inilm), log(summary(inilm)$sigma), 0)
-    if (!reg && !skew){
-        ini <- ini[c(1,3)]
-        fn <- function(par) mloglik(par[1], 0, exp(par[2]), 1)
-    } else if (reg && !skew){
-        ini <- ini[c(1,2,3)]
-        fn <- function(par) mloglik(par[1], par[2], exp(par[3]), 1)
-    } else if (!reg && skew){
-        ini <- ini[c(1,3,4)]
-        fn <- function(par) mloglik(par[1], 0, exp(par[2]), exp(par[3]))
-    } else if (reg && skew){
-        fn <- function(par) mloglik(par[1], par[2], exp(par[3]), exp(par[4]))
-    }
-    opt <- nlm(fn, ini, hessian=TRUE)
-    vcov <- solve(opt$hessian)
-    list(loglik=-opt$minimum, est=opt$estimate, vcov=vcov, nobs=nrow(ais))
+median_snorm <- function(mu, sigma, lambda){
+    mu + sigma * qnorm(0.5^(1/lambda))
 }
 @ 
 
-Four models 
-
-1. constant mean, constant variance, standard normal error 
-
-2. linear regression, no skewness ie standard normal error 
-
-3. no regression term, skewed error 
-
-4. linear regression term, skewed error 
-
+As described in the main package vignette (Section ??) the focus
+function supplied to \code{fic} should have arguments defined by 
+a vector \code{par} of parameters of the biggest model (in
+this case the four-parameter model 4), and a matrix of covariate values
+\code{X}, and return the corresponding focus quantity.   In this
+example,  the two focus functions are 
 
 <<>>=
-(mod1 <- snlm(reg=FALSE, skew=FALSE))
-(mod2 <- snlm(reg=TRUE, skew=FALSE))
-(mod3 <- snlm(reg=FALSE, skew=TRUE))
-(mod4 <- snlm(reg=TRUE, skew=TRUE))
-@ 
-
-
-\subsection{Mean at particular cov value, shouldn't need skewness to be known.}
-
-
-<<>>=
-focus <- function(par, X){
-    X %*% par[1:2]
+focus1 <- function(par, X){
+    mean_snorm(mu = X %*% par[1:2], sigma=exp(par[3]), lambda=exp(par[4]))
 }
+focus2 <- function(par, X){
+    median_snorm(mu = X %*% par[1:2], sigma = exp(par[3]), lambda = exp(par[4]))
+}
+@
+
+The \code{inds} matrix, required by \code{fic} is now
+constructed. Recall this indicates which parameters (columns) are
+included in each of the models (rows) being compared.   The narrow
+model is in the first row, and the wide model in the last.   
+The functions \code{fns} required to extract the estimates and covariance matrix
+from the fitted model objects are then defined. 
+
+Finally \code{fic} is called to compare the four models for focuses
+defined by the mean and median for average men and women, with
+covariate values defined by \code{med.bmi} 
+
+TODO do we really need an intercept?  Shouldn't 
+
+<<>>=
+inds <- rbind(c(1,0,1,0),
+              c(1,1,1,0),
+              c(1,0,1,1),
+              c(1,1,1,1))
 
 fns <- list(coef=function(x)x$est,
             vcov=function(x)x$vcov,
-            nobs=function(x)x$nobs)
+            nobs=function(x)nrow(ais))
 
-med.bmi <- rbind(male=c(1, 23.56), female=c(1, 21.82))
+med.bmi <- rbind(male=c(1, 23.56),
+                 female=c(1, 21.82))
 
-inds <- rbind(c(1,0,1), c(1,1,1))
-fic(mod2, inds=inds, inds0=c(1,0,1), fns=fns, focus=focus, X=med.bmi,
+focus0 <- function(par){X %*% par[1:2]}
+fic(mod2, inds=rbind(c(1,0,1),c(1,1,1)), fns=fns, focus=focus0, X=med.bmi, FIC=TRUE,
     sub=list(mod1, mod2))
+
+fmean <- fic(mod4, inds=inds, fns=fns, focus=focus1, X=med.bmi, FIC=TRUE,
+    sub=list(mod1, mod2, mod3, mod4))
+fmean 
+fmed <- fic(mod4, inds=inds, fns=fns, focus=focus2, X=med.bmi,
+    sub=list(mod1, mod2, mod3, mod4))
+fmed
+
+library(ggplot2)
+
+ggplot_fic(fmean)
+ggplot_fic(fmed)
+
 @ 
 
-models 3 and 4 have worse FIC, rmse as expected 
-FIC values here near those in book but not exactly
+TODO name the models 
+TODO shrink the plots 
+TODO if nobs is supplied then set FIC true 
+
+mean: we need the covariate, but not necessarily the skewness as
+well. 
+these conclusions don't depend on cov 
+``For estimating the mean there is no award in involving the λ aspects
+of the data, as the added complexity does not alter the large-sample
+performance of estimators.'' 
+
+fic values close to book, not exactly, for mean when wide excludes skew
+
+median: we need the covariate again, but skew model has worse rmse 
+
+makes sense for measures of central tendency.  median more robust to
+skew? 
+
+todo check vs book , 
+hmm book selects wide model for median 
+
+refer to algebraic results in book 
+
+Very different FICs from book for median 
+can we check the omegas against book? 
+
 %MLEs are the same, but book states
 %xbar - x  =  mean(ais$BMI) - 21.82 which is not 1.141 for females as stated in book 
 %presumably also algebraic vs numeric calculations somewhere, e.g. info matrix?
 
 
-\subsection{Median at particular cov value, skewness may affect this. should pick biggest model. }
+TODO teach people to make a S3 method for their new class 
 
-\subsection{Third central moment -- pick skewed model if degree of skewness sufficiently big}
-
-todo should the focus function (mean) involve the error term for skew models?
-
-<<>>=
-inds <- rbind(c(1,0,1,0), c(1,1,1,0), c(1,0,1,1), c(1,1,1,1))
-@ 
-
-
+TODO can't refit submodels - only works for standard cov selection problems
 
 \end{document}
+
+

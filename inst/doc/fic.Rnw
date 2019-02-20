@@ -17,7 +17,11 @@ opts_chunk$set(fig.path="fic-")
 @
 
 \title{Different models for different purposes: focused model comparison in R}
-\author{Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>}
+\author{
+  ~\\Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>,\\
+  Howard Thom <howard.thom@bristol.ac.uk>,\\
+  Gerda Claeskens <gerda.claeskens@kuleuven.be>
+}
 \Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
 
 \newcommand{\btheta}{\boldsymbol{\theta}}
@@ -27,7 +31,7 @@ opts_chunk$set(fig.path="fic-")
 
 
 \Abstract{
-  Typical methods of model comparison pick one ``best'' model, no
+  Typical methods of model comparison are used to pick one ``best'' model, no
   matter what the estimates from the model are used for.  ``Focused''
   model comparison, by contrast, considers that different models may
   be better for different purposes.  Different models may be preferred
@@ -42,14 +46,13 @@ opts_chunk$set(fig.path="fic-")
   estimate in return for greater precision.  The optimal submodel for a
   particular focus is the one which minimises the mean squared error
   of the estimate of that focus from the submodel, assuming that the
-  wide model is true.  \emph{[maybe other losses if can get bootstrap
-    to work]}
+  wide model is true.
 
   The \code{fic} package calculates this error, and related
-  quantities, straightforwardly for any class of models fitted by
+  quantities, straightforwardly for comparisons within any class of models fitted by
   maximum likelihood.  There are shortcuts for commonly-used model
-  classes such as GLMs and parametric survival models.  Cox regression
-  models are also supported \emph{[todo]} 
+  classes such as GLMs and parametric survival models.  Covariate selection 
+  problems in Cox regression models are also supported. 
 }
 
 
@@ -68,11 +71,11 @@ The Bayesian information criterion (BIC, \citet{schwarz}) is
 
 $$ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) $$
 
-These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose the model with the best predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and selects the model with the highest posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will select it ``consistently" as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See e.g. \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these, and other similar model comparison criteria.
+These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose models with better predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and prefers models with higher posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will tend to select it as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See e.g. \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these, and other similar model comparison criteria.
 
-However both of these methods select one ``best fitting" model for a given dataset.  But different models may be better for different purposes, for example to estimate different quantities of interest.  Such quantities are termed the ``focus'' of a model, and this is the idea behind ``focused" model comparison.
+Both of these methods give a single ranking of models according how well they fit a given dataset.   However, different models may be better for different purposes, for example to estimate different quantities of interest.  Such quantities are termed the ``focus'' of a model, and this is the idea behind ``focused" model comparison.
 
-This paper describes the \pkg{fic} R package.   This compares a set of models according to how accurately they estimate a focus quantity.  The models should all be nested in a single ``wide'' model that is assumed to generate the data.   Section \ref{sec:formulae} gives an informal introduction to the principles, and sets out the formulae,  as developed by \citet{fic} and \citet{claeskens:hjort:book}.  Section \ref{sec:software} explains how general-purpose software is constructed to enable these quantities to be evaluated for any class of models and focuses, with the minimum of user effort.   A worked example of using the \pkg{fic} package is given in Section \ref{sec:example}.   \emph{[TODO decide what's going into other worked examples]} .   The extension of the theory to deal with Cox proportional hazards regression models is described in Section \ref{sec:cox} with a worked example. 
+This paper describes the \pkg{fic} R package.   This compares a set of models according to how accurately they estimate a focus quantity.  The models should all be nested in a single ``wide'' model that is assumed to generate the data.   Section \ref{sec:formulae} gives an informal introduction to the principles, and sets out the formulae,  as developed by \citet{fic} and \citet{claeskens:hjort:book}.  Section \ref{sec:software} explains how general-purpose software is constructed to enable these quantities to be evaluated for any class of models and focuses, with the minimum of user effort.   A worked example of using the \pkg{fic} package for covariate selection in GLMs is given in Section \ref{sec:example}.   A set of additional package vignettes demonstrate the use of the package in a variety of less common situations.  The extension of the theory to deal with Cox proportional hazards regression models is described in Section \ref{sec:cox} with a worked example. 
 
 
 \section{Focused model comparison: principles and formulae}
@@ -86,7 +89,7 @@ Suppose the range of models we are willing to use is bounded by
 \item a \emph{narrow model}, the smallest model we are willing to use, defined by setting $\bgamma=\bgamma_0$ in the wide model. 
 \end{itemize}
 
-A typical example is covariate selection in regression models, where $\btheta$ are the coefficients of ``protected'' covariates which are always included, and $\bgamma$ are the coefficients of optional covariates that may or may not be included.   More generally, we wish to choose the appropriate level of flexibility for the distribution of some outcome.  \emph{[ref other worked examples]}
+A typical example is covariate selection in regression models, where $\btheta$ are the coefficients of ``protected'' covariates which are always included, and $\bgamma$ are the coefficients of optional covariates that may or may not be included.   More generally, we wish to choose the appropriate level of flexibility for the distribution of some outcome.  For example, choosing between a Poisson versus a Negative Binomial model for a count outcome, or an exponential versus a Weibull survival model, where the former is a constained version of the latter.
 
 Suppose also that the purpose of the model is to estimate some \emph{focus} quantity, which could be any function of the basic parameters 
 
@@ -110,54 +113,80 @@ MSE_S = E\left\{(\hat\mu_S - \mu\right)^2\}  & = \left\{E(\hat\mu_S)- \mu\right\
 
 Estimators for these quantities are constructed by \citet{fic} under
 an asymptotic framework in which the data are assumed to be $n$
-independent observations generated from the wide model, but
+independent identically distributed observations from the wide model, but
 reparameterised so that $\bgamma = \gamma_0 + \bdelta / \sqrt{n}$.
 Thus as the sample size increases, we aim to detect more subtle
 departures from the narrow model.
 
-\emph{[any more basic assumptions?]}
-
-An obvious estimator for the bias $B_S$ is  
+An obvious estimate for the bias $B_S$ is  
 \( \hat{B_S} = \hat{\mu_S} - \hat{\mu_W} \),
 where $\hat\mu_W$ is the estimate of the focus quantity under the wide model, which is assumed to be unbiased. 
-However, \citet{fic} derive a more accurate estimator for the \emph{squared} bias as 
+However, \citet[][]{fic} derive a more accurate, asymptotically unbiased, estimate for the
+\emph{squared} bias as 
 
-$$\widehat{B_S^2} = ( \hat\psi_{W} - \hat\psi_S )^2 / n$$
+\begin{equation}
+  \label{eq:sqbias:est}
+%  \widehat{B_S^2} = ( \hat\psi_{W} - \hat\psi_S )^2 / n
+  \widehat{B_{S}^{2}} = \hat\omega^T (I - G_S) (\hat\bdelta \hat\bdelta^T - Q)  (I - G_S) \hat\omega 
+%  \widehat{B_S^2} = ( \hat\psi_{W} - \hat\psi_S ) - omega (I - G_S) Q (I - G_s) \omega
+\end{equation}
 
-where 
-
+where:
 \begin{itemize}
 
 % bdelta is bias of par ests in narrow model on sqrtn scale  
 % omegabdelta is bias of focus estimate in narrow model on sqrtn scale 
 
-\item $\hat\psi_{W} = \hat\omega^T\hat\bdelta$ and
-  $\hat\psi_S = \hat\omega^T G_S \hat\bdelta$ are estimates of
-  $\omega^T\bdelta$ under the wide model and submodel respectively,
-  where $\omega^T\bdelta$ is the bias of the estimate of $\sqrt{n}\mu$
+\item 
+$\hat\bdelta = \hat\bgamma\sqrt{n}$, where $\hat\bgamma$ is the
+estimate of $\bgamma$ under the wide model.
+
+\item $\omega^T\bdelta$ is the bias of the estimate of $\sqrt{n}\mu$
   under the narrow model $N$, that is, the asymptotic mean of
   $\sqrt{n}(\hat\mu_N - \mu)$.  Thus $\omega$ acts as a linear
   transformation from the biases of the basic parameters $\bgamma$ to
   the biases of the focus parameter $\mu$.
-\emph{[why not let all the $n$s cancel, and explain everything in terms of biases on the focus scale?]}
 
-\item  $\omega$ is estimated as $\hat\omega = J_{10}J_{00}^{-1}\frac{d\mu}{d\theta} -
-  \frac{d\mu}{d\gamma}$ using Taylor approximation arguments, where  $J$ is the information (inverse covariance) matrix under the wide model divided by $n$, \emph{[but the ns cancel, so could we work in terms of the info under the wide model?]} and subscripts $0$ and $1$ select the rows and columns forming the submatrices of $J$ that correspond to parameters $\btheta$ and $\bgamma$ respectively.  The partial derivatives of the focus $\mu$ are evaluated at the estimates from the wide model.
+%\item 
+%  and 
+
+\item $\omega$ is estimated as $\hat\omega = J_{10}J_{00}^{-1}\frac{d\mu}{d\theta} -
+  \frac{d\mu}{d\gamma}$ using Taylor approximation arguments, where
+  $J$ is the information (inverse covariance) matrix under the wide
+  model \footnote{Note that \citet{claeskens:hjort:book} calculate the
+    MSE of the focus multiplied by $\sqrt{n}$ rather than the MSE of
+    the focus, thus they define $J$ instead as the information matrix divided
+    by $n$.  Thus their definition of $\omega$ is the same as ours
+    since $n$ cancels, but their definitions of $Q_S$ and $Q$ are different. }
+and subscripts $0$ and $1$ select the rows and columns forming the submatrices of $J$ that correspond to parameters $\btheta$ and $\bgamma$ respectively.  The partial derivatives of the focus $\mu$ are evaluated at the estimates from the wide model.
 
 \item $G_S = \pi^T Q_S \pi  Q^{-1}$ is an estimate of the transformation that maps the wide model estimate of $\bdelta$ to the submodel $S$ estimate, where 
-    $Q_S = (\pi Q^{-1} \pi^T)^{-1}$, $Q^{-1} = J_{11}$ and $\pi$ is the projection matrix consisting of 0s and 1s which maps a vector of the same length as $(\btheta,\bgamma)$ to a subvector containing the elements corresponding to submodel $S$.  \emph{[again don't the ns in the Qs cancel]}
-  
-\item 
-$\hat\bdelta = \hat\bgamma\sqrt{n}$, where $\hat\bgamma$ is the estimate of $\bgamma$ under the wide model.
+    $Q_S = (\pi Q^{-1} \pi^T)^{-1}$, $Q^{-1} = J_{11}$ and $\pi$ is the projection matrix consisting of 0s and 1s which maps a vector of the same length as $(\btheta,\bgamma)$ to a subvector containing the elements corresponding to submodel $S$. 
   
 \end{itemize}
 
-The estimator for the variance of $\hat{\mu}_S$ under the wide model, derived by \citet{fic}, is 
-\[\hat{V} = (\hat{\tau_0}^2 + \hat{\omega}^T Q_S^0 \hat{\omega}) / n\] 
+Occasionally the estimate~(\ref{eq:sqbias:est}) of squared bias is
+negative.  \citet{fic} also present an adjusted version of~(\ref{eq:sqbias:est}), 
+which assumes the bias is zero in these cases. 
+\begin{equation}
+  \label{eq:sqbias:adj}
+  \widehat{B^{2*}_S} = max\left\{0, \widehat{B^2_S} \right\} 
+\end{equation}
 
-where $\hat{\tau_0}^2 /n$ estimates the variance of the narrow model focus estimate (using ``delta method" principles, $\hat\tau_0^2 = \frac{d\mu}{d\theta}^T J_{00}^{-1} \frac{d\mu}{d\theta}$), and the additional term $(\hat{\omega}^T Q_S^0 \hat{\omega}) / n$ is the increase in variance we accept by using a wider but still misspecified model $S$, with $Q_S^0 = \pi^T Q_S \pi$.
+The corresponding estimate of the bias is 
 
-\emph{[again if we define J as info instead of info/n, then we wouldn't need to supply $n$]}
+\begin{equation}
+  \label{eq:bias:adj}
+  \widehat{B_S*} = sign(\hat\psi_{W} - \hat\psi_S)\sqrt{\widehat{B_S^{2*}}}  
+\end{equation}
+  where $\hat\psi_{W} = \hat\omega^T\hat\bdelta$ and
+ $\hat\psi_S = \hat\omega^T G_S \hat\bdelta$ are estimates of
+ $\omega^T\bdelta$ under the wide model and submodel respectively.
+
+The estimate for the variance of $\hat{\mu}_S$ under the wide model, derived by \citet{fic}, is 
+\[\hat{V_S} = (\hat{\tau_0}^2 + \hat{\omega}^T Q_S^0 \hat{\omega}) \] 
+
+where $\hat{\tau_0}^2$ estimates the variance of the narrow model focus estimate (using ``delta method" principles, $\hat\tau_0^2 = \frac{d\mu}{d\theta}^T J_{00}^{-1} \frac{d\mu}{d\theta}$), and the additional term $(\hat{\omega}^T Q_S^0 \hat{\omega})$ is the increase in variance we accept by using a wider but still misspecified model $S$, with $Q_S^0 = \pi^T Q_S \pi$.
 
 Thus we compare models on the basis of the root mean square error, estimated by
 \begin{equation}
@@ -165,44 +194,45 @@ Thus we compare models on the basis of the root mean square error, estimated by
   \sqrt{\widehat{MSE_S}} = \sqrt{\widehat{B_S^2} + \hat{V_S}}
 \end{equation}
 
+or the alternative version which, while not asymptotically unbiased, is based on an interpretable estimate~(\ref{eq:bias:adj}) of the bias. 
+\begin{equation}
+  \label{eq:rmse:adj}
+  \sqrt{\widehat{MSE_S^*}} = \sqrt{\widehat{B_S^{2*}} + \hat{V_S}}
+\end{equation}
+
 \citet{fic} define the ``focused information criterion'' (FIC), which has a slightly simpler form due to excluding terms common to all submodels $S$, and is related to the MSE as
 \begin{equation}
   \label{eq:fic}
-  FIC_S = n MSE_S - \hat\tau_0^2 + \hat\omega^T Q \hat\omega  
+  FIC_S = n \widehat{MSE_S} - \hat\tau_0^2 + \hat\omega^T Q \hat\omega  
 \end{equation}
 Models with lower FIC give better estimates of the focus quantity.  However we prefer to use the (root) MSE as the model comparison statistic, due to its direct interpretation as the error of the focus estimate. 
-\emph{FIC would need knowledge of $n$}
 
-\subsection{Bias-corrected MSE}
-\label{sec:biascorrect}
-
-\citet{fic} derive a further correction for the bias estimator which
-is necessary when the above estimate is negative.  The adjusted squared
-bias estimator is
-
-\begin{equation}
-  \label{eq:bias:adj}
-  \widehat{B^{*2}} = max\left\{0,\quad \hat\omega^T (I - G_S) (\hat\bdelta \hat\bdelta^T - Q) (I - G_S)^T \hat\omega / n\right\}
-\end{equation}
-
-The corresponding estimate of the bias $B$ is $sign(\hat\psi_{W} - \hat\psi_S)\sqrt{\widehat{B^{*2}}}$, and the bias-corrected root MSE is $\sqrt{\widehat{MSE}} = \sqrt{\widehat{B^{*2}} + \hat V}$.
 
 
 
 \subsection{Average MSE over a range of focuses}
 
-Often we want a model that performs well in a range of situations.    In covariate selection problems, for example, we might want to estimate a focus quantity accurately for a defined range of covariate values.   We might simply define the ``averaged MSE'' 
+Often we want a model that performs well in a range of situations.    In covariate selection problems, for example, we might want to estimate a focus quantity accurately for a defined range of covariate values.  Thus the quantities defined above may now depend on the covariate value $u$. We might simply define the ``averaged MSE'' for submodel $S$,
 
-\[ AMSE = \int MSE(u) dW(u) du \] 
+\[ MSE_S^{(ave)} = \int MSE_S(u) dW(u) du \] 
 
-as a weighted average of the mean squared errors~(\ref{eq:mse}) for focuses defined by different covariate values $u$, weighted by their prevalence $W(u)$.   However \citet{claeskens:hjort:book} derived an alternative formula, so that if bias correction analogous to~(\ref{eq:bias:adj}) is required, it only needs to be performed once. 
+as a weighted average of the mean squared errors~(\ref{eq:mse}) for focuses defined by different covariate values $u$, weighted by their prevalence $W(u)$.   However \citet{claeskens:hjort:book} derived an alternative formula, so that if correction of the squared bias estimate, as in~(\ref{eq:sqbias:adj}) is required, it only needs to be performed once:
 \begin{equation}
   \label{eq:amse}
-  AMSE = max(IS,0) + IIS
+%  AMSE = max(IS,0) + IIS
+  \widehat{MSE_S^{(ave)}} = I_S + \widehat{V_S^{(ave)}}
 \end{equation}
-where 
+where
+\begin{equation}
+  \label{eq:bias:ave}
+  I_S =  Tr((I - G_S)(\hat\bdelta \hat\bdelta^T - Q)(I - G_S)^T A)  
+\end{equation}
+is an estimate of the squared bias, and 
+\begin{equation}
+  \widehat{V_S^{(ave)}} = \tau_0^{2(ave)} + II_S
+\end{equation}
+is an estimate of the variance, with $\tau_0^{2(ave)}=\int \tau_0(u) du$, $II_S = Tr(Q_S^0 A)$, and 
 \begin{eqnarray*}
-IS & = & Tr((I - G_S)(\hat\bdelta \hat\bdelta^T - Q)(I - G_S)^T A), \quad IIS = Tr(Q_S^0 A)\\
   A & = & J_{10} J_{00}^{-1}B_{00}J_{00}^{-1}J_{01} - J_{10}J_{00}^{-1}B_{01} - B_{10}J_{00}^{-1}J_{01} + B_{11} \\
 B & =& \int 
 \left( 
@@ -226,31 +256,45 @@ B & =& \int
 \right)
 \end{eqnarray*}
 
-This is equivalent to AIC [ where we average over all covariates in the data ?]
+An analogue of the alternative MSE estimate~(\ref{eq:rmse:adj}) can then be defined, based on a bias estimator which is corrected when~(\ref{eq:bias:ave}) is negative, by substituting $max(IS,0)$ for $IS$ in~(\ref{eq:amse}). 
 
-\emph{[Is it also equivalent to AIC when the focus is the log-likelihood? ]}
+If the focus is defined as the log likelihood, and if we average over
+the observed distribution of covariates in the data, then model comparison using this
+procedure is asymptotically equivalent to model comparison by 
+AIC \citep{claeskens:hjort:book,fic}.
 
 
 \section{Software for focused model comparison}
 \label{sec:software} 
 
-In order to calculate the MSE and related focused model comparison statistics for a submodel $S$, we just need to know
+In order to calculate the MSE~(\ref{eq:mse}) for focused model comparison
+of a submodel $S$ against a wide model, we simply need to know
 \begin{itemize}
-\item the estimates $\hat{\btheta}_W$ and $\hat{\bgamma}_W$ under the wide model,
+\item the estimates $\hat{\btheta}_W$ and $\hat{\bgamma}_W$ and their covariance matrix under the wide model,
 
-\item the information matrix $J$ or covariance matrix of these estimates,
+\item the focus function $\mu(\btheta,\bgamma)$ 
 
-\item the focus function $\mu(\btheta,\bgamma)$ and its derivatives, evaluated at $\hat{\btheta}_W,\hat{\bgamma}_W$,
+\item the definition of which parameters are included in submodel $S$
+  and which are included in the narrow model $N$. 
 
-\item the definition of which parameters are included in submodel $S$ and which are included in the narrow model $N$. 
+\end{itemize} 
 
-\item \emph{[if we want FIC instead of MSE, we also need to know $n$]}
-\end{itemize}
+Additionally if we want to know the focused information criterion~(\ref{eq:fic}) 
+we will need the sample size $n$. 
 
-This allows the \pkg{fic} package to implement focused model selection
-for any class of models and focuses.  The estimates and covariance
-matrix are routinely computed by functions for fitting models by
-maximum likelihood.   Therefore the user simply needs to supply 
+Derivatives of the focus function, required by~(\ref{eq:sqbias:est}), can
+be calculated numerically in general, for which robust software exists
+--- \pkg{numDeriv} \citep{numDeriv} is used here.  Analytic
+derivatives are implemented in \pkg{fic} for two built-in focuses (the
+outcome probability in logistic regression, and the mean outcome in
+linear regression), but we have noticed no loss in accuracy from using
+numerical methods.
+
+This knowledge allows the \pkg{fic} package to implement focused model
+comparison for any class of models and focuses.  The estimates and
+covariance matrix are routinely computed by functions for fitting
+models by maximum likelihood.  Therefore the user simply needs to
+supply
 
 \begin{itemize}
 \item an R object containing the wide model 
@@ -263,12 +307,6 @@ model object for the estimates and covariance matrix, but this
 information can be built into the software for a range of
 commonly-used models.
 
-Derivatives of the focus function can be calculated numerically in
-general, for which robust software exists --- \pkg{numDeriv}
-\citep{numDeriv} is used here.  Analytic derivatives are implemented
-in \pkg{fic} for two built-in focuses (the outcome probability in
-logistic regression, and the mean outcome in linear regression), but
-we have noticed no loss in accuracy from using numerical methods.
 
 
 \section{Example: covariate selection in logistic regression }
@@ -349,7 +387,7 @@ We supply the following arguments to the \code{fic} function.
 
 \item \code{wide}: the fitted wide model.  All the model fit statistics are computed using the estimates and covariance matrix from this model.   \code{fic} will automatically recognise that this is a GLM fitted by the \code{glm} function in R, and extract the relevant information. 
 
-\item \code{inds}: indicators for which parameters are included in the submodel, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model, 8 in the case of \code{wide.glm}, which includes the intercept and the coefficients of seven covariates.   It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0} below.  If just one submodel is to be assessed, \code{inds} can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$.    
+\item \code{inds}: indicators for which parameters are included in the submodels, that is, which elements of $(\btheta,\bgamma)$ are fixed to $\bgamma_0$.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to $dim(\btheta) + dim(\bgamma)$, the total number of parameters in the wide model, 8 in the case of \code{wide.glm}, which includes the intercept and the coefficients of seven covariates.   It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0} below.  If just one submodel is to be assessed, \code{inds} can also be supplied as a vector of length $dim(\btheta) + dim(\bgamma)$.    
   
   Note that \code{inds} indexes \emph{parameters} rather than \emph{linear model terms}, that is, in covariate selection problems where a variable is a factor with more than two levels, \code{inds} should contain separate entries for the coefficient of each factor level relative to the baseline level, not just one entry indicating the presence of the factor as a whole.   A utility to construct this in the presence of factors is illustrated in Section~\ref{sec:cox:example}. 
 
@@ -364,8 +402,8 @@ inds0 <- c(1,1,0,0,0,0,0,0)
 \item \code{focus} the focus function.  As well as an R function, 
   this argument can alternatively be supplied as a character string
   naming a built-in focus function supplied by the \pkg{fic} package.
-  Currently these just include \code{"prob_logistic''}, the outcome
-  probability in a logistic regression, and \code{"mean_normal''}, the
+  Currently these just include \code{"prob_logistic"}, the outcome
+  probability in a logistic regression, and \code{"mean_normal"}, the
   mean outcome in a normal linear regression.
 
 \end{itemize}
@@ -377,17 +415,15 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
 fic1
 @
 
-The object returned by \code{fic} is a matrix containing one row for
+The object returned by \code{fic} is a data frame containing one row for
 each combination of focus covariate values indicated in the column \code{vals} and submodels indicated in the column \code{mods}.   The focus estimate is returned in the final column \code{focus}, while the remaining columns contain the following model comparison statistics:
 \begin{itemize}
-\item \code{FIC} The FIC as originally defined by \citet{fic} (equation~\ref{eq:fic}),
 \item \code{rmse} The root mean square error of the submodel focus
   estimate, calculated assuming the wide model is true (equation~\ref{eq:rmse}),
-\item \code{rmse.adj} The bias-adjusted root mean square error (Section~\ref{sec:biascorrect}),
-\item \code{bias} The estimated bias $\sqrt{\widehat{B^2}}$ (which may be undefined if $\widehat{B^2}$ is negative),
-\item \code{bias.adj} The adjusted bias estimate (Section~\ref{sec:biascorrect}),
-\item \code{se} The standard error $\sqrt{\hat{V}}$ of
-  the submodel focus estimate, calculated assuming the wide model is true.
+\item \code{rmse.adj} Alternative estimate of the root mean square error (equation \ref{eq:rmse:adj}) based on the adjusted bias estimator (\ref{eq:sqbias:adj}--\ref{eq:bias:adj}).
+\item \code{bias} The estimated bias $\widehat{B_S*}$ (equation \ref{eq:bias:adj}), which will be zero if $\widehat{B_{S}^{2}}$ (\ref{eq:sqbias:est}) is negative. 
+\item \code{se} The standard error $\sqrt{\hat{V}}$ of the submodel focus estimate, calculated assuming the wide model is true.
+\item \code{FIC} The FIC as originally defined by \citet{fic} (equation~\ref{eq:fic}).
 \end{itemize}
 
 The submodels are fitted automatically within the \code{fic} function
@@ -440,12 +476,10 @@ ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 @
 
 Notice that some of the \code{rmse} elements of \code{ficres} are
-\code{NaN}, since the first squared bias estimator $\widehat{B^2}$ is
-negative.  The alternative estimate $\sqrt{\widehat{B^{*2}}}$,
-\code{rmse.adj}, can simply be used in these cases.  
-\emph{[this raises the question: why we
-  don't just use the adjusted one all the time.  Is the unadjusted one
-  better in any circumstances?]}
+\code{NaN}, since the first squared bias estimate $\widehat{B^2}$ is
+negative.  The alternative estimate~(\ref{eq:rmse:adj}),
+\code{rmse.adj}, might be preferred in these cases, since it is
+consistent with the bias and variance estimates.
 
 A comparison of many models can be illustrated by a scatterplot of
 the focus estimate against the RMSE of each submodel.  The default
@@ -464,7 +498,9 @@ the dashed blue line is the focus estimate under the narrow model.
  An informal illustration of the uncertainty around the estimate of
  the focus quantity from
 each submodel is given by the estimate $\pm 1.96 \times
-\sqrt{\hat{V}}$.  
+\sqrt{\hat{V}}$.  Note that this underestimates the uncertainty 
+if inference is based on a selected model --- ``post-selection'' inference
+(e.g. CURRENT REFS) aims to obtain estimates of error for a selected model which account for the range of models being searched over. 
 
 Each submodel is labelled faintly using the row
 names of the matrix supplied as the \code{inds} argument to
@@ -480,38 +516,11 @@ dataset, there are 115 non-smokers and 74 smokers, thus more data
 enables bigger models to be identified for non-smokers.  Wider 
 models are also preferred for describing the average population.
 
-\emph{[Write some warning against fishing.  If fitting a large number of models, 
-  uncertainty should be acknowledged.  ref discussion about post-selection inference  ]}
-
-\section{Other classes of models} 
-
-Illustrate new concepts.   Could be in separate vignettes.
-
-
-\paragraph{Linear} Illustrates alternative focuses: expected outcome
-at given covariate values, quantile for given covariate values.
-Polynomial order selection as well as covariate selection. 
-Use a well known dataset, e.g. mtcars? 
-
-\paragraph{Skew-normal} 
-Novel class of models, user-written model fitting function.  Store
-est, vcov, nobs in result list.    Narrow model parameters could be in
-the middle.
-
-\paragraph{Survival} Increasingly flexible parametric models.
-Challenge to express models as nested within each other.  Important
-health economic application: restricted mean survival.
-
-\paragraph{Multi-state} Illustrates focuses that are complicated
-functions of the model parameters: package should facilitate this 
-
-
-
 
 \subsection{Calling ``fic'' for an unfamiliar class of models }
 
 Above, the \code{fic} function recognised the fitted model objects as GLMs, that is, objects of class \code{"glm"} returned by the \code{glm()} function in base R.
-But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises. To do this, it needs to know where three things are stored inside the fitted model objects:
+But the package can be used to calculate focused model comparison statistics for any class of models, not just the special classes it recognises. To do this, it needs to know where two things are stored inside the fitted model objects:
 
 \begin{enumerate}
 \item \code{coef}: the vector of maximum likelihood estimates $(\hat\btheta,\hat\bgamma)$,
@@ -519,12 +528,11 @@ But the package can be used to calculate focused model comparison statistics for
 \item \code{vcov}: the covariance matrix of the maximum likelihood
   estimates, $(nJ)^{-1}$.  
 
-\item \code{nobs}: the number of observations $n$ contributing to the model fit
-  \emph{[not sure this is needed in theory
-    unless want FIC on $\sqrt{n}$ scale]}
 \end{enumerate}
 
-Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, \code{nobs(mod)} and \code{vcov(mod)} respectively return these pieces of information.  If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients.  (TODO better explained with a more obscure class, as in skew normal suggested above)
+plus, if the classic FIC is required, also \code{nobs}: the number of observations $n$ contributing to the model fit.  Given a fitted model object called \code{mod}, the \code{fic()} function assumes by default that \code{coef(mod)}, and \code{vcov(mod)} respectively return these pieces of information, likewise \code{nobs(mod)} if FIC is required. 
+
+If one or more of these assumptions is not true, the defaults can be changed by supplying the argument \code{fns} to \code{fic()}, which should be a named list of three components.  Each component should be a function with one argument (the fitted model) which extracts the required information from the fitted model and returns it.  For example, the first component of the list below is a function which, when applied to a \code{glm} object, returns the maximum likelihood estimates of the regression coefficients. 
 
 <<eval=FALSE>>=
 fns <- list(coef = function(x)coef(x),
@@ -534,6 +542,42 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
             X=X, sub=sub)
 @
 
+A full worked example of a using \code{fic} for a novel class of models, defined and fitted by custom R functions, is given in the package vignette ``Examples of focused model comparison: skew-normal models''. 
+
+
+\subsection{Other classes of models} 
+
+The \pkg{fic} package also has built-in methods for the following
+classes of models. 
+
+\begin{itemize}
+
+\item Linear models fitted with \code{lm} in base R. 
+
+TODO VIGNETTE expected outcome
+at given covariate values, quantile for given covariate values.
+Polynomial order selection as well as covariate selection. 
+Use a well known dataset, e.g. gapminder? 
+
+\item Parametric survival models fitted with \code{flexsurvreg} in the
+  \pkg{flexsurv} package \citep{flexsurv}, or \code{survreg} in the
+  \pkg{survival} package \citep{survival-package}.
+
+  The additional \pkg{fic} vignette ``Examples of focused model
+  comparison: parametric survival models'' illustrates the use of \code{fic}
+  to compare parametric baseline hazard functions of different levels
+  of complexity.  \code{fic} needs to be set up carefully here since 
+  the same model can be presented in several
+  different parameterisations.  Focused comparison requires the
+  submodels to be defined by fixing parameters of the wide model to
+  special values. 
+
+\item Multi-state models fitted with the \pkg{msm} package. 
+TODO VIGNETTE  Illustrates focuses that are complicated
+functions of the model parameters: package should facilitate this 
+
+\end{itemize}
+
 
 \section{Focused covariate selection in Cox proportional hazards regression} 
 \label{sec:cox} 
@@ -541,7 +585,7 @@ fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
 In a Cox regression model, time-to-event outcomes $t_i$ are observed
 on individuals $i$, potentially with right-censoring.  At time $t$,
 individual $i$ is assumed to have a hazard $h_i(t)$ which is
-proportional to their covariate values.  We wish to select between
+proportional to their covariate values.  We wish to compare
 models that have different sets of covariates.  In the most general
 ``wide'' model, $h_i(t) = h_0(t)\exp(\btheta^Tx_i + \bgamma^T z_i)$.
 The baseline hazard $h_0(t)$ is left unspecified, while $\btheta$ and
@@ -621,7 +665,7 @@ combs <- all_inds(wide,inds0,intercept=FALSE)
 @ 
 
 The focus is defined as the 5 year survival probability
-(\code{focus=''survival'',t=5}) for the covariate values defined by
+(\code{focus="survival",t=5}) for the covariate values defined by
 \code{X}, here taken as men and women separately, with
 average age and mean observed tumour thickness among men and women,
 infiltration level 4,
@@ -676,7 +720,14 @@ Would like to
 
 \section{Discussion}
 
+Philosophy behind package.  Consider what model is used for. 
+
+Don't necessarily recommend using a single model, but comparing the bias and variance tradeoffs associated with a range of models. 
+
 Post-selection inference, model averaging.  Could we recommend bootstrapping the model selection procedure? 
+
+\emph{[Write some warning against fishing.  If fitting a large number of models, 
+  uncertainty should be acknowledged.  ref discussion about post-selection inference  ]}
 
 High dimensional regression, \citep{gueuning2018}
 

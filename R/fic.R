@@ -4,7 +4,7 @@ fic_core <- function(
                        J, 
                        inds,
                        inds0, 
-                       gamma0 = 0,
+                     gamma0 = 0,
                        n,
                        focus_deriv = NULL,
                        ...
@@ -14,18 +14,18 @@ fic_core <- function(
     npar <- length(par)
     inds <- check_indsinds0(inds, inds0)
     i0 <- which(inds0==1)
-    deltahat <- sqrt(n)*(par[-i0] - gamma0)
+    dnhat <- (par[-i0] - gamma0)  # deltahat / n
     J00 <- J[i0, i0, drop=FALSE]
     J10 <- J[-i0, i0, drop=FALSE]
     J01 <- J[i0,-i0, drop=FALSE]
     J11 <- J[-i0,-i0, drop=FALSE]
-    Q <- solve(J)[-i0,-i0, drop=FALSE]   # using book notation.  called K in original code.
+    Q <- solve(J)[-i0,-i0, drop=FALSE]  # using book notation.  called K in original code.
 
     dmudtheta <- focus_deriv[i0,,drop=FALSE]
     tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
     dmudgamma <- focus_deriv[-i0,,drop=FALSE]
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m, where m is number of alternative focuses (typically covariate values)
-    psi.full <- t(omega) %*% deltahat # m x 1
+    psi.full <- t(omega) %*% dnhat # m x 1
 
     indsS <- inds[inds0==0]
     if (sum(indsS) > 0) { 
@@ -36,41 +36,44 @@ fic_core <- function(
         Q.S <- solve(pi.S %*% Qinv %*% t(pi.S)) # qs x qs
         Q0.S <- t(pi.S) %*% Q.S %*% pi.S        # q x q
         G.S <- Q0.S %*% Qinv # called M.S in original code.  q x q
-        psi.S <- t(omega)%*% G.S %*% deltahat  # m x 1 
+        psi.S <- t(omega)%*% G.S %*% dnhat  # m x 1 
         omega.S <- pi.S %*% omega              # qs x m
 
-        ## basic FIC estimates (section 6.1) 
         bias.S <- psi.full - psi.S # m x 1 
-        FIC.S <- bias.S^2  +  2*diag(t(omega.S) %*% Q.S %*% omega.S)  # m x 1  +  diag of m x m 
-
-        ## bias-adjusted estimates (section 6.4)
-        sqbias2 <- t(omega) %*% (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% t(Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
-        sqbias2 <- diag(sqbias2)
-        sqbias3 <- pmax(sqbias2, 0) # \hat{sqb2}(S) on p152
-        bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
-        ## using Q0.S here as in book, rather than G.S (called M.S in code) as in original code.  is this right?
         var.S <- tau0sq  +  diag(t(omega) %*% Q0.S %*% omega)
 
+        ## bias-adjusted estimates (section 6.4)
+        sqbias2 <- t(omega) %*% (Id - G.S) %*%
+            (dnhat %*% t(dnhat)  -  Q) %*%
+            t(Id - G.S) %*% omega # \hat{sqb2}(S) on p152 
+        sqbias2 <- diag(sqbias2)
+
+        mse.S <- sqbias2 + var.S 
+        FIC.S <- n*(mse.S - tau0sq + diag(t(omega) %*% Q %*% omega))
+
+        sqbias3 <- pmax(sqbias2, 0) # \hat{sqb3}(S) on p152
+        bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
         var.S <- tau0sq
-        FIC.S <- bias.S^2
+        mse.S <- bias.S^2 + var.S 
+        FIC.S <- n*bias.S^2
     }    
     mse.adj.S <- bias.adj.S^2 + var.S
 
-    ## unadjusted mse
-    mse.S <- FIC.S + tau0sq - diag(t(omega) %*% Q %*% omega) # book p150, eq 6.7 
-    res <- cbind(
-             FIC      = FIC.S,
-             rmse     = sqrt_nowarning(mse.S / n),
-             rmse.adj = sqrt_nowarning(mse.adj.S / n),   # book p157
-             bias     = bias.S / sqrt(n),
-             bias.adj = bias.adj.S / sqrt(n),
-             se       = sqrt(var.S / n)
-             )
-    colnames(res) <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
+#    print(list(omega, Q, dnhat, tau0sq, n))
+#    print(list(J00, J10, focus_deriv, omega, tau0sq))
     
+    ## unadjusted mse
+    res <- cbind(
+        rmse = sqrt_nowarning(mse.S),   # book p157
+        rmse.adj = sqrt_nowarning(mse.adj.S),
+        bias  = bias.adj.S,
+        se    = sqrt(var.S),
+        FIC      = FIC.S
+    )
+    colnames(res) <- c("rmse","rmse.adj","bias","se","FIC")
     res
 }
 
@@ -187,7 +190,7 @@ check_parsub <- function(parsub, npar, nmod){
 ##' 
 ##' @param par Vector of maximum likelihood estimates from the wide model
 ##' 
-##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.
+##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates (note that this definition differs from Claeskens and Hjort, where \code{J} is defined as the information divided by \code{n})
 ##'
 ##' @param inds Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX 
 ##'
@@ -196,7 +199,8 @@ check_parsub <- function(parsub, npar, nmod){
 ##' @param parsub Vector of maximum likelihood estimates from the submodel.  
 ##' Only required to return the estimate of the focus quantity alongside 
 ##' the model assessment statistics for the submodel. If omitted, the estimate is omitted.
-##'@param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic_core}.
+##' 
+##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic_core}.
 ##' 
 ##' If there are multiple submodels, this should be a matrix with number of rows equal to the number of submodels, and number of columns equal to the number of parameters in the wide model.  If there is a single submodel, this should be a vector with number of columns equal to the number of parameters in the wide model.
 ##'
@@ -234,7 +238,7 @@ fic_multi <- function(
     X <- check_X(X, npar)
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
     if (is.null(Xwt)) Xwt <- rep(1/nval, nval)
-    outn <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
+    outn <- c("rmse", "rmse.adj","bias", "se", "FIC")
     if (!is.null(parsub)) {
         parsub <- check_parsub(parsub, npar, nmod)
         outn <- c(outn, "focus")
@@ -266,7 +270,12 @@ fic_multi <- function(
         ficres <- fic_core(par=par, J=J, inds=inds[i,], inds0=inds0,
                              gamma0=gamma0, n=n, focus_deriv=focus_deriv,
                              X=X, ...)
-        focus_val <- if (!is.null(parsub)) focus(par=parsub[i,], X=X, ...) else NULL
+        if (!is.null(parsub)) {
+            focus_val <- numeric(nval)
+            for (j in 1:nval) {
+                focus_val[j] <- focus(par=parsub[i,], X=X[j,], ...)
+            }
+        } else focus_val <- NULL
         if (nval>1){
             ave <- afic(par=par, J=J, inds=inds[i,], inds0=inds0,
                         gamma0=gamma0, n=n, focus_deriv=focus_deriv, Xwt=Xwt)
@@ -354,7 +363,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.
 ##'
-##' @param inds0 Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.
+##' @param inds0 Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector. 
 ##'
 ##' @param gamma0 Vector of special values taken by the parameters \eqn{gamma} which define the narrow model.
 ##' 
@@ -432,25 +441,27 @@ get_ics <- function(sub, fns){
 ##'
 ##' @param B If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)
 ##'
+##' @param FIC If \code{TRUE} then the Focused Information Criterion is returned with the results alongside the mean squared error and its components.  This is optional, since it requires knowledge of the sample size \code{n} as well as the estimates and covariance matrix under the wide model. 
+##' 
 ##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.
 ##'
 ##' @param tidy If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.
 ##' 
 ##' @param \dots Other arguments to the focus function can be supplied here.  Currently no examples of this. 
 ##'
-##' @return A vector containing the following components, describing characteristics of the defined submodel (references in Chapter 6 of Claeskens and Hjort, 2008)
+##' @return A vector containing the following components, describing characteristics of the defined submodel.  See the package vignette for full, formal definitions, and Chapter 6 of Claeskens and Hjort, 2008.
 ##'
-##' \item{FIC}{The focused information criterion (equation 6.1). }
+##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined as the root of (squared unadjusted bias plus variance).  This is an asymptotically unbiased estimator, but may occasionally be indeterminate if the squared bias plus variance is negative.}
 ##'
-##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined on page 150 (equation 6.7, but square rooted and divided by \eqn{sqrt{n}}), }
+##' \item{rmse.adj}{The root mean square error, based on the bias estimator which avoids negative squared bias.  Defined on page 157 of Claeskens and Hjort as the sum of the variance and the squared adjusted bias.}
 ##'
-##' \item{rmse.adj}{The root mean square error, with an adjustment to avoid negative squared bias.  Defined on page 157 as the sum of the variance and the squared adjusted bias.}
-##'
-##' \item{bias}{The estimated bias of the focus quantity (unadjusted).  Defined on page 157.}
-##'
-##' \item{bias.adj}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias, and divided by the square root of the sample size. }
+##' \item{bias}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias. }
 ##'
 ##' \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
+##'
+##' \item{FIC}{The focused information criterion (equation 6.1), if \code{FIC=TRUE} was supplied. }
+##'
+
 ##'
 ##' The following are returned as attributes of the model object, thus can be extracted with the \code{\link{attr}} function.
 ##'
@@ -475,13 +486,13 @@ get_ics <- function(sub, fns){
 fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
                       X=NULL, Xwt=NULL, sub=NULL, fns=NULL,
-                      B=0, loss=loss_mse,
+                      B=0, FIC=FALSE, loss=loss_mse,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
     res <- try({
         par <- fns$coef(wide)
-        n <- fns$nobs(wide)
-        J <- solve(fns$vcov(wide)) / n
+        n <- if (FIC) fns$nobs(wide) else NA
+        J <- solve(fns$vcov(wide))
     })
     if (inherits(res, "try-error"))
         stop("check that the wide model or the `fns` argument is specified correctly")
@@ -499,6 +510,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
         res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
                          focus=focus, focus_deriv=focus_deriv, 
                          parsub=parsub, X=X, Xwt=Xwt, ...)
+        if (!FIC) res <- res[,-which(dimnames(res)[[2]]=="FIC"),]
     }
     if (tidy){
         res <- tidy.array(res, dim2=2, ord=c("vals","mods"))

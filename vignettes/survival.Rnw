@@ -5,6 +5,10 @@
 
 \documentclass[nojss,nofooter]{jss}
 
+\author{Christopher Jackson\\\email{chris.jackson@mrc-bsu.cam.ac.uk}}
+\title{Examples of focused model comparison: parametric survival models}
+\Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
+
 \usepackage{bm}
 
 \newcommand{\btheta}{\boldsymbol{\theta}}
@@ -12,54 +16,112 @@
 \newcommand{\bgamma}{\boldsymbol{\gamma}}
 \newcommand{\bdelta}{\boldsymbol{\delta}}
 
+\Abstract{
+  This vignette illustrates focused model comparison with the \pkg{fic} package
+  for parametric survival models fitted with the \pkg{flexsurv} and \pkg{survival} packages. 
+}
+\Keywords{models,survival}
+
+
 \begin{document}
 
-There are two common model choice problems in parametric survival analysis:
+\section{Parametric survival models: example} 
 
-1. the selection of covariates, for example in a proportional hazards or accelerated failure time regression model. 
+Common model choice problems in parametric survival analysis include:
 
-2. the selection of the appropriate level of flexibility for a parametric hazard or survival function (given specific "baseline" covariate values). 
+\begin{enumerate}
+\item  the selection of covariates, for example in a proportional hazards or accelerated failure time regression model. 
 
-In this example, focused model comparison is used for the second of these problems.  A series of increasingly flexible parametric distributions are fitted to a set of 686 right-censored survival times from patients with primary node positive breast cancer (originally from @sauerbrei1999building, and also provided in the `flexsurv` package).  The exponential, Weibull and generalized gamma models are fitted, which have one, two and three parameters respectively.
+\item the selection of the appropriate level of flexibility for a parametric hazard or survival function (given specific ``baseline'' covariate values). 
+\end{enumerate}
+
+In this simplified example, focused model comparison is used for the second of these problems. 
+
+Using the \pkg{flexsurv} package \citep{flexsurv}, parametric distributions of increasing complexity are fitted to a set of 686 right-censored survival times from patients with primary node positive breast cancer (originally from \citet{sauerbrei1999building}, and also provided in \pkg{flexsurv}).    The exponential, Weibull and generalized gamma models are fitted, which have one, two and three parameters respectively.
 
 <<>>=
-if (!require("flexsurv")) stop("The `flexsurv` package should be installed to run code in this vignette") 
+if (!require("flexsurv")) 
+    stop("The `flexsurv` package should be installed
+to run code in this vignette") 
 ex <-  flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="exponential")
 we <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="weibull")
 gg <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma")
+@
+
+The fitted survival curve from the generalised gamma model appears to match the Kaplan-Meier estimate most closely throughout the 7 years of follow up.
+
+<<fig.width=6,fig.height=5>>=
 plot(gg, ci=FALSE, conf.int=FALSE, ylab="Survival", xlab="Years")
 lines(we, col="blue", ci=FALSE)
 lines(ex, col="green", ci=FALSE)
-legend("topright", lty=c(1,1,1), lwd=c(2,2,2), col=c("green", "blue","red"), c("Exponential","Weibull","Generalized gamma"))
-@
+legend("topright", lty=c(1,1,1), lwd=c(2,2,2), 
+       col=c("green", "blue","red"), 
+       c("Exponential","Weibull","Generalized gamma"))
+@ 
 
-Each is a generalisation of the previous one, as described in the \pkg{flexsurv} documentation.   Therefore we can use focused model comparison, with the "wide" model taken to be the generalized gamma, and test all three models together. 
+Each model is a generalisation of the previous one, as described in the \pkg{flexsurv} documentation.   Therefore we can use focused model comparison, with the ``wide'' model taken to be the generalized gamma, and assess if using a simpler model leads to improvements in precision of the estimates that outweigh any bias. 
 
-However this requires the Weibull and exponential models to be reparameterised as generalized gamma models with parameters $\mu,\sigma,Q$ fixed to special values:  the exponential has $\sigma=1,Q=1$ and its rate parameters is $1/exp(\mu)$, while the Weibull model has $Q=1$, shape $1/\sigma$ and scale $exp(\mu)$.   This is done by supplying `inits` and `fixedpars` to `flexsurvreg` as follows. 
 
+\section{Focused model comparison and its challenges in this example} 
+
+Focused model comparison requires all models being compared to be \emph{nested} within a single ``wide'' model.   This means that we can produce each submodel by fixing some of the parameters of the wide model at special values.  This can be demonstrated for this example by implementing the Weibull and exponential models as generalized gamma models with parameters $\mu,\sigma,Q$ fixed to special values.  This is done by supplying \code{inits} and \code{fixedpars} to \code{flexsurvreg} as follows. 
+\begin{itemize}
+
+\item the exponential has $\sigma=1,Q=1$ and its rate parameter is $1/\exp(\mu)$, and is fitted as
 <<>>=
-we2 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", inits=c(1,1,1), fixedpars=3)  # weibull with shape 1/sigma, scale exp(mu)
-ex2 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", inits=c(1,1,1), fixedpars=c(2,3)) # exponential model with rate 1/exp(mu)
-@
-The focus parameter is taken to be the expected survival over 8 years (the "restricted mean" survival), and the FIC statistics are calculated for the three models.  The matrix `indmat` indicates which of the three parameters $\mu,\sigma,Q$ are included in each model. 
-
-In the `fic` method for `flexsurvreg` model objects, the parameters need to be transformed to a real-line, since `flexsurvreg` stores the covariance matrix of the parameter estimates on this scale.  Therefore, since $\sigma$ is defined to be positive, the focus is specified as a function of $(\btheta, \bgamma) = (\mu,\log(\sigma),Q)$ instead of $(\mu,\sigma,Q)$.   The special values $\bgamma_0$ of the parameters $\bgamma = (\log(\sigma), Q)$ which define the "narrow" exponential model as a special case of the "wide" generalized gamma are also defined here as $\bgamma_0 = (0,1)$. 
-
+ex2 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", 
+                   inits=c(1,1,1), fixedpars=c(2,3))
+@ 
+\item the Weibull model has $Q=1$, shape $1/\sigma$ and scale $\exp(\mu)$, and is fitted as 
 <<>>=
-library(fic)
+we2 <- flexsurvreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="gengamma", 
+                   inits=c(1,1,1), fixedpars=3) 
+@ 
+\end{itemize}
+
+We can check that the parameter estimates returned by \code{ex2} and \code{we2} can be transformed easily to the estimates given by \code{ex} and \code{we}:
+
+<<eval=FALSE>>=
+1 / exp(ex2$res["mu","est"])
+1 / we2$res["sigma","est"]
+exp(we2$est["mu","est"])
+@ 
+
+We now use \code{fic} to compare how well the three models estimate a focus parameter, which is taken to be the expected survival over 8 years (the \emph{restricted mean} survival).    When using \code{fic} for \code{flexsurvreg} models, the parameters \code{par} of the focus function should be on the log scale for parameters which are defined to be positive, in this example, for $\sigma$. Therefore, the focus is specified as a function of $(\btheta, \bgamma) = (\mu,\log(\sigma),Q)$ instead of $(\mu,\sigma,Q)$.  
+<<>>=
 focus <- function(par){
     rmst_gengamma(8, par[1], exp(par[2]), par[3])
 }
+@
+The matrix \code{indmat} indicates which of the three parameters $\mu,\sigma,Q$ are included in each model.   
+<<>>=
 indmat <- rbind(exp    = c(1,0,0),
                 weib   = c(1,1,0),
                 ggamma = c(1,1,1))
-gamma0 <- c(0,1)
-fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex2, we2, gg))
 @
+Finally, in this example we also need to define the special values $\bgamma_0$ of the parameters
+ $\bgamma =  (\log(\sigma), Q)$ which define the ``narrow'' exponential model as
+  a special case of the ``wide'' generalized gamma,  as $\bgamma_0 = (0,1)$.  
+Typically, e.g. in covariate selection
+ problems, $\bgamma_0$ does not need to be defined, and would default to all 0. 
 
-The generalized gamma model gives the estimate of 8-year survival with the lowest mean square error. 
+<<>>=
+gamma0 <- c(0,1)
+@ 
 
-We might expect a simpler model to give more precise estimates in situations with less data.  In the following example, 50 uncensored survival times are simulated from a standard exponential distribution.  A generalized gamma model is fitted to it, and treated as the "wide" model in a FIC comparison of an exponential, Weibull and gamma. 
+Focused model comparison can now be performed.  The generalized gamma model gives the estimate of 8-year survival with the lowest mean square error. 
+
+<<>>=
+library(fic)
+fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex2, we2, gg))
+fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex, we, gg))
+@ 
+
+Note that if we had supplied \code{sub=list(ex, we, gg)}, the wrong \code{focus} estimates would have been returned in the \code{fic} output for the exponential and Weibull models.  This is because the models \code{ex} and \code{we} are not parameterised by $\mu$ and $\sigma$ as defined for the wide model, but by \emph{transformations} of $\mu$ and $\sigma$.    
+
+Alternatively we could have avoided fitting the exponential and Weibull models, and omitted the \code{sub} argument to \code{fic}.  But it is usually sensible when comparing models to compare the models' estimates as well as their goodness-of-fit or adequacy.  In this case, estimates of restricted mean survival over 8 years vary within about 0.2 years (4.7 to 4.9) between the three models. 
+
+We might expect a simpler model to give more precise estimates in situations with less data.  In the following example, 50 uncensored survival times are simulated from a standard exponential distribution.  A generalized gamma model is fitted to it, and treated as the ``wide'' model in a focused comparison of an exponential, Weibull and gamma. 
 
 <<>>=
 set.seed(1)
@@ -68,36 +130,53 @@ gge <- flexsurvreg(Surv(y, cen) ~ 1, dist="gengamma")
 fic(gge, inds=indmat, gamma0=gamma0, focus=focus)
 @
 
-In this case, the Weibull, rather than the generalized gamma, has the lowest MSE for the survival estimate, though the differences are tiny.  Note that the FIC analysis assumes that the biggest model is true, so it will not necessarily select the true model in situations where one exists.
+In this case, the Weibull, rather than the generalized gamma, has the lowest MSE for the survival estimate, though the differences are tiny.  Note that the focused analysis assumes that the biggest model is true, so it will not necessarily select the true model in situations where one exists, like in this artificial situation. 
 
-There is also a generalized F distribution, which generalizes these models further by including a fourth parameter $P$.  However the FIC method will not be able to include this model in the comparison, as the special value $P=0$, which defines the generalized gamma as a special case of the generalized F, is on the boundary of the parameter space, violating the asymptotic theory required by the method. 
+\section{More complex parametric models}
 
-Spline-based models are an alternative way of defining very flexible parametric survival models, see the `flexsurvspline` function.  FIC may be possible for these models, however they would need to be set up carefully so that that smaller models are all nested within a single wide model, for example by choosing knot locations manually, and this has not been investigated.
+There is also a generalized F distribution implemented in \pkg{flexsurv}, which generalizes these models further by including a fourth parameter $P$.  However the focused method will not be able to include this model in the comparison, as the special value $P=0$, which defines the generalized gamma as a special case of the generalized F, is on the boundary of the parameter space, violating the asymptotic theory required by the method. 
 
+Spline-based models are an alternative way of defining very flexible parametric survival models, and can be fitted using the \code{flexsurvspline} function.  Focused model comparison may be possible for these models, however they would need to be set up carefully so that that smaller models are all nested within a single wide model, for example by choosing knot locations manually, and this has not been investigated.
 
-\subsection{alternative focuses}
-
-e.g. hazard ratio, cumulative hazard. 
-
-Refer to Cox regression 
+See the main \code{fic} package vignette for focused comparison of standard Cox proportional hazards regression models.
 
 
-\subsection{fic method for "survreg" models}
+\section{Focused comparison for survival models fitted with  ``survreg''}
 
-\code{fic} also has a built-in method for comparing models fitted using the \code{survreg} function of the \code{survival} package.  The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the "wide" model.  The focus function is again specified as the restricted mean survival over 8 years, using the \code{rmst_weibull} function in the \pkg{flexsurv} package.  An awkward reparametrisation is necessary here.  The first parameter of the Weibull distribution in \code{flexsurv} equals \code{1/exp(par[2])} where \code{par[2]} is the \code{Log(scale)} reported by \code{survreg}, as can be seen in \code{summary(we)}.  The second parameter of the Weibull distribution in \code{flexsurv} equals \code{exp(par[1])}, the exponential of the \code{(Intercept)} parameter reported in the \code{survreg} summary output. 
+\code{fic} also has a built-in method for comparing parametric survival models fitted using the \code{survreg} function of the \pkg{survival} package \citep{survival-package}.  The exponential and Weibull models above can also be compared in the same way, but this time using the Weibull as the ``wide" model.  The generalized gamma is not included in \code{survreg}. 
 
 <<>>=
-if (!require("survival")) stop("The `survival` package should be installed to run code in this vignette") 
+if (!require("survival"))
+    stop("The `survival` package should be installed
+to run code in this vignette") 
 ex <-  survreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="exponential")
 we <-  survreg(Surv(recyrs, censrec) ~ 1, data=bc, dist="weibull")
+indmat <- rbind(exp    = c(1,0),
+                weib   = c(1,1))
+@ 
+
+The focus function is again specified as the restricted mean survival over 8 years, using the \code{rmst_weibull} function in the \pkg{flexsurv} package.   An awkward reparametrisation is necessary to evaluate this \pkg{flexsurv}-based focus function at the parameters of the (\code{survreg}-based) models.  
+
+\begin{itemize}
+\item  The first parameter of the Weibull distribution in \code{flexsurvreg} equals \code{1/exp(par[2])} where \code{par[2]} is the \code{Log(scale)} reported by \code{survreg}, as can be seen in \code{summary(we)}.  
+
+\item The second parameter of the Weibull distribution in \code{flexsurvreg} equals \code{exp(par[1])}, the exponential of the \code{(Intercept)} parameter reported in the \code{survreg} summary output. 
+\end{itemize}
+
+As usual, the \code{par} argument of the focus function describes parameters on the real-line scale, that is, with any positive-valued parameters log transformed. 
+
+<<>>=
 focus <- function(par){
     rmst_weibull(8, 1/exp(par[2]), exp(par[1]))
 }
-indmat <- rbind(exp    = c(1,0),
-                weib   = c(1,1))
-fic(we, inds=indmat, focus=focus, sub=list(ex, we))
 @
 
-The more flexible Weibull gives a better estimate, as we found before.
+Finally, \code{fic} shows that the more flexible Weibull gives a more precise estimate with lower RMSE, as we found before.
+
+<<>>=
+fic(we, inds=indmat, focus=focus, sub=list(ex, we))
+@ 
+
+\bibliography{fic}
 
 \end{document}

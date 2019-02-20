@@ -70,5 +70,7 @@ function under the submodel to be included in the results.}
 Focused information criterion for parametric survival models fitted with the \pkg{survival} package.
 }
 \details{
-Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull).  Some of these are illustrated in the "survival" vignette.
+Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull). An example of the latter is in the "survival" vignette.
+
+Parameters \code{par} of the focus function should be on the scale reported by the \code{icoef} component of the results of \code{survreg}, that is, with any positive-valued parameters log transformed.
 }

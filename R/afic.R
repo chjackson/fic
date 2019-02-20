@@ -3,7 +3,7 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
     npar <- length(par)
     inds <- check_indsinds0(inds, inds0)
     i0 <- which(inds0==1)
-    deltahat <- sqrt(n)*(par[-i0] - gamma0)
+    dnhat <- par[-i0] - gamma0
     J00 <- J[i0, i0, drop=FALSE]
     J10 <- J[-i0, i0, drop=FALSE]
     J01 <- J[i0,-i0, drop=FALSE]
@@ -16,14 +16,16 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
     ncov <- ncol(focus_deriv)
     BX <- array(dim=c(npar, npar, ncov))
     for (i in 1:ncov){
-        dmu <- c(dmudtheta[,i], dmudgamma[,i])
+        dmu <- numeric(npar)
+        dmu[i0] <- dmudtheta[,i]
+        dmu[-i0] <- dmudgamma[,i]
         BX[,,i] <- outer(dmu, dmu)
     }
     B <- apply(BX, c(1,2), function(x)sum(x * Xwt))
     B00 <- B[i0, i0, drop=FALSE]
     B10 <- B[-i0, i0, drop=FALSE]
     B01 <- B[i0,-i0, drop=FALSE]
-    B11 <- B[-i0,-i0, drop=FALSE]    
+    B11 <- B[-i0,-i0, drop=FALSE]
     invJ00 <- solve(J00)
     A <- J10 %*% invJ00 %*% B00  %*% invJ00 %*% J01 -
       J10 %*% invJ00 %*% B01 -
@@ -47,32 +49,35 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
         ### end 
 
         ### start afic specific 
-        bias.S <- t(omegaA) %*% (Id - G.S) %*% deltahat
-        sqbias <- sum(diag((Id - G.S) %*% outer(deltahat, deltahat) %*% t(Id - G.S) %*% A))
-        IS <- sum(diag((Id - G.S) %*% (outer(deltahat, deltahat) - Q) %*% t(Id - G.S) %*% A))
+        bias.S <- t(omegaA) %*% (Id - G.S) %*% dnhat
+        sqbias <- sum(diag((Id - G.S) %*% outer(dnhat, dnhat) %*% t(Id - G.S) %*% A))
+        IS <- sum(diag((Id - G.S) %*% (outer(dnhat, dnhat) - Q) %*% t(Id - G.S) %*% A))
         IIS <- sum(diag(Q0.S %*% A))  # diag(t(omega) %*% Q0.S %*% omega)
     } else {
-        bias.S <- bias.adj.S <- t(omegaA) %*% deltahat
+        bias.S <- bias.adj.S <- t(omegaA) %*% dnhat
         sqbias <- bias.S^2
-        IS <- sum(diag(Id %*% (outer(deltahat, deltahat) - Q) %*% t(Id) %*% A))
+        IS <- sum(diag(Id %*% (outer(dnhat, dnhat) - Q) %*% t(Id) %*% A))
         IIS <- 0
     }
+
     var.S <- tau0sqA + IIS
-    bias.adj.S <- sqrt(max(IS, 0))
+    bias.adj.S <- sign(bias.S) * sqrt(max(IS, 0))
     afic_book <- bias.adj.S^2  + IIS # (6.27) in book
-    AFIC.S <- sqbias + 2*IIS   # quantity that reduces to standard FIC
-    mse.S <- AFIC.S + tau0sqA - diag(t(omegaA) %*% Q %*% omegaA)
+
+#    AFIC.S <- n*(sqbias + 2*IIS)   # quantity that reduces to standard FIC
+#    mse.S <- sqbias + 2*IIS + tau0sqA - diag(t(omegaA) %*% Q %*% omegaA)
+    mse.S <- IS + var.S
+    AFIC.S <- n*(mse.S - tau0sqA + diag(t(omegaA) %*% Q %*% omegaA))
     mse.adj.S <- bias.adj.S^2 + var.S
     
     resA <- cbind(
-        FIC      = AFIC.S,
-        rmse     = sqrt(mse.S / n),
-        rmse.adj = sqrt(mse.adj.S / n),   # book p157
-        bias     = bias.S / sqrt(n),
-        bias.adj = bias.adj.S / sqrt(n),
-        se       = sqrt(var.S / n)
+        rmse     = sqrt_nowarning(mse.S),
+        rmse.adj = sqrt_nowarning(mse.adj.S),   # book p157
+        bias     = bias.adj.S,
+        se       = sqrt(var.S),
+        FIC      = AFIC.S
     )
-    colnames(resA) <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
+    colnames(resA) <- c("FIC", "rmse", "rmse.adj", "bias", "se")
 
     resA
 }

@@ -28,6 +28,6 @@ fic.flexsurvreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
                 focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
-                B=B, loss=loss, 
+                B=B, FIC=TRUE, loss=loss, 
                 fns = flexsurvreg_fns, ...)
 }

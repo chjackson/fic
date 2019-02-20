@@ -15,6 +15,7 @@ fic.lm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NUL
                           X=NULL, Xwt=NULL, sub="auto", B=0, loss=loss_mse, ...){
     if (!inherits(wide, "lm")) stop("\"wide\" must be an object of class \"lm\"")
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub, B=B, loss=loss, ...)
+                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
+                B=B, FIC=TRUE, loss=loss, ...)
 }
 

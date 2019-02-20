@@ -7,7 +7,9 @@
 ##' @param sub Object of class \code{\link{survreg}} containing the submodel to be assessed.   Optional. Only required if you want the estimate of the focus
 ##' function under the submodel to be included in the results. 
 ##' 
-##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull).  Some of these are illustrated in the "survival" vignette.
+##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull). An example of the latter is in the "survival" vignette.
+##'
+##' Parameters \code{par} of the focus function should be on the scale reported by the \code{icoef} component of the results of \code{survreg}, that is, with any positive-valued parameters log transformed.   
 ##'
 ##' @inheritParams fic
 ##' 
@@ -18,6 +20,6 @@ fic.survreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deri
         nobs = function(x)nrow(model.frame(x))
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-        focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub, B=B, loss=loss, 
+        focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub, B=B, FIC=TRUE, loss=loss, 
         fns = survreg_fns, ...)
 }

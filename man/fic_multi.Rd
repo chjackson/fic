@@ -10,7 +10,7 @@ fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
 \arguments{
 \item{par}{Vector of maximum likelihood estimates from the wide model}
 
-\item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates and divided by \code{n}.}
+\item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates (note that this definition differs from Claeskens and Hjort, where \code{J} is defined as the information divided by \code{n})}
 
 \item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX}
 

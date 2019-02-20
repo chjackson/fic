@@ -21,6 +21,6 @@ fic.msm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NU
                     vcov = function(x)x$covmat)
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
                 focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
-                B=B, loss=loss, 
+                B=B, FIC=TRUE, loss=loss, 
                 fns = msm_fns, ...)
 }
