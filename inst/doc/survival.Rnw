@@ -19,6 +19,10 @@
 \Abstract{
   This vignette illustrates focused model comparison with the \pkg{fic} package
   for parametric survival models fitted with the \pkg{flexsurv} and \pkg{survival} packages. 
+  A challenge of this example is that the same models can be parameterised in multiple ways.  
+  For focused model comparison, the parameters need to be defined consistently between 
+  the models being compared.  This might require a different parameterisation to be used 
+  when fitting a  model or defining the focus function. 
 }
 \Keywords{models,survival}
 

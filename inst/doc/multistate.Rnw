@@ -4,36 +4,153 @@
 
 \documentclass[nojss,nofooter]{jss}
 
+\author{Christopher Jackson\\\email{chris.jackson@mrc-bsu.cam.ac.uk}}
+\title{Examples of focused model comparison: multi-state models}
+\Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
+
+\Abstract{
+  This vignette illustrates focused model comparison with the
+  \pkg{fic} package for covariate selection in multi-state models
+  fitted with the \pkg{msm} package.  A challenge of this
+  example is that a single model involves several regression models
+  fitted simultaneously, so that the set of parameters has a
+  non-standard structure.  Additionally, the focus is a complicated
+  function of the model parameters.
+}
+\Keywords{models,survival}
+
+
+\usepackage{bm}
+
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\bbeta}{\boldsymbol{\beta}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\bdelta}{\boldsymbol{\delta}}
+\newcommand{\x}{\mathbf{x}}
+
+\usepackage{tikz}
+\usetikzlibrary{calc,fit,positioning,arrows,shapes,backgrounds}
+\tikzset{>={latex}}
+\definecolor{deepskyblue}{rgb}{0, 0.75, 1}
+
 \begin{document}
 
-\section{Focused model comparison for covariate selection in multi-state models fitted with msm}
+\section{Multi-state models for panel data}
 
-Example dataset in package, `psor`.  Four state progression-only model.
+The \pkg{msm} package \citep{msmjss} fits continuous-time Markov
+multi-state models to ``panel-observed'' longitudinal data. 
+That is, data in which a categorical
+outcome, or \emph{state}, is observed at a series of times for a set of
+individuals.   A typical application is to states of disease recorded 
+at clinic visits.   The actual times of transition between states are not
+observed, and we only know the state of the process at the visit
+times.  The likelihood for this class of models was orginally
+described by \citet{kalbfleisch:lawless}. 
 
-Wide model: model with two binary covariates associated with different effects for all three transition rates.
+The example dataset \code{psor} in the package records the progression
+of joint damage for 305 patients with psoriatic arthritis \citep[from][]{gladman1999progression}
+Each of the 806 rows represents a clinic visit.  The outcome is the variable
+\code{state}, where 1, 2, 3, and 4 represent 0, 1--4, 5--9 and 10 or
+more damaged joints, respectively. 
+
+A four-state continuous-time Markov model is fitted with the structure
+illustrated in Figure \ref{fig:states}, where the (unobserved) instantaneous transitions in continuous
+time are assumed to only occur between adjacent states, from state 1
+to state 2, from state 2 to state 3, and from state 3 to state 4. 
+There are two binary covariates, \code{hieffusn} (presence of five or more
+effusions) and \code{ollwsdrt} (low erythrocyte sedimentation rate), 
+that are assumed to affect the intensity parameters governing all
+three of the transitions.  The covariates are constant through time
+and measured at baseline.   The transition intensity from state $r$ to
+state $s$ for person $i$ with covariates $\x_i$ is then 
+
+\[ q_{irs}(x) = q_{rs}^{(0)} \exp(\bbeta_{rs}\x_{i}) \] 
+
+where $\bbeta_{rs} = (\beta_{rs}^{(1)},\beta_{rs}^{(2)})$ is the vector of log hazard ratios on the $r$--$s$ transition for the two covariates. 
+
+\tikzstyle{state}=[minimum size = 0.8cm, draw, rounded corners, fill=deepskyblue, text width=2.5cm]
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[]
+    \node [state] (well) {State 1.\\ 0 damaged joints};
+    \node [state, right=of well] (mild) {State 2. \\ 1--4 damaged joints};
+    \node [state, right=of mild] (moderate) {State 3. \\5--9 damaged joints};
+    \node [state, right=of moderate] (severe) {State 4.\\ 10+ damaged joints};
+    \draw[->] (well) -- (mild) node [midway, below=1cm] {$q_{12}^{(0)}, \beta_{12}^{(1)}, \beta_{12}^{(2)}$};
+    \draw[->] (mild) -- (moderate) node [midway, below=1cm] {$q_{23}^{(0)}, \beta_{23}^{(1)}, \beta_{23}^{(2)}$};
+    \draw[->] (moderate) -- (severe) node [midway, below=1cm] {$q_{34}^{(0)}, \beta_{34}^{(1)}, \beta_{34}^{(2)}$};
+  \end{tikzpicture}  
+  \caption{Multi-state transition structure and parameters for the psoriatic arthritis example}
+  \label{fig:states}
+\end{figure}
+
+To fit the model in \pkg{msm}, a matrix \code{Qind} is defined that
+indicates which instantaneous transitions are permitted, from the
+state indicated in the rows to the state indicated in the columns.
+The \code{msm} function fits the model with the given covariates,
+which by default affect all transitions. 
 
 <<>>=
-if (!require("msm")) stop("The `msm` package should be installed to run code in this vignette") 
-psor.q <- rbind(c(0,0.1,0,0), c(0,0,0.1,0), c(0,0,0,0.1), c(0,0,0,0))
-psor.wide.msm <- msm(state ~ months, subject=ptnum, data=psor, qmatrix = psor.q,  covariates = ~ollwsdrt+hieffusn, control=list(fnscale=1))
+if (!require("msm"))
+    stop("The `msm` package should be installed
+to run code in this vignette") 
+Qind <- rbind(c(0, 1, 0, 0),
+              c(0, 0, 1, 0),
+              c(0, 0, 0, 1),
+              c(0, 0, 0, 0))
+psor.wide.msm <- msm(state ~ months, subject=ptnum, data=psor, 
+                     qmatrix = Qind,  gen.inits=TRUE,
+                     covariates = ~ollwsdrt+hieffusn)
 psor.wide.msm
 @ 
 
-This requires version 1.6.6 of `msm`, available from CRAN since 3 Feb 2017.  This version introduced the `updatepars.msm` function for altering the point estimates from a fitted model a model to a vector of values supplied by the user.  This allows functions such as `totlos.msm` to be used, which define complicated functions of the model parameters.
+The hazard ratios $exp(\bbeta_{rs})$ for the two covariates are
+presented in the model output. The confidence intervals are wide,
+which suggests that a smaller model might give more precise
+estimates. 
 
-Here we use this to define a focus function, which returns the expected total time spent in state 4 over 10 years for people without `ollwsdrt` or `hieffusn`, given a vector of parameters `pars` in the model structure `psor.wide.msm`. 
+\section{Focused comparison of multi-state models fitted with ``msm''}
+
+Focused model comparison is performed to assess whether removing the
+covariate effects for particular transitions lead to more precise
+estimates of a focus quantity, defined below. 
+The unusual feature of this example, compared to a standard
+covariate selection problem, is that the model involves three regressions 
+fitted simultaneously, one for each transition. 
+
+We compare the wide model and six further submodels with covariates on
+different transitions, as defined in the table below.  Model 7 is
+the wide model where both covariates affect all transitions, 
+and models 1--6 are defined by fixing particular
+$\beta_{rs}$ to 0 in the wide model. 
+
+\begin{table}[h]
+  \centering
+\begin{tabular}{lll}
+\hline  
+Model  & \code{ollwsdrt} & \code{hieffusn}\\
+& \multicolumn{2}{l}{affects transition from state:} \\
+\hline 
+1& none & none \\
+2& none & 3 \\
+3& none & 2,3 \\ 
+4& none & 1,2,3 \\
+5& 3 & 1,2,3\\
+6& 2,3 & 1,2,3\\
+7& 1,2,3 & 1,2,3\\
+\hline
+\end{tabular}
+  \caption{Specification of multi-state regression models being compared}
+  \label{tab:models}
+\end{table}
+
+The seven models correspond to the rows of the following indicator
+matrix that can be supplied to \code{fic} to compare the models.    
+The columns indicate the parameters, in the order $(q_{12}^{(0)}, q_{23}^{(0)},q_{34}^{(0)},\beta_{12}^{(1)},\beta_{23}^{(1)},\beta_{34}^{(1)},\beta_{12}^{(2)},\beta_{23}^{(2)},\beta_{34}^{(2)})$.  This is the order understood by the
+\code{updatepars.msm} function below in the \pkg{msm} package, which
+we will need to define the focus function.
 
 <<>>=
-focus_tlos <- function(pars){
-    x.new <- updatepars.msm(psor.wide.msm, pars)
-    totlos.msm(x.new, covariates=0, t=10)["State 4"]
-}
-@
-
-We assess the wide model and six further submodels.
-
-<<>>=
-library(fic)
 inds <- rbind(
     c(1,1,1,0,0,0,0,0,0),
     c(1,1,1,0,0,0,0,0,1),
@@ -43,11 +160,76 @@ inds <- rbind(
     c(1,1,1,0,1,1,1,1,1),
     c(1,1,1,1,1,1,1,1,1)
 )
+@ 
+
+The focus function in this example is taken as the expected total time spent in state 4 over 10 years for people currently in state 1 without \code{ollwsdrt} or \code{hieffusn}.   This is defined as 
+
+\[ 
+\int_{0}^{10} p_{14}(t|\x = 0)
+\]
+
+where $p_{rs}(t|\x)$ is the probability of being in state $s$ at time
+$t$ for a person in state $r$ at time 0 with covariates $\x$. 
+This is the $r,s$ entry of the \emph{transition probability matrix} $P(t|\x)$, defined for a time-homogeneous continuous-time Markov model with intensity matrix $Q(\x)$ as the matrix exponential of $tQ(\x)$. 
+
+The \pkg{msm} package has the function \code{totlos.msm} to calculate
+the expected total time in each state, for a given model, covariate values and time
+interval. For the wide model, in this example, this is
+
+<<>>=
+totlos.msm(psor.wide.msm, covariates=0, t=10)
+@ 
+
+However, for \code{fic}, the focus needs to be defined as a function of the
+\emph{vector of parameters} \code{pars} that define $Q(\x)$, rather than a function of the \emph{fitted
+  model object}.   To accomplish this, \pkg{msm} provides the function
+\code{updatepars.msm}.  This alters a fitted model object (supplied in its
+first argument) by changing the point estimates to the values supplied 
+in the second argument.   This allows the focus function for
+\code{fic} to be defined as 
+
+<<>>=
+focus_tlos <- function(pars){
+    x.new <- updatepars.msm(psor.wide.msm, pars)
+    totlos.msm(x.new, covariates=0, t=10)["State 4"]
+}
+@
+
+The same technique can be used for various other multi-state model
+outputs in \pkg{msm} which are complex functions of the
+model parameters. 
+
+Note that \code{updatepars.msm} is only available in \pkg{msm} version 1.6.6 or
+later, available from CRAN since 3 Feb 2017.   
+
+Finally, the focused model comparison is performed. 
+
+<<>>=
+library(fic)
 fic(wide=psor.wide.msm, inds=inds, focus=focus_tlos)
 @ 
 
-Very small biases in all cases.  RMSE increases with the variance as covariates are added.
+The estimated biases in the focus (estimated as 0.64 years under the
+wide model, see the output from \code{totlos.msm} above) range from 0
+to -0.1.  The standard error of the focus increases as covariates are added to the
+model. 
 
-I guess because these covariates are not strongly associated with transition rates. 
+Compare models 4, 5, 6 and 7, which include \code{hieffusn} for all
+transitions.   The bias and MSE for model 5
+are worse than that for models 6 and 7, since the association
+of \code{ollwsdrt} with transition 2 was omitted from model 5.
+Further omitting the effect of \code{ollwsdrt} for transition 1 does
+not increase the estimated bias, since the association is not strong
+for this transition.
+ 
+However models 1-3, where \code{ollwsdrt} is removed from the model
+altogether, have lower MSEs than models 4-7 that include
+\code{ollwsdrt}.  The biases in the focus estimate from
+omitting this covariate are estimated to be negligible for models 2
+and 3.   Model 2, which includes the potentially-large effect of
+\code{ollwsdrt} on the third transition, has the lowest MSE. 
+
+
+\bibliography{fic} 
 
 \end{document}

@@ -572,9 +572,17 @@ Use a well known dataset, e.g. gapminder?
   submodels to be defined by fixing parameters of the wide model to
   special values. 
 
-\item Multi-state models fitted with the \pkg{msm} package. 
-TODO VIGNETTE  Illustrates focuses that are complicated
-functions of the model parameters: package should facilitate this 
+\item Multi-state models fitted with the \pkg{msm} package \citep{msmjss}.
+
+  A multi-state model might consist of several regression models, one
+  for each transition between states in a multi-state structure, which
+  poses a challenge to defining and interpreting a focused model
+  comparison.  The package vignette ``Examples of focused model
+  comparison: multi-state models'' gives a worked example.  In this
+  example, the focus of interest is a complicated model summary
+  function provided by the \pkg{msm} package, which needs to be
+  converted carefully into the format expected by \pkg{fic}.
+
 
 \end{itemize}
 
