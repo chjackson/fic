@@ -42,11 +42,11 @@
 ##'
 ##' For examples, examine the source for the built-in functions
 ##'
-##' \code{cox_hr,cox_hr_deriv,cox_hr_dH} for the hazard ratio between \code{X} and \code{0}
+##' \code{fic:::cox_hr,fic:::cox_hr_deriv,fic:::cox_hr_dH} for the hazard ratio between \code{X} and \code{0}
 ##'
-##' \code{cox_cumhaz,cox_cumhaz_deriv,cox_cumhaz_dH} for the cumulative hazard
+##' \code{fic:::cox_cumhaz,fic:::cox_cumhaz_deriv,fic:::cox_cumhaz_dH} for the cumulative hazard
 ##'
-##' \code{cox_survival,cox_survival_deriv,cox_survival_dH} for the survival 
+##' \code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival 
 ##'
 ##' 
 ##' @export
@@ -69,7 +69,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, coef, wide)
     H0 <- basehaz(wide, centered=FALSE)
     fl <- get_focus_cox(focus, par=par, X=X, H0=H0, t=t)
-    outn <- c("FIC", "rmse", "rmse.adj", "bias", "bias.adj", "se")
+    outn <- c("FIC", "rmse", "rmse.adj", "bias", "se")
     if (!is.null(parsub)) {
         parsub <- check_parsub(parsub, length(par), nmod)
         outn <- c(outn, "focus")
@@ -92,6 +92,8 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     inarr <- apply(inds, 1, function(x)all(x==inds0))
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
     attr(res, "sub") <- sub
+    attr(res, "parnames") <- get_parnames(par, inds)
+    attr(res, "inds") <- inds
 
     class(res) <- c("fic",class(res))
     res
@@ -113,7 +115,7 @@ fic_coxph_core <- function(wide,
     ## Only handle built-in focuses for the moment 
     par <- coef(wide)
     n <- nrow(model.frame(wide))
-    J <- solve(vcov(wide)) / n
+    J <- solve(vcov(wide)) / n  # not divided by n here
     H0 <- basehaz(wide, centered=FALSE)
 
     if (is.null(t)) t <- 1 # dummy value 
@@ -127,7 +129,7 @@ fic_coxph_core <- function(wide,
     gamma0 <- check_gamma0(gamma0, inds0)
 
     i0 <- which(inds0==1)
-    deltahat <- sqrt(n)*(par[-i0] - gamma0)
+    dnhat <- sqrt(n)*(par[-i0] - gamma0) # deltahat / n
     J00 <- J[i0, i0, drop=FALSE]
     J10 <- J[-i0, i0, drop=FALSE]
     J01 <- J[i0,-i0, drop=FALSE]
@@ -181,9 +183,9 @@ fic_coxph_core <- function(wide,
     dmudH0.rep <- array(dmudH0, dim=c(1, ntimes, ncov))[rep(1,qq),,,drop=FALSE]
 
     kappa <- JF.rep * dmudH0.rep # should be q x ntimes x ncov 
-    ## deltahat is q vector, omega-kappa is q x ntimes x ncov
+    ## dnhat is q vector, omega-kappa is q x ntimes x ncov
     ## this returns their "matrix product" with 1st dim of each summed over 
-    psi.full <- tensor(omega - kappa, deltahat, 1, 1)
+    psi.full <- tensor(omega - kappa, dnhat, 1, 1)
     
     ## similar to old FIC code but but replacing omega by omega - kappa 
     indsS <- inds[inds0==0]
@@ -194,8 +196,8 @@ fic_coxph_core <- function(wide,
         Q.S <- solve(pi.S %*% Qinv %*% t(pi.S)) # qs x qs
         Q0.S <- t(pi.S) %*% Q.S %*% pi.S        # q x q
         G.S <- Q0.S %*% Qinv # called M.S in original code.  q x q
-        ## G.S is q x q,  G.S %*% deltahat is q x 1
-        psi.S <- tensor(omega - kappa, as.numeric(G.S %*% deltahat), 1, 1)
+        ## G.S is q x q,  G.S %*% dnhat is q x 1
+        psi.S <- tensor(omega - kappa, as.numeric(G.S %*% dnhat), 1, 1)
 
         ## unadjusted FIC estimates
         bias.S <- psi.full - psi.S # ntimes x ncov 
@@ -206,34 +208,37 @@ fic_coxph_core <- function(wide,
         ## where Q0.S is qxq, omega x kappa is q x ntimes x ncov  
         WQ0S <- tensor(omega - kappa, Q0.S, 1, 1)
         WQ0SW <- tensor(WQ0S, omega - kappa, 3, 1)
-        FIC.S <- bias.S^2  +  2*diag.array(WQ0SW)
+#        FIC.S <- bias.S^2  +  2*diag.array(WQ0SW)
 
         ## bias-adjusted estimates
         ## omega is q x ntimes x ncov,  IDI is q x q 
-        IDI <- (Id - G.S) %*% (deltahat %*% t(deltahat) - Q) %*% t(Id - G.S) # q x q 
-        sqbias2 <- tensor(tensor(omega, IDI, 1, 1), omega, 3, 1)
+        IDI <- (Id - G.S) %*% (dnhat %*% t(dnhat) - Q) %*% t(Id - G.S) # q x q 
+        sqbias2 <- tensor(tensor(omega - kappa, IDI, 1, 1), omega - kappa, 3, 1)
         sqbias2 <- array(diag.array(sqbias2), dim=c(ntimes, ncov))
         sqbias3 <- pmax(sqbias2, 0)
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
+
         var.S <- tau0sq  +  diag.array(WQ0SW)
+        mse.S <- sqbias2 + var.S
+        WQW <- tensor(tensor(omega - kappa, Q, 1, 1), omega - kappa, 3, 1)
+        FIC.S <- (mse.S - tau0sq + diag.array(WQW))
     } else { 
         ## Special case for null model with all extra parameters excluded
         bias.S <- bias.adj.S <- psi.full
         var.S <- tau0sq
+        mse.S <- bias.S^2 + var.S
         FIC.S <- bias.S^2
     }    
     mse.adj.S <- var.S + bias.adj.S^2
 
     ## unadjusted mse
-    WQW <- tensor(tensor(omega - kappa, Q, 1, 1), omega - kappa, 3, 1)
-    mse.S <- FIC.S + tau0sq - diag.array(WQW)
+#    mse.S <- FIC.S + tau0sq - diag.array(WQW)
     res <- abind(
         FIC = FIC.S,
-        rmse = sqrt(mse.S / n),
-        rmse.adj = sqrt(mse.adj.S / n),   # book p157
-        bias = bias.S / sqrt(n),
-        bias.adj = bias.adj.S / sqrt(n),
-        se = sqrt(var.S / n),
+        rmse = sqrt_nowarning(mse.S/n),
+        rmse.adj = sqrt(mse.adj.S/n),   # book p157
+        bias = bias.adj.S/sqrt(n),
+        se = sqrt(var.S/n),
         along=3
     )
     res

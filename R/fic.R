@@ -68,7 +68,7 @@ fic_core <- function(
     ## unadjusted mse
     res <- cbind(
         rmse = sqrt_nowarning(mse.S),   # book p157
-        rmse.adj = sqrt_nowarning(mse.adj.S),
+        rmse.adj = sqrt(mse.adj.S),
         bias  = bias.adj.S,
         se    = sqrt(var.S),
         FIC      = FIC.S
@@ -521,6 +521,8 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     inarr <- apply(inds, 1, function(x)all(x==inds0))
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
     attr(res, "sub") <- sub
+    attr(res, "parnames") <- get_parnames(par, inds)
+    attr(res, "inds") <- inds
 
     class(res) <- c("fic",class(res))
     res

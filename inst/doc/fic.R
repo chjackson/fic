@@ -45,6 +45,9 @@ ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
 ## ---------------------------------------------------------
 ggplot_fic(ficres)
 
+## ---------------------------------------------------------
+summary(ficres)
+
 ## ----eval=FALSE-------------------------------------------
 #  fns <- list(coef = function(x)coef(x),
 #              nobs = function(x)nobs(x),
@@ -61,6 +64,14 @@ wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt + epith +
 inds0 <- expand_inds(c(1,0,0,0,0,0,0), wide)
 inds0
 
+## ----eval=FALSE-------------------------------------------
+#  list(focus=fic:::cox_hr, deriv=fic:::cox_hr_deriv,
+#       dH=fic:::cox_hr_dH)
+#  list(focus=fic:::cox_cumhaz, deriv=fic:::cox_cumhaz_deriv,
+#       dH=fic:::cox_cumhaz_dH)
+#  list(focus=fic:::cox_survival, deriv=fic:::cox_survival_deriv,
+#       dH=fic:::cox_survival_dH)
+
 ## ---------------------------------------------------------
 combs <- all_inds(wide,inds0,intercept=FALSE)
 
@@ -72,15 +83,17 @@ newdata <- with(melanoma,
                            age = tapply(age, sex, mean)))
 X <- newdata_to_X(newdata, wide)
 ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
-plot(ficall, xlim=c(0,1), ci=FALSE)
-ggplot_fic(ficall, ci=FALSE)
+ggplot_fic(ficall, ci=FALSE, xlim=c(0,1))
 
 ## ---------------------------------------------------------
-par(mfrow=c(1,2))
-plot(ficall$FIC[ficall$vals=="female"], ficall$focus[ficall$vals=="female"], 
-     xlim=c(0,30), ylim=c(0, 1), 
-     ylab = "5yr survival estimates, women", xlab="FIC")
-plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"], 
-     xlim=c(0,30), ylim=c(0.2, 0.9),
-     ylab = "5yr survival estimates, men", xlab="FIC")
+summary(ficall)
+
+## ----echo=FALSE,eval=FALSE--------------------------------
+#  par(mfrow=c(1,2))
+#  plot(ficall$FIC[ficall$vals=="female"], ficall$focus[ficall$vals=="female"],
+#       xlim=c(0,30), ylim=c(0, 1),
+#       ylab = "5yr survival estimates, women", xlab="FIC")
+#  plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"],
+#       xlim=c(0,30), ylim=c(0.2, 0.9),
+#       ylab = "5yr survival estimates, men", xlab="FIC")
 

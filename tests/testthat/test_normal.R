@@ -12,7 +12,7 @@ X <- model.matrix(wide.lm)[1:5,]
 ficall <- fic(wide.lm, inds=inds1, inds0=inds0, focus=focus_mean, X=X)
 
 par <- coef(wide.lm)
-J <- solve(vcov(wide.lm))/nrow(mtcars)
+J <- solve(vcov(wide.lm))
 ana <- fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(mtcars), focus="mean_normal", X=X, parsub=c(coef(mod1.lm), 0, 0, 0, 0, 0, 0))
 num <- fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=nrow(mtcars), focus=focus_mean, X=X, parsub=c(coef(mod1.lm), 0, 0, 0, 0, 0, 0))
 

@@ -516,6 +516,14 @@ dataset, there are 115 non-smokers and 74 smokers, thus more data
 enables bigger models to be identified for non-smokers.  Wider 
 models are also preferred for describing the average population.
 
+The model with the optimal MSE could be identified if necessary,
+with the \code{summary} function, though in general, if there are
+multiple models with similar estimation performance and different
+results, the reasons for their differences should be explored in
+greater depth with the aid of background knowledge. 
+<<>>=
+summary(ficres)
+@ 
 
 \subsection{Calling ``fic'' for an unfamiliar class of models }
 
@@ -610,27 +618,46 @@ $S(t|\mathbf{x},\btheta, \bgamma, H_0())$ that a person with
 covariates $\mathbf{x}$ will survive $t$ years.
 
 Again the mean square error $MSE_S = B_S^2 + V_S$ of $\mu$ of the focus
-quantity under submodel $S$ is estimated as $\widehat{B_S^2} + \widehat{V_S}$, using 
-similar formulae to Section~\ref{sec:formulae}, which were derived by \citet{fic:cox} 
+quantity under submodel $S$ has an asymptotically unbiased estimator
+$\widehat{B_S^2} + \widehat{V_S}$, 
+like that in Section~\ref{sec:formulae}, which was derived by \citet{fic:cox} 
 under the same theoretical principles:
 \begin{eqnarray*}
-   \widehat{B_S^2} & = & (\hat\psi_W - \hat\psi_S)^2/n, \quad \hat\psi_W = (\hat\omega - \hat\kappa)^T\hat\bdelta, \quad \hat\psi_S = (\hat\omega - \hat\kappa)^TG_S\hat\bdelta\\
-  \widehat{V_S} & = &  \left\{\hat\tau_0^2 + (\hat\omega - \hat\kappa)^T Q_{S}^0 (\hat\omega - \hat\kappa)\right\}/n \\
+   % \widehat{B_S^2} & = & (\hat\psi_W - \hat\psi_S)^2/n, \quad
+   %                       \hat\psi_W = (\hat\omega -
+   %                       \hat\kappa)^T\hat\bdelta, \quad \hat\psi_S =
+   %                       (\hat\omega - \hat\kappa)^TG_S\hat\bdelta\\
+\widehat{B_S^2} & = & (\hat\omega - \hat\kappa)(I - G_S) (\hat\bdelta
+                      \hat\bdelta^T - Q)  (I - G_S) (\hat\omega  - \hat\kappa)\\
+  \widehat{V_S} & = &  \left\{\hat\tau_0(t)^2 + (\hat\omega - \hat\kappa)^T Q_{S}^0 (\hat\omega - \hat\kappa)\right\}/n \\
  \hat\omega & = &  J_{10} J_{00}^{-1} \frac{d\mu}{d\btheta} - \frac{d\mu}{d\bgamma}\\
  \hat\kappa(t) & = &  (J_{10} J_{00}^{-1} F_0(t) - F_1(t))\frac{d\mu}{dH_0},
 \end{eqnarray*}
-where $Q_S^0,G_S,\hat\bdelta,\tau_0^2,J_{10},J_{00}$ are defined as in Section~\ref{sec:formulae}, except in terms of the partial likelihood instead of the likelihood.   Newly-defined quantities are
+where $Q_S^0,G_S,\hat\bdelta,J_{10},J_{00}$ are defined as in Section~\ref{sec:formulae}, except in terms of the partial likelihood instead of the likelihood.   Newly-defined quantities are
 \[F(t) = \int_0^t \left\{G_n^{(1)}(u) / G_n^{(0)}(u)\right\}  dH_0(u) = \left(
   \begin{array}{l}
     F_0(t) \\
     F_1(t)
   \end{array}\right)\]
-  where $F_0(t)$ and $F_1(t)$ have $p$ and $q$ components respectively, and
+  where $F_0(t)$ and $F_1(t)$ have $p$ and $q$ components respectively, 
 \begin{itemize}
   \item $G_n^{(0)}(u) = \frac{1}{n}\sum_{i=1}^n Y_i(u) \exp(x_i^T\btheta + z_i^T\bgamma)$ 
   \item $G_n^{(1)}(u) = \frac{1}{n}\sum_{i=1}^n Y_i(u) \exp(x_i^T\btheta + z_i^T\bgamma) \left(\begin{array}{l}x_i\\z_i\end{array}\right)$ 
 \end{itemize}
-both evaluated at the estimates of $\btheta$, $\bgamma$ and $H_0()$ from the wide model, and  $Y_i(t) = I(t_i \geq t)$ is the indicator for individual $i$ being at risk at time $t$.   As before TODO BIAS CORRECTION. 
+both evaluated at the estimates of $\btheta$, $\bgamma$ and $H_0()$
+from the wide model, 
+\[
+\tau_0(t)^2 = \Big(\frac{d\mu}{dH_0}\Big)^2\int_0^t
+\frac{dH_0(u)}{g^{(0)}(u,\beta,0)} + \left\{\frac{d\mu}{d\beta} -
+\frac{d\mu}{dH_0} F_0(t)\right\}^T J_{00}^{-1}\left\{\frac{d\mu}{d\beta} -
+\frac{d\mu}{dH_0} F_0(t)\right\}
+\]
+and  $Y_i(t) = I(t_i \geq t)$ is the indicator
+for individual $i$ being at risk at time $t$, and 
+
+
+As before, if $\widehat{B_S^2} < 0$ we could also use an alternative
+estimator for $MSE_S$ which assumes that the bias is zero in these cases. 
 
 
 \subsection{Example: malignant melanoma}
@@ -662,7 +689,24 @@ The \code{fic} package includes three built-in alternative focuses, as specified
 \end{itemize}
 The required covariate values and/or time point(s) are supplied as the \code{X} and \code{t} arguments to \code{fic}.
 
-Supplying alternative focuses requires the user to supply a list of three functions as the \code{"focus"} argument to \code{fic}: one for the focus, and two for its derivatives with respect to $(\btheta,\bgamma)$ and $H_0(t)$ respectively.  The format of these functions is shown in the package source file \code{R/fic.coxph.R}, see also \code{help(fic.coxph) TODO EXAMPLES}.
+It is possible to supply alternative focuses, though this is slightly
+trickier than for standard full likelihood models. 
+It requires the user to supply a list of three functions as the
+\code{focus} argument to \code{fic}, one returning the focus, and two returning
+its derivatives with respect to $(\btheta,\bgamma)$ and $H_0(t)$
+respectively.  The functions take arguments \code{par}, \code{H0},
+\code{X} and \code{t} representing the parameter vector, cumulative
+hazard, covariate matrix and time.   For examples, examine the code for 
+the following lists of functions, which are used for the three built-in focuses above.
+
+<<eval=FALSE>>=
+list(focus=fic:::cox_hr, deriv=fic:::cox_hr_deriv,
+     dH=fic:::cox_hr_dH)
+list(focus=fic:::cox_cumhaz, deriv=fic:::cox_cumhaz_deriv,
+     dH=fic:::cox_cumhaz_dH)
+list(focus=fic:::cox_survival, deriv=fic:::cox_survival_deriv,
+     dH=fic:::cox_survival_dH)
+@ 
 
 In the melanoma example, all possible submodels spanning the wide and
 narrow model are compared. As before, a matrix of indicators
@@ -690,13 +734,24 @@ newdata <- with(melanoma,
                            age = tapply(age, sex, mean)))
 X <- newdata_to_X(newdata, wide)
 ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
-plot(ficall, xlim=c(0,1), ci=FALSE)
-ggplot_fic(ficall, ci=FALSE)
+ggplot_fic(ficall, ci=FALSE, xlim=c(0,1))
 @ 
 
-We can compare with Fig 6.5 of \cite{claeskens:hjort:book}
-
+The models give a big range of estimates for the focus survival
+probability. Generally, the models returning higher survival estimates 
+are those models closer to the narrow model, and the error of these
+estimates is high.  The most accurate models, as judged by the MSE of
+this focus, return survival estimates of around 0.6--0.7 for men and 
+0.4--0.5 for women.  If desired, the model with the lowest RMSE could
+be identified with the \code{summary} method.
 <<>>=
+summary(ficall)
+@ 
+However, the reasons for the variation in results between models should be 
+investigated further, with the aid of clinical background knowledge.
+% We can compare with Fig 6.5 of \cite{claeskens:hjort:book}
+
+<<echo=FALSE,eval=FALSE>>=
 par(mfrow=c(1,2))
 plot(ficall$FIC[ficall$vals=="female"], ficall$focus[ficall$vals=="female"], 
      xlim=c(0,30), ylim=c(0, 1), 
@@ -706,38 +761,25 @@ plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"],
      ylab = "5yr survival estimates, men", xlab="FIC")
 @ 
 
-\emph{[note big range of estimates with low FIC, model uncertainty]}
-
-\section{Bootstrap}
-
-Would like to 
-
-\begin{itemize}
-
-\item illustrate alternative losses to the mean square error.     Could easily do losses of the $L_p$ error form, that is mean $(\mu_s - \mu_{true})^p$ instead of mean square error, with existing theory.
-
-  Would also be nice to work this out for more general losses of the form $L(\mu_s, \mu_{true})$ as exemplified by health economic decision problems (the ``focus'' is a choice between finite decisions, and the ``accuracy of the estimate'' is the expected value of perfect information$\ldots$)
-
-\item use resampling to illustrate FIC principles
-
-\end{itemize}
-
-
-
 
 
 \section{Discussion}
 
 Philosophy behind package.  Consider what model is used for. 
 
-Don't necessarily recommend using a single model, but comparing the bias and variance tradeoffs associated with a range of models. 
+Don't necessarily recommend using a single model, but comparing the
+bias and variance tradeoffs associated with a range of models.   
+Model uncertainty should be acknowledged.    Part of a broader 
+scientific process of inference and decision making 
 
 Post-selection inference, model averaging.  Could we recommend bootstrapping the model selection procedure? 
 
-\emph{[Write some warning against fishing.  If fitting a large number of models, 
-  uncertainty should be acknowledged.  ref discussion about post-selection inference  ]}
+Decision making.  Bootstrapping suggested as route to alternative
+losses, but nice go further and use for discrete decision making 
 
 High dimensional regression, \citep{gueuning2018}
+
+Advanced topics discussed in C + H book, recent literature? 
 
 
 \bibliography{fic}

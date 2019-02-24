@@ -71,10 +71,10 @@ Each function should have four arguments:
 
 For examples, examine the source for the built-in functions
 
-\code{cox_hr,cox_hr_deriv,cox_hr_dH} for the hazard ratio between \code{X} and \code{0}
+\code{fic:::cox_hr,fic:::cox_hr_deriv,fic:::cox_hr_dH} for the hazard ratio between \code{X} and \code{0}
 
-\code{cox_cumhaz,cox_cumhaz_deriv,cox_cumhaz_dH} for the cumulative hazard
+\code{fic:::cox_cumhaz,fic:::cox_cumhaz_deriv,fic:::cox_cumhaz_dH} for the cumulative hazard
 
-\code{cox_survival,cox_survival_deriv,cox_survival_dH} for the survival
+\code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival
 }
 
