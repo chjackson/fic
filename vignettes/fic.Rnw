@@ -453,10 +453,9 @@ of models, particularly in regression contexts.  The function \code{all_inds} (a
 \code{expand.grid}) creates a matrix of indicators that defines all
 submodels with different covariates, spanned by a given wide model (here \code{wide.glm} and a
 narrow model (here defined by \code{inds0}).  This
-function works for all classes of model objects \code{x} for which the
+function works only for all classes of model objects \code{x} for which the
 \code{terms(x)} function is understood, which includes standard R
-regression models such as \code{lm} and \code{glm}.  \emph{[TODO can we use
-terms.formula more generally, e.g. in flexsurvreg?]}  Factors are handled naturally. 
+regression models such as \code{lm} and \code{glm}. Factors are handled naturally. 
 <<>>=
 combs <- all_inds(wide.glm, inds0)
 @
@@ -772,14 +771,21 @@ bias and variance tradeoffs associated with a range of models.
 Model uncertainty should be acknowledged.    Part of a broader 
 scientific process of inference and decision making 
 
-Post-selection inference, model averaging.  Could we recommend bootstrapping the model selection procedure? 
+Post-selection inference, model averaging.  Could we recommend
+bootstrapping the model selection procedure?   though properties not
+investigated 
 
 Decision making.  Bootstrapping suggested as route to alternative
 losses, but nice go further and use for discrete decision making 
+eg resampling pars from wide model, though 
 
-High dimensional regression, \citep{gueuning2018}
+High dimensional regression, \citep{gueuning2018}. 
+If wide model is not identifiable then use submodel-based estimates to
+compute the criterion, else use penalisation 
 
 Advanced topics discussed in C + H book, recent literature? 
+
+Designed to be extensible --- contributions and worked examples welcome 
 
 
 \bibliography{fic}

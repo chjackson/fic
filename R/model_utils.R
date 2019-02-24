@@ -62,7 +62,7 @@ all_inds <- function(wide, inds0=NULL, intercept=TRUE){
     ass <- attr(model.matrix(wide), "assign")
     ass <- match(ass, unique(ass))
     combs <- inds_short[,ass,drop=FALSE]
-    rownames(combs) <- apply(combs, 1, paste, collapse="")
+    rownames(combs) <- apply(inds_short, 1, paste, collapse="")
     ininds0 <- if (!is.null(inds0)) apply(combs, 1, function(x) !any(x==0 & inds0==1)) else rep(TRUE, nrow(combs))
     combs[ininds0,]
 }

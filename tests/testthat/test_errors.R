@@ -42,7 +42,10 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub
 
 ## errors in lower-level functions 
 
-
+## TODO mismatch between X and length of par
+## Currently check_X checks for X too big
+## Hard to check for X too small, as covariate effects might be a subset of full set of pars, and hard to identify which pars are the covariate effects 
+## This check might need to be done within the focus function. 
 
 expect_error(get_fns(list(foo=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1, bar=2)), "components named")
