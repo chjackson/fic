@@ -10,11 +10,11 @@
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
-\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).}
+\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.}
 
 \item{xlab}{x-axis label.}
 
-\item{ylab}{y=axis label.}
+\item{ylab}{y-axis label.}
 
 \item{xlim}{x-axis limits (pair of numbers)}
 
@@ -27,9 +27,7 @@
 \item{...}{Other options to pass to \code{\link{plot}}.}
 }
 \description{
-Plot focused model comparison statistics.  What is plotted depends
-on whether \code{\link{fic}} was called with a `sub` argument so that the
-focus estimates are available in the object returned by \code{\link{fic}}.
+Plot focused model comparison statistics.
 }
 \details{
 If the focus estimates are available, then the focus estimates are

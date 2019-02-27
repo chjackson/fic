@@ -10,9 +10,9 @@
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}
 
-\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+\item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
-A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
+A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 
 \item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 

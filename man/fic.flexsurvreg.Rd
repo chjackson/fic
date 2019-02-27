@@ -13,9 +13,9 @@
 These are returned, for example, by the \code{\link[flexsurv]{flexsurvreg}} and 
 the \code{\link[flexsurv]{flexsurvspline}} functions.}
 
-\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+\item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
-A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
+A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 
 \item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
@@ -28,7 +28,7 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 \item{focus}{An R function with:
 
 \itemize{
-\item first argument named \code{par}, denoting a vector of parameters
+\item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 
 \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
 }
@@ -43,7 +43,7 @@ Alternatively, \code{focus} can be a character string naming a built-in focus fu
 
 \code{"mean_normal"} the mean outcome in a normal linear regression model
 
-See \code{\link{focus_fns}} for the functions underlying these.}
+See \code{\link{focus_fns}} for the functions underlying these built-in focuses.}
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.}
 
@@ -57,12 +57,12 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
 
-\item{sub}{Object of class \code{\link[flexsurv]{flexsurvreg}} containing the submodel to be assessed.   Optional. Only required if you want the estimate of the focus
-function under the submodel to be included in the results.}
+\item{sub}{List of objects of class \code{\link[flexsurv]{flexsurvreg}} containing the submodels to be assessed. Optional. Only required if you want the estimate of the focus
+function under the submodels to be included in the results.}
 
-\item{B}{If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)}
+\item{B}{If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then the parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument (TODO ref to other doc)}
 
 \item{loss}{A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.}
 
@@ -72,7 +72,7 @@ function under the submodel to be included in the results.}
 Focused information criterion for parametric survival models fitted with the \pkg{flexsurv} package.
 }
 \details{
-Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the "survival" vignette.
+Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the \pkg{fic} package vignette "Examples of focused model comparison: parametric survival models".
 
 The choice between \code{\link[flexsurv]{flexsurvspline}} models with different numbers of knots is not supported, unless perhaps if the knot locations are defined manually so that models are nested within each other, but this has not been investigated.
 }

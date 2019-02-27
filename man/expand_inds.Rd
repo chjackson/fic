@@ -2,25 +2,29 @@
 % Please edit documentation in R/model_utils.R
 \name{expand_inds}
 \alias{expand_inds}
-\title{Convert 0/1 indicators for inclusion of regression terms to
-indicators for inclusion of parameters}
+\title{Form `fic` model indicator argument in presence of factors}
 \usage{
 expand_inds(inds, wide)
 }
 \arguments{
-\item{inds}{matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+\item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
-A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
+A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 
 \item{wide}{Fitted model object containing the wide model.}
 }
 \description{
+Given a model indicator `inds` identifying terms in a regression
+model, convert this to the format needed for `fic` by converting
+indicators for regression terms to indicators for inclusion of
+parameters.
+}
+\details{
 If a regression term is a factor, then the 0 or 1 indicating its
 inclusion/exclusion is replicated to a length given by the number
 of factor levels minus 1, that is, the number of parameters
 pertaining to that factor.
-}
-\details{
+
 This function only works for classes of models for which the
 \code{model.matrix} function is understood and returns objects
 with an \code{"assign"} attribute. This includes all the

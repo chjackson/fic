@@ -1,6 +1,6 @@
 ##' Focused Information Criterion for linear models
 ##'
-##' Focused information criterion for linear models fitted with lm().
+##' Focused information criterion for linear models fitted with \code{\link{lm}}.
 ##' Used to compare models with different covariates (more generally,
 ##' different linear terms).
 ##'

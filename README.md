@@ -1,5 +1,5 @@
 # fic
-R package for the focused information criterion for model selection
+R package for the Focused Information Criterion and related methods for model comparison
 
 Under development.  To install the package, do
 

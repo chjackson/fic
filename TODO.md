@@ -13,5 +13,5 @@
 
 * Vignettes and JSS paper
 
-  
+* can't we write focus function to not require an intercept , e.g. in builtin focuses and examples 
 

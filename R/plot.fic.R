@@ -1,8 +1,6 @@
 ##' Plot focused model comparison statistics
 ##'
-##' Plot focused model comparison statistics.  What is plotted depends
-##' on whether \code{\link{fic}} was called with a `sub` argument so that the
-##' focus estimates are available in the object returned by \code{\link{fic}}.
+##' Plot focused model comparison statistics.  
 ##'
 ##' If the focus estimates are available, then the focus estimates are
 ##' plotted against the root MSE.  One plot is made for each covariate
@@ -18,11 +16,11 @@
 ##'
 ##' @param x Output from \code{\link{fic}}.
 ##'
-##' @param ci Plot interval estimates? (\code{TRUE} or \code{FALSE}).
+##' @param ci Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.
 ##' 
 ##' @param xlab x-axis label.
 ##'
-##' @param ylab y=axis label.
+##' @param ylab y-axis label.
 ##'
 ##' @param xlim x-axis limits (pair of numbers)
 ##'
@@ -96,10 +94,10 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##'
 ##' @importFrom scales hue_pal
 ##' 
+##' @import ggplot2
+##' 
 ##' @export
 ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
-    if (!requireNamespace("ggplot2", quietly = TRUE))
-        stop("The `ggplot2` package is required to use this function")
     if (is.null(x$focus))
         stop("No focus estimates found. `fic` should be run with the `sub` argument")
     if (is.null(ylab)) ylab <- "RMSE"

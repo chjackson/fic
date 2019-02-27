@@ -1,16 +1,10 @@
-##' fic: Focused model comparison
+##' Focused Information Criteria for Model Comparison
 ##'
-##' TODO
-##'
+##' To start with, see the main package vignette "Different models for different purposes: focused model comparison in R"
+##' 
 ##' @name fic-package
 ##' @aliases fic-package
 ##' @docType package
-##' @section ref vignettes
-##' @author Christopher Jackson \email{chris.jackson@@mrc-bsu.cam.ac.uk}
-##' @references TODO 
-##' @keywords package
+##' 
 ##' @import stats
-##' @import tensor
-##' @import ggplot2
-##' @importFrom grDevices n2mfrow
-"_PACKAGE"
+NULL

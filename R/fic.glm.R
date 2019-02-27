@@ -1,6 +1,6 @@
 ##' Focused Information Criterion for generalized linear models
 ##'
-##' Focused information criterion for generalized linear models fitted with glm().
+##' Focused information criterion for generalized linear models fitted with \code{\link{glm}}.
 ##' Used to compare models with different covariates (more generally,
 ##' different linear terms).
 ##'

@@ -15,6 +15,7 @@ par <- coef(wide.glm)
 n <- nrow(birthwt)
 J <- solve(vcov(wide.glm))
 ana <- fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=n, focus="prob_logistic", X=X, parsub=c(coef(mod1.glm), 0, 0, 0, 0))
+ana <- fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=n, focus=prob_logistic, X=X, parsub=c(coef(mod1.glm), 0, 0, 0, 0))
 num <- fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=n, focus=focus_plogis, X=X, parsub=c(coef(mod1.glm), 0, 0, 0, 0))
 
 test_that("Results of higher level and lower level functions match", {

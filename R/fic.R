@@ -183,7 +183,7 @@ check_parsub <- function(parsub, npar, nmod){
 }
 
 
-##' Focused Information Criterion: core calculation functions
+##' Focused information criteria: core calculation functions
 ##'
 ##' Core FIC calculation functions underlying the user interface in \code{\link{fic}}.
 ##' \code{fic_core} just handles one submodel, while \code{fic_multi} can assess multiple submodels of the same wide model.  For \code{fic_multi}, \code{inds} and \code{parsub} can be matrices with one row per submodel, while for \code{fic_core} they must be vectors.
@@ -192,9 +192,7 @@ check_parsub <- function(parsub, npar, nmod){
 ##' 
 ##' @param J Information matrix from the wide model, evaluated at the maximum likelihood estimates (note that this definition differs from Claeskens and Hjort, where \code{J} is defined as the information divided by \code{n})
 ##'
-##' @param inds Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX 
-##'
-##' @param n Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity? 
+##' @param n Number of observations in the data used to fit the wide model.
 ##'
 ##' @param parsub Vector of maximum likelihood estimates from the submodel.  
 ##' Only required to return the estimate of the focus quantity alongside 
@@ -351,17 +349,17 @@ get_ics <- function(sub, fns){
     bics <- sapply(sub, fns$BIC)
 }
 
-##' Focused Information Criterion: main user interface
+##' Focused information criteria: main user interface
 ##'
-##' Focused information criterion for general models.  These methods estimate the bias and variance of estimates of a quantity of interest (the "focus") when smaller submodels are used in place of a "wide" model that is assumed to generate the data but may not give precise enough estimates.
+##' Focused information criteria for general models.  These methods estimate the bias and variance of estimates of a quantity of interest (the "focus") when smaller submodels are used in place of a "wide" model that is assumed to generate the data but may not give precise enough estimates.
 ##'
 ##' @aliases FIC
 ##'
 ##' @param wide Fitted model object containing the wide model.
 ##'
-##' @param inds matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+##' @param inds Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 ##'
-##' A matrix should be supplied if multiple submodels are to be assessed.  This should have number of rows equal to the number of submodels to be assessed, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.
+##' A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.
 ##'
 ##' @param inds0 Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector. 
 ##'
@@ -375,7 +373,7 @@ get_ics <- function(sub, fns){
 ##' @param focus An R function with:
 ##'
 ##' \itemize{
-##' \item first argument named \code{par}, denoting a vector of parameters
+##' \item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 ##'
 ##' \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
 ##' }
@@ -390,7 +388,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' \code{"mean_normal"} the mean outcome in a normal linear regression model
 ##'
-##' See \code{\link{focus_fns}} for the functions underlying these.
+##' See \code{\link{focus_fns}} for the functions underlying these built-in focuses.
 ##'
 ##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.
 ##'
@@ -404,11 +402,11 @@ get_ics <- function(sub, fns){
 ##'
 ##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
 ##'
-##' @param Xwt Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.
+##' @param Xwt Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.
 ##' 
-##' @param sub List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.
+##' @param sub List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.  For some classes of models with built in methods for \code{fic}, e.g. \code{\link{fic.glm}}, the submodels are fitted automatically by default.
 ##'
-##' @param fns Named list of functions to extract the quantities from the fitted model object that are required for the FIC calculation.  By default this is
+##' @param fns Named list of functions to extract the quantities from the fitted model object that are required to calculate the focused model comparison statistics.  By default this is
 ##'
 ##' \code{list(coef=coef, nobs=nobs, vcov=vcov)}
 ##'
@@ -417,9 +415,9 @@ get_ics <- function(sub, fns){
 ##' \itemize{
 ##' \item \code{coef(mod)} returns the vector of parameter estimates,
 ##'
-##' \item \code{nobs(mod)} returns the number of observations used in the model fit,
-##'
-##' \item \code{vcov(mod)} returns the covariance matrix for the parameter estimates.
+##' \item \code{vcov(mod)} returns the covariance matrix for the parameter estimates,
+
+##' \item \code{nobs(mod)} returns the number of observations used in the model fit.  Only required if the `classic` FIC is required, and not required to compute the mean square error of the focus.
 ##' }
 ##'
 ##' If one or more of these assumptions is not true, then the defaults can be changed.
@@ -427,7 +425,7 @@ get_ics <- function(sub, fns){
 ##' not understood (or return something different) for your class of model objects, but
 ##' the parameters are stored in \code{mod$estimates},
 ##' the number of observations is in \code{mod$data$nobs}, and
-##' the covariance matrix is in \code{mod$vcov}, 
+##' the covariance matrix is in \code{mod$cov}, 
 ##' 
 ##' then the \code{fns} argument should be set to 
 ##'
@@ -439,9 +437,9 @@ get_ics <- function(sub, fns){
 ##'
 ##' If less than three components are specified in \code{fns}, then the missing components are assumed to take their default values.
 ##'
-##' @param B If B is 0 (the default) the standard analytic formula for the FIC is used with mean square error loss.   If B>0, then the parametric bootstrap method is used with B bootstrap samples.  (TODO ref to other doc)
+##' @param FIC If \code{TRUE} then the Focused Information Criterion is returned with the results alongside the mean squared error and its components.  This is done for built-in model classes, but optional for user-defined model classes, since it requires knowledge of the sample size \code{n} as well as the estimates and covariance matrix under the wide model. 
 ##'
-##' @param FIC If \code{TRUE} then the Focused Information Criterion is returned with the results alongside the mean squared error and its components.  This is optional, since it requires knowledge of the sample size \code{n} as well as the estimates and covariance matrix under the wide model. 
+##' @param B If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then the parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument (TODO ref to other doc)
 ##' 
 ##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.
 ##'
@@ -451,11 +449,11 @@ get_ics <- function(sub, fns){
 ##'
 ##' @return A vector containing the following components, describing characteristics of the defined submodel.  See the package vignette for full, formal definitions, and Chapter 6 of Claeskens and Hjort, 2008.
 ##'
-##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined as the root of (squared unadjusted bias plus variance).  This is an asymptotically unbiased estimator, but may occasionally be indeterminate if the squared bias plus variance is negative.}
+##' \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined as the square root of (squared unadjusted bias plus variance).  This is an asymptotically unbiased estimator, but may occasionally be indeterminate if the estimate of the squared bias plus variance is negative.}
 ##'
-##' \item{rmse.adj}{The root mean square error, based on the bias estimator which avoids negative squared bias.  Defined on page 157 of Claeskens and Hjort as the sum of the variance and the squared adjusted bias.}
+##' \item{rmse.adj}{The root mean square error, based on a bias estimator which avoids negative squared bias.  Defined on page 157 of Claeskens and Hjort as the sum of the variance and the squared adjusted bias.}
 ##'
-##' \item{bias}{The estimated bias of the focus quantity (adjusted to avoid negative squared bias).  This is defined as the square root of the quantity "sqb3(S)", page 152, multiplied by the sign of the unadjusted bias. }
+##' \item{bias}{The estimated bias of the focus quantity, adjusted to avoid negative squared bias.  This is defined as the square root of the quantity "sqb3(S)", page 152 of Claeskens and Hjort, multiplied by the sign of the unadjusted bias. }
 ##'
 ##' \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 ##'
@@ -471,6 +469,9 @@ get_ics <- function(sub, fns){
 ##'
 ##' \item{sub}{List of fitted submodel objects.}
 ##'
+##' \item{parnames}{Vector of names of parameters in the wide model.}
+##'
+##' \item{inds}{Submodel indicators, as supplied in the \code{inds} argument.}
 ##'
 ##' 
 ##' @references Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
@@ -479,14 +480,30 @@ get_ics <- function(sub, fns){
 ##'
 ##' @keywords models
 ##' 
-##' @examples ""
+##' @examples
+##'
+##' wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
+##'                 data=birthwt, family=binomial)
+##' inds <- rbind(
+##'               narrow = c(1,1,0,0,0,0,0,0),
+##'               mod1 = c(1,1,1,1,0,0,0,0),
+##'               wide = c(1,1,1,1,1,1,1,1)
+##' )
+##' vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+##' vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+##' X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
+##' 
+##' fic(wide=wide.glm, inds=inds, focus="prob_logistic", X=X)
+##' 
+##' focus <- function(par, X)plogis(X %*% par)    
+##' fic(wide=wide.glm, inds=inds, focus=focus, X=X)   # equivalent
 ##'
 ##' @rdname fic
 ##' @export
 fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
                       X=NULL, Xwt=NULL, sub=NULL, fns=NULL,
-                      B=0, FIC=FALSE, loss=loss_mse,
+                      FIC=FALSE, B=0, loss=loss_mse,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
     res <- try({

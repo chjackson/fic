@@ -6,10 +6,10 @@
 ##' These are returned, for example, by the \code{\link[flexsurv]{flexsurvreg}} and 
 ##' the \code{\link[flexsurv]{flexsurvspline}} functions.
 ##'
-##' @param sub Object of class \code{\link[flexsurv]{flexsurvreg}} containing the submodel to be assessed.   Optional. Only required if you want the estimate of the focus
-##' function under the submodel to be included in the results. 
+##' @param sub List of objects of class \code{\link[flexsurv]{flexsurvreg}} containing the submodels to be assessed. Optional. Only required if you want the estimate of the focus
+##' function under the submodels to be included in the results. 
 ##' 
-##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the "survival" vignette.
+##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the \pkg{fic} package vignette "Examples of focused model comparison: parametric survival models".
 ##'
 ##' The choice between \code{\link[flexsurv]{flexsurvspline}} models with different numbers of knots is not supported, unless perhaps if the knot locations are defined manually so that models are nested within each other, but this has not been investigated.
 ##' 

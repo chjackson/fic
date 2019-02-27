@@ -7,11 +7,11 @@ get_parnames <- function(par, inds){
     res
 }    
 
-##' Summary method for focused model comparison
+##' Summarise focused model comparison results
 ##'
 ##' @param object Object returned by \code{\link{fic}} representing focused model comparison statistics for a range of models, and potentially also multiple focus quantities.
 ##'
-##' @param tidy If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  Otherwise the results are returned as a list, including a vector of parameter names.
+##' @param tidy If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  If \code{FALSE}, the results are returned as a list, including a vector of parameter names.
 ##'
 ##' @param ... Other arguments, currently unused. 
 ##'

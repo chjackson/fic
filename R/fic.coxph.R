@@ -25,7 +25,7 @@
 ##' @rdname fic.coxph
 ##'
 ##' @import abind
-##'
+##' @import tensor
 ##' @importFrom survival basehaz
 ##'
 ##' @section User-defined focuses:

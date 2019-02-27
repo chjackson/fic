@@ -19,9 +19,12 @@ mean_normal(par, X)
 mean_normal_deriv(par, X)
 }
 \arguments{
-\item{par}{Vector of parameter estimates}
+\item{par}{Vector of parameter estimates, including the intercept.}
 
-\item{X}{Vector or matrix of covariate values.  This can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function is to be evaluated.}
+\item{X}{Vector or matrix of covariate values, including the intercept. This can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function is to be evaluated.}
+}
+\value{
+\code{prob_logistic} returns the probability of the outcome in a logistic regression model, and \code{mean_normal} returns the mean outcome in a normal linear regression.   The \code{_deriv} functions return the vector of partial derivatives of the focus with respect to each parameter (or matrix, if there are multiple foci).
 }
 \description{
 Built-in focus functions and their derivatives

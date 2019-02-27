@@ -4,10 +4,10 @@
 ##'
 ##' @param wide Object returned by the \code{\link{survreg}} function, containing the wide model.  
 ##'
-##' @param sub Object of class \code{\link{survreg}} containing the submodel to be assessed.   Optional. Only required if you want the estimate of the focus
-##' function under the submodel to be included in the results. 
+##' @param sub List of fitted model objects of class \code{\link{survreg}} containing the submodels to be assessed.   Optional. Only required if you want the estimate of the focus
+##' function under the submodels to be included in the results. 
 ##' 
-##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull). An example of the latter is in the "survival" vignette.
+##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull). An example of the latter is in the \pkg{fic} package vignette "Examples of focused model comparison: parametric survival models".
 ##'
 ##' Parameters \code{par} of the focus function should be on the scale reported by the \code{icoef} component of the results of \code{survreg}, that is, with any positive-valued parameters log transformed.   
 ##'

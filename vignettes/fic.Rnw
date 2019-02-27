@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Focused model comparison with the fic package for R}
+%\VignetteIndexEntry{Different models for different purposes: focused model comparison in R}
 %\VignetteEngine{knitr::knitr}
 
 % \documentclass[article,shortnames]{jss}
@@ -713,7 +713,7 @@ describing these models is constructed, and the submodels are fitted
 automatically within the \code{fic} function.
 <<>>=
 combs <- all_inds(wide,inds0,intercept=FALSE)
-@ 
+@
 
 The focus is defined as the 5 year survival probability
 (\code{focus="survival",t=5}) for the covariate values defined by

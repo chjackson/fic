@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.R
 \name{fic_multi}
 \alias{fic_multi}
-\title{Focused Information Criterion: core calculation functions}
+\title{Focused information criteria: core calculation functions}
 \usage{
 fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
   focus_deriv = NULL, X = NULL, Xwt = NULL, parsub = NULL, ...)
@@ -12,7 +12,9 @@ fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
 
 \item{J}{Information matrix from the wide model, evaluated at the maximum likelihood estimates (note that this definition differs from Claeskens and Hjort, where \code{J} is defined as the information divided by \code{n})}
 
-\item{inds}{Vector of 0s and 1s of same length as \code{par}, with 1s in the positions where the parameters of the wide model are included in the submodel to be assessed, and 0s elsewhere.   TODO DOC AND TEST FOR MATRIX}
+\item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
+
+A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 
 \item{inds0}{Vector of indicators specifying the narrow model, in the same format as \code{inds}.  If this is omitted, the narrow model is assumed to be defined by the first row of \code{inds} (if \code{inds} is a matrix), or \code{inds} itself if this is a vector.}
 
@@ -22,12 +24,12 @@ This defaults to 0, as in covariate selection, where "excluded" coefficients are
 
 This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
 
-\item{n}{Number of observations in the data used to fit the wide model.  TODO is this really needed for the MSE, or does it cancel?  Only of academic interest to compute FIC/error for the sqrt n transformed quantity?}
+\item{n}{Number of observations in the data used to fit the wide model.}
 
 \item{focus}{An R function with:
 
 \itemize{
-\item first argument named \code{par}, denoting a vector of parameters
+\item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 
 \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
 }
@@ -42,7 +44,7 @@ Alternatively, \code{focus} can be a character string naming a built-in focus fu
 
 \code{"mean_normal"} the mean outcome in a normal linear regression model
 
-See \code{\link{focus_fns}} for the functions underlying these.}
+See \code{\link{focus_fns}} for the functions underlying these built-in focuses.}
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic_core}.
 
@@ -61,7 +63,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for covariate.  Averaged model comparison statistics are then calculated for a population defined by this distribution of covariate values.   If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel.
 Only required to return the estimate of the focus quantity alongside 

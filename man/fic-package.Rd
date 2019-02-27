@@ -3,27 +3,7 @@
 \docType{package}
 \name{fic-package}
 \alias{fic-package}
-\alias{_PACKAGE}
-\title{fic: Focused model comparison}
+\title{Focused Information Criteria for Model Comparison}
 \description{
-TODO
+To start with, see the main package vignette "Different models for different purposes: focused model comparison in R"
 }
-\section{ref vignettes}{
-NA
-}
-
-\references{
-TODO
-}
-\seealso{
-Useful links:
-\itemize{
-  \item \url{https://github.com/chjackson/fic}
-  \item Report bugs at \url{https://github.com/chjackson/fic/issues}
-}
-
-}
-\author{
-Christopher Jackson \email{chris.jackson@mrc-bsu.cam.ac.uk}
-}
-\keyword{package}

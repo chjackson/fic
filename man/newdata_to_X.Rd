@@ -12,11 +12,11 @@ newdata_to_X(newdata, wide)
 \item{wide}{Wide model which includes these covariates.}
 }
 \value{
-"Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts
+"Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}.
 }
 \description{
 Convert data frame of covariate values to a design matrix, excluding the intercept
 }
 \details{
-Numerics are allowed for character factor levels
+Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
 }

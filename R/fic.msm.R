@@ -1,13 +1,13 @@
 ##' Focused Information Criterion for multi-state models for panel data
 ##'
-##' Focused information criterion for multi-state models fitted with msm().
+##' Focused information criterion for multi-state models fitted with \code{\link[msm]{msm}} from the \pkg{msm} package. 
 ##'
 ##' @param wide Object returned by \code{\link[msm]{msm}} containing the wide model.
 ##'
-##' @param sub Object returned by \code{\link[msm]{msm}} containing the submodel to be assessed.  Optional. Only required if you want the estimate of the focus
+##' @param sub List of objects returned by \code{\link[msm]{msm}} containing the submodels to be assessed.  Optional. Only required if you want the estimate of the focus
 ##' function under the submodel to be included in the results. 
 ##'
-##' @param inds TODO better documentation for what indices correspond to what parameters, and what model selection problems are supported.  Just covariate selection?  what about constraints?
+##' @details This might be used for covariate selection, or comparing models with different constraints on the covariate effects or intensities.   An example is given in the \pkg{fic} package vignette "Examples of focused model comparison: multi-state models".  Note in particular in this example how the parameters are ordered in the \code{inds} argument, and how the various \pkg{msm} output functions can be used as focuses. 
 ##' 
 ##' @inheritParams fic
 ##' 

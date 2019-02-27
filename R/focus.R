@@ -3,9 +3,11 @@
 ##'
 ##' @aliases prob_logistic prob_logistic_deriv
 ##'
-##' @param par Vector of parameter estimates
+##' @param par Vector of parameter estimates, including the intercept.
 ##'
-##' @param X Vector or matrix of covariate values.  This can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function is to be evaluated.
+##' @param X Vector or matrix of covariate values, including the intercept. This can either be a vector of length \eqn{p}, or a \eqn{n x p} matrix, where \eqn{p} is the number of covariate effects, and \eqn{n} is the number of alternative sets of covariate values at which the focus function is to be evaluated.
+##'
+##' @return \code{prob_logistic} returns the probability of the outcome in a logistic regression model, and \code{mean_normal} returns the mean outcome in a normal linear regression.   The \code{_deriv} functions return the vector of partial derivatives of the focus with respect to each parameter (or matrix, if there are multiple foci).
 NULL
 
 ##' @export

@@ -7,14 +7,18 @@
 all_inds(wide, inds0 = NULL, intercept = TRUE)
 }
 \arguments{
-\item{wide}{A fitted model of standard R format, such that `terms(wide)` returns information about the terms of the model formula.  Models outside standard R packages may not support this.}
+\item{wide}{A fitted model of standard R format, such that \code{terms(wide)} returns information about the terms of the model formula.  Models outside standard R packages may not support this.}
 
 \item{inds0}{Narrow model indicators, in format described in \code{\link{fic}}}
 
 \item{intercept}{Is a regression intercept included in the indicators?  Should be \code{TRUE} for standard fully parametric regression models, and \code{FALSE} for Cox regression.}
 }
 \value{
-A matrix in the format required by the `inds` argument of fic(), representing all possible submodels of the wide model.  The number of rows is the number of models, and the number of columns is the number of parameters in the wide model.   The r,s entry of the matrix is a 1 if the rth submodel includes parameter s, and 0 otherwise.  If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded)
+A matrix in the format required by the \code{inds} argument of \code{fic()}, representing all possible submodels of the wide model.
+
+The number of rows is the number of models, and the number of columns is the number of parameters in the wide model.   The \eqn{r,s} entry of the matrix is a 1 if the \eqn{r}th submodel includes parameter \eqn{s}, and 0 otherwise.
+
+If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
 }
 \description{
 Form indicator matrix describing all possible submodels of a wide model

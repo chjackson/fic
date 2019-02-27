@@ -1,5 +1,9 @@
-##' Convert 0/1 indicators for inclusion of regression terms to
-##' indicators for inclusion of parameters
+##' Form `fic` model indicator argument in presence of factors 
+##'
+##' Given a model indicator `inds` identifying terms in a regression
+##' model, convert this to the format needed for `fic` by converting
+##' indicators for regression terms to indicators for inclusion of
+##' parameters.
 ##'
 ##' If a regression term is a factor, then the 0 or 1 indicating its
 ##' inclusion/exclusion is replicated to a length given by the number
@@ -42,13 +46,17 @@ expand_inds <- function(inds, wide){
 
 ##' Form indicator matrix describing all possible submodels of a wide model
 ##'
-##' @param wide A fitted model of standard R format, such that `terms(wide)` returns information about the terms of the model formula.  Models outside standard R packages may not support this.
+##' @param wide A fitted model of standard R format, such that \code{terms(wide)} returns information about the terms of the model formula.  Models outside standard R packages may not support this.
 ##'
 ##' @param inds0 Narrow model indicators, in format described in \code{\link{fic}}
 ##'
 ##' @param intercept Is a regression intercept included in the indicators?  Should be \code{TRUE} for standard fully parametric regression models, and \code{FALSE} for Cox regression.
 ##'
-##' @return A matrix in the format required by the `inds` argument of fic(), representing all possible submodels of the wide model.  The number of rows is the number of models, and the number of columns is the number of parameters in the wide model.   The r,s entry of the matrix is a 1 if the rth submodel includes parameter s, and 0 otherwise.  If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded) 
+##' @return A matrix in the format required by the \code{inds} argument of \code{fic()}, representing all possible submodels of the wide model.
+##'
+##' The number of rows is the number of models, and the number of columns is the number of parameters in the wide model.   The \eqn{r,s} entry of the matrix is a 1 if the \eqn{r}th submodel includes parameter \eqn{s}, and 0 otherwise.
+##'
+##' If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
 ##'
 ##' 
 ##' @export
@@ -77,9 +85,9 @@ all_inds <- function(wide, inds0=NULL, intercept=TRUE){
 ##'
 ##' @param wide Wide model which includes these covariates.
 ##'
-##' @return "Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts
+##' @return "Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}.
 ##'
-##' @details Numerics are allowed for character factor levels
+##' @details Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
 ##'
 ##' @export
 newdata_to_X <- function(newdata, wide){

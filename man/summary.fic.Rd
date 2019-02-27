@@ -2,14 +2,14 @@
 % Please edit documentation in R/summary.R
 \name{summary.fic}
 \alias{summary.fic}
-\title{Summary method for focused model comparison}
+\title{Summarise focused model comparison results}
 \usage{
 \method{summary}{fic}(object, tidy = TRUE, ...)
 }
 \arguments{
 \item{object}{Object returned by \code{\link{fic}} representing focused model comparison statistics for a range of models, and potentially also multiple focus quantities.}
 
-\item{tidy}{If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  Otherwise the results are returned as a list, including a vector of parameter names.}
+\item{tidy}{If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  If \code{FALSE}, the results are returned as a list, including a vector of parameter names.}
 
 \item{...}{Other arguments, currently unused.}
 }
@@ -17,7 +17,7 @@
 A list of two components, one for the optimal model per focus, and one for the range of focus and RMSE estimates over models.
 }
 \description{
-Summary method for focused model comparison
+Summarise focused model comparison results
 }
 \seealso{
 \code{\link{ggplot_fic}}, \code{\link{plot.fic}} for a more detailed visual representation of the focused comparison

@@ -10,9 +10,9 @@ ggplot_fic(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
-\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).}
+\item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.}
 
-\item{ylab}{y=axis label.}
+\item{ylab}{y-axis label.}
 
 \item{xlab}{x-axis label.}
 
