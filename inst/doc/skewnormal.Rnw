@@ -21,6 +21,7 @@ package in a situation where:
 
 \begin{document}
 
+\section{Skew-normal models} 
 
 An outcome $y_i$ and a covariate $x_i$ are observed for individuals
 $i=1,\ldots,n$.    Four different models are compared: two normal
@@ -42,8 +43,9 @@ are nested in the ``wide'' model (4).
 
 %%https://www-sciencedirect-com.ezp.lib.cam.ac.uk/science/article/pii/S0047259X08000341#b3 
 %% explains relation to standard skew normal param 
+%% dsn also provided with sn package, in different parameterisation
 
-\section{Fitting the models} 
+\section{Fitting the models in R} 
 
 To implement this class of models in R, firstly we define the log density function of the general skew-normal model with mean, scale and skewness parameters $\mu,\sigma,\lambda$ indicated by
 arguments \code{mean}, \code{sigma} and \code{lambda}. 
@@ -59,13 +61,13 @@ ldsnorm <- function(x, mean, sd, lambda){
 }
 @ 
 
-The models are fitted to data from the Australian Institute of Sports (Cook
-and Weisberg, 1994 REF), available as \code{ais} from the \pkg{sn}
-package REF. 
+The models are fitted to data from the Australian Institute of Sports
+\citep{cook1994introduction}, 
+available as \code{ais} from the \pkg{sn} package \citep{sn}. 
 The outcome $y_i$ is haematocrit level \code{Hc}, and the covariate is
-body mass index \code{BMI}.   Figure ?? illustrates the skewed 
+body mass index \code{BMI}.   Observe the skewed 
 distribution of the outcome and a mild association between the variables. 
-<<>>=
+<<fig.height=5>>=
 if (!require("sn"))
     stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
@@ -137,7 +139,6 @@ mod3 <- list(est=opt3$estimate, vcov=solve(opt3$hessian) )
 mod4 <- list(est=opt4$estimate, vcov=solve(opt4$hessian) )
 @ 
 
-dsn also provided with sn package
 
 \section{Focused model comparison}
 
@@ -145,7 +146,7 @@ We now perform a focused comparison of the four models.  Two
 alternative focuses are investigated: the mean and median outcome at a
 covariate value of interest.   Expressions for the mean and median of 
 the skew normal, in the parameterisation used here, are given by
-\citet{claeskens:hjort:book} and encoded in the following R functions: 
+\citet{claeskens:hjort:book} and implemented in the following R functions: 
 
 <<>>=
 mean_snorm <- function(mu, sigma, lambda){
@@ -157,7 +158,7 @@ median_snorm <- function(mu, sigma, lambda){
 }
 @ 
 
-As described in the main package vignette (Section ??) the focus
+As described in the main \code{fic} package vignette, the focus
 function supplied to \code{fic} should have arguments defined by 
 a vector \code{par} of parameters of the biggest model (in
 this case the four-parameter model 4), and a matrix of covariate values
@@ -166,91 +167,71 @@ example,  the two focus functions are
 
 <<>>=
 focus1 <- function(par, X){
-    mean_snorm(mu = X %*% par[1:2], sigma=exp(par[3]), lambda=exp(par[4]))
+    mean_snorm(mu = par[1] + X %*% par[2],
+               sigma=exp(par[3]), lambda=exp(par[4]))
 }
 focus2 <- function(par, X){
-    median_snorm(mu = X %*% par[1:2], sigma = exp(par[3]), lambda = exp(par[4]))
+    median_snorm(mu = par[1] + X %*% par[2],
+                 sigma = exp(par[3]), lambda = exp(par[4]))
 }
 @
 
-The \code{inds} matrix, required by \code{fic} is now
+The \code{inds} matrix, required by \code{fic}, is now
 constructed. Recall this indicates which parameters (columns) are
 included in each of the models (rows) being compared.   The narrow
-model is in the first row, and the wide model in the last.   
+model is in the first row, and the wide model in the last.    The rows
+are given names to describe the models, so the output is easier to
+read. 
+
 The functions \code{fns} required to extract the estimates and covariance matrix
 from the fitted model objects are then defined. 
 
 Finally \code{fic} is called to compare the four models for focuses
 defined by the mean and median for average men and women, with
-covariate values defined by \code{med.bmi} 
-
-TODO do we really need an intercept?  Shouldn't 
+covariate values defined by \code{med.bmi}.   The \code{sub} argument
+is supplied to ensure the focus estimates are returned too -- note
+that \code{fic} can only automatically fit the submodels for standard
+R model classes such as \code{glm}. 
 
 <<>>=
-inds <- rbind(c(1,0,1,0),
-              c(1,1,1,0),
-              c(1,0,1,1),
-              c(1,1,1,1))
+inds <- rbind("intcpt"     =c(1,0,1,0),
+              "cov"        =c(1,1,1,0),
+              "intcpt_skew"=c(1,0,1,1),
+              "cov_skew"   =c(1,1,1,1))
 
 fns <- list(coef=function(x)x$est,
             vcov=function(x)x$vcov,
             nobs=function(x)nrow(ais))
 
-med.bmi <- rbind(male=c(1, 23.56),
-                 female=c(1, 21.82))
-
-focus0 <- function(par){X %*% par[1:2]}
-fic(mod2, inds=rbind(c(1,0,1),c(1,1,1)), fns=fns, focus=focus0, X=med.bmi, FIC=TRUE,
-    sub=list(mod1, mod2))
+med.bmi <- rbind(male=23.56,  female=21.82)
 
 fmean <- fic(mod4, inds=inds, fns=fns, focus=focus1, X=med.bmi, FIC=TRUE,
-    sub=list(mod1, mod2, mod3, mod4))
+             sub=list(mod1, mod2, mod3, mod4))
 fmean 
-fmed <- fic(mod4, inds=inds, fns=fns, focus=focus2, X=med.bmi,
-    sub=list(mod1, mod2, mod3, mod4))
+fmed <- fic(mod4, inds=inds, fns=fns, focus=focus2, X=med.bmi, FIC=TRUE,
+            sub=list(mod1, mod2, mod3, mod4))
 fmed
-
-library(ggplot2)
-
-ggplot_fic(fmean)
-ggplot_fic(fmed)
-
 @ 
 
-TODO name the models 
-TODO shrink the plots 
-TODO if nobs is supplied then set FIC true 
+<<fig.width=7,fig.height=4>>=
+ggplot_fic(fmean)
+ggplot_fic(fmed)
+@ 
 
-mean: we need the covariate, but not necessarily the skewness as
-well. 
-these conclusions don't depend on cov 
-``For estimating the mean there is no award in involving the λ aspects
-of the data, as the added complexity does not alter the large-sample
-performance of estimators.'' 
+For both the mean and the median, including the covariate is judged to
+be essential.  Including the skewness is pointless for estimating the
+mean, as discussed by \citet{claeskens:hjort:book}, the skewness term
+provides no extra information.  The utility of including the skewness
+is also doubtful for estimating the median too, given the covariate is
+includes, the focus estimates and RMSE are very similar whether or not
+the skewness is also included.
 
-fic values close to book, not exactly, for mean when wide excludes skew
+% for median: 
+% can't reproduce calculation in book - looks strange on p165
+% delta2 value given as 45.031 in book, but sqrt(n)(lamwide - 1) = 
+% sqrt(nrow(ais))*(exp(mod4$est[4]) - 1) = 14.2*(1.95 - 1) = 13.5
 
-median: we need the covariate again, but skew model has worse rmse 
-
-makes sense for measures of central tendency.  median more robust to
-skew? 
-
-todo check vs book , 
-hmm book selects wide model for median 
-
-refer to algebraic results in book 
-
-Very different FICs from book for median 
-can we check the omegas against book? 
-
-%MLEs are the same, but book states
-%xbar - x  =  mean(ais$BMI) - 21.82 which is not 1.141 for females as stated in book 
-%presumably also algebraic vs numeric calculations somewhere, e.g. info matrix?
-
-
-TODO teach people to make a S3 method for their new class 
-
-TODO can't refit submodels - only works for standard cov selection problems
+\bibliography{fic}
 
 \end{document}
 

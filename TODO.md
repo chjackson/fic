@@ -1,7 +1,5 @@
 * linear models vignette
 
-* results in skew normal vignette 
-
 * Make sure all help pages complete
 
 * Error handling for all functions

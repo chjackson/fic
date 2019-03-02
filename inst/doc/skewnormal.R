@@ -4,7 +4,7 @@ ldsnorm <- function(x, mean, sd, lambda){
         dnorm(x, mean, sd, log=TRUE)
 }
 
-## ------------------------------------------------------------------------
+## ----fig.height=5--------------------------------------------------------
 if (!require("sn"))
     stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
@@ -53,39 +53,34 @@ median_snorm <- function(mu, sigma, lambda){
 
 ## ------------------------------------------------------------------------
 focus1 <- function(par, X){
-    mean_snorm(mu = X %*% par[1:2], sigma=exp(par[3]), lambda=exp(par[4]))
+    mean_snorm(mu = par[1] + X %*% par[2],
+               sigma=exp(par[3]), lambda=exp(par[4]))
 }
 focus2 <- function(par, X){
-    median_snorm(mu = X %*% par[1:2], sigma = exp(par[3]), lambda = exp(par[4]))
+    median_snorm(mu = par[1] + X %*% par[2],
+                 sigma = exp(par[3]), lambda = exp(par[4]))
 }
 
 ## ------------------------------------------------------------------------
-inds <- rbind(c(1,0,1,0),
-              c(1,1,1,0),
-              c(1,0,1,1),
-              c(1,1,1,1))
+inds <- rbind("intcpt"     =c(1,0,1,0),
+              "cov"        =c(1,1,1,0),
+              "intcpt_skew"=c(1,0,1,1),
+              "cov_skew"   =c(1,1,1,1))
 
 fns <- list(coef=function(x)x$est,
             vcov=function(x)x$vcov,
             nobs=function(x)nrow(ais))
 
-med.bmi <- rbind(male=c(1, 23.56),
-                 female=c(1, 21.82))
-
-focus0 <- function(par){X %*% par[1:2]}
-fic(mod2, inds=rbind(c(1,0,1),c(1,1,1)), fns=fns, focus=focus0, X=med.bmi, FIC=TRUE,
-    sub=list(mod1, mod2))
+med.bmi <- rbind(male=23.56,  female=21.82)
 
 fmean <- fic(mod4, inds=inds, fns=fns, focus=focus1, X=med.bmi, FIC=TRUE,
-    sub=list(mod1, mod2, mod3, mod4))
+             sub=list(mod1, mod2, mod3, mod4))
 fmean 
-fmed <- fic(mod4, inds=inds, fns=fns, focus=focus2, X=med.bmi,
-    sub=list(mod1, mod2, mod3, mod4))
+fmed <- fic(mod4, inds=inds, fns=fns, focus=focus2, X=med.bmi, FIC=TRUE,
+            sub=list(mod1, mod2, mod3, mod4))
 fmed
 
-library(ggplot2)
-
+## ----fig.width=7,fig.height=4--------------------------------------------
 ggplot_fic(fmean)
 ggplot_fic(fmed)
-
 
