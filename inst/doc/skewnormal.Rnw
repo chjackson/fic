@@ -1,6 +1,6 @@
 %\VignetteIndexEntry{Examples of focused model comparison: skew-normal models}
 %\VignetteEngine{knitr::knitr}
-%\VignetteDepends{fic,msm}
+%\VignetteDepends{fic,sn}
 
 \documentclass[nojss,nofooter]{jss}
 

@@ -14,10 +14,10 @@ A matrix should be supplied if there are multiple submodels.  This should have n
 \item{wide}{Fitted model object containing the wide model.}
 }
 \description{
-Given a model indicator `inds` identifying terms in a regression
-model, convert this to the format needed for `fic` by converting
+Given a model indicator \code{inds} identifying terms in a regression
+model, convert this to the format needed for \code{\link{fic}} by converting
 indicators for regression terms to indicators for inclusion of
-parameters.
+parameters.  Only required if there are factors.
 }
 \details{
 If a regression term is a factor, then the 0 or 1 indicating its

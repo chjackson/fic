@@ -25,7 +25,7 @@ A matrix should be supplied if there are multiple submodels.  This should have n
 
 This defaults to 0, as in covariate selection, where "excluded" coefficients are fixed to 0. 
 
-This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of \code{inds0} which are zero.}
 
 \item{focus}{An R function with:
 
@@ -59,9 +59,13 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in X.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
 
-\item{sub}{List of fitted model objects corresponding to each submodel to be assessed.  This can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.  For some classes of models with built in methods for \code{fic}, e.g. \code{\link{fic.glm}}, the submodels are fitted automatically by default.}
+\item{sub}{List of fitted model objects corresponding to each submodel to be assessed. 
+
+For some classes of models with built in methods for \code{fic}, e.g. \code{\link{fic.glm}}, the submodels are fitted automatically by default, so this argument does not need to be supplied.
+
+Otherwise, this argument can be omitted, but it is required if you want the estimate of the focus function under each submodel to be included in the results, which is usually the case.}
 
 \item{fns}{Named list of functions to extract the quantities from the fitted model object that are required to calculate the focused model comparison statistics.  By default this is
 
@@ -76,13 +80,12 @@ Suppose the fitted model object is called \code{mod}.  This default list assumes
 \item \code{nobs(mod)} returns the number of observations used in the model fit.  Only required if the `classic` FIC is required, and not required to compute the mean square error of the focus.
 }
 
-If one or more of these assumptions is not true, then the defaults can be changed.
+If one or more of these functions does not work for \code{mod}, then the defaults can be changed.
 For example, suppose the functions \code{coef()}, \code{nobs()} and \code{vcov()} are
 not understood (or return something different) for your class of model objects, but
 the parameters are stored in \code{mod$estimates},
 the number of observations is in \code{mod$data$nobs}, and
 the covariance matrix is in \code{mod$cov}, 
-
 then the \code{fns} argument should be set to 
 
 \code{list(
@@ -93,31 +96,31 @@ then the \code{fns} argument should be set to
 
 If less than three components are specified in \code{fns}, then the missing components are assumed to take their default values.}
 
-\item{FIC}{If \code{TRUE} then the Focused Information Criterion is returned with the results alongside the mean squared error and its components.  This is done for built-in model classes, but optional for user-defined model classes, since it requires knowledge of the sample size \code{n} as well as the estimates and covariance matrix under the wide model.}
+\item{FIC}{If \code{TRUE}, then the Focused Information Criterion is returned with the results alongside the mean squared error and its components.  This is done for built-in model classes, but optional for user-defined model classes, since it requires knowledge of the sample size \code{n} as well as the estimates and covariance matrix under the wide model.}
 
-\item{B}{If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then the parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument (TODO ref to other doc)}
+\item{B}{If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then a parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument. More details of this approach are given in the package vignette "Focused model comparison with bootstrapping and alternative loss functions".}
 
-\item{loss}{A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.}
+\item{loss}{A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.   An example is given in the vignette  "Focused model comparison with bootstrapping and alternative loss functions".}
 
-\item{tidy}{If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
+\item{tidy}{If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, \code{X} values and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
 
 \item{\dots}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \value{
-A vector containing the following components, describing characteristics of the defined submodel.  See the package vignette for full, formal definitions, and Chapter 6 of Claeskens and Hjort, 2008.
+The returned data frame or array contains the following components, describing characteristics of the defined submodel.  See the package vignette for full, formal definitions, and Chapter 6 of Claeskens and Hjort, 2008.
 
 \item{rmse}{The root mean square error of the estimate of the focus quantity.  Defined as the square root of (squared unadjusted bias plus variance).  This is an asymptotically unbiased estimator, but may occasionally be indeterminate if the estimate of the squared bias plus variance is negative.}
 
-\item{rmse.adj}{The root mean square error, based on a bias estimator which avoids negative squared bias.  Defined on page 157 of Claeskens and Hjort as the sum of the variance and the squared adjusted bias.}
+\item{rmse.adj}{The root mean square error, based on a bias estimator which is adjusted to avoid negative squared bias.  Defined on page 157 of Claeskens and Hjort as the sum of the variance and the squared adjusted bias.}
 
-\item{bias}{The estimated bias of the focus quantity, adjusted to avoid negative squared bias.  This is defined as the square root of the quantity "sqb3(S)", page 152 of Claeskens and Hjort, multiplied by the sign of the unadjusted bias. }
+\item{bias}{The estimated bias of the focus quantity, adjusted to avoid negative squared bias.  This is defined as the square root of the quantity \eqn{sqb3(S)} from page 152 of Claeskens and Hjort, multiplied by the sign of the unadjusted bias. }
 
 \item{se}{The estimated standard error (root variance) of the focus quantity.  Defined on page 157.}
 
-\item{FIC}{The focused information criterion (equation 6.1), if \code{FIC=TRUE} was supplied. }
+\item{FIC}{The focused information criterion (equation 6.1 from Claeskens and Hjort), if \code{FIC=TRUE} was supplied. }
 
 
-The following are returned as attributes of the model object, thus can be extracted with the \code{\link{attr}} function.
+The object returned by \code{fic} also has the following attributes, which can be extracted with the \code{\link{attr}} function.
 
 \item{iwide}{Index of the wide model in the vector of submodels, or \code{NULL} if the wide model is not included. }
 

@@ -15,10 +15,10 @@ get_H0(H0, t)
 Fitted cumulative hazard at \code{t}.
 }
 \description{
-Returns the baseline cumulative hazard from the fitted model at
-the requested times.  Linear interpolation is used, assuming the
-hazard is piecewise constant, thus the cumulative hazard is
-piecewise linear.
+Returns the baseline cumulative hazard, at the requested times,
+from a Cox model fitted by \code{\link[survival]{coxph}}.  Linear
+interpolation is used, assuming the hazard is piecewise constant,
+thus the cumulative hazard is piecewise linear.
 }
 \details{
 This does not extrapolate.  If \code{t} is outside the observed event times, then \code{NA} will be returned.

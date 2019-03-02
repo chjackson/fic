@@ -20,7 +20,7 @@ A matrix should be supplied if there are multiple submodels.  This should have n
 
 This defaults to 0, as in covariate selection, where "excluded" coefficients are fixed to 0. 
 
-This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of inds0 which are zero.}
+This should either be a scalar, assumed to be the same for all parameters fixed in the narrow model, or a vector of length equal to the number of parameters from the wide model which are fixed in the narrow model, that is, the number of entries of \code{inds0} which are zero.}
 
 \item{focus}{Three built-in focus quantities are supported:
 
@@ -30,7 +30,7 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 
 \code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
 
-Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate}
+Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the cumulative hazards.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.  See the section "User-defined focuses" below for a little more information.}
 
 \item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
 
@@ -46,7 +46,7 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 
 \item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.}
 
-\item{tidy}{If \code{TRUE} return the results as a data frame.  If \code{FALSE}, return the results as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
+\item{tidy}{If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, \code{X} values and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
 
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
@@ -54,7 +54,7 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 Focused model comparison for Cox models fitted with \code{coxph} from the \code{survival} package.  Built-in focuses include the hazard ratio, survival and cumulative hazard.
 }
 \details{
-Stratified Cox models are not currently supported
+Stratified Cox models are not currently supported.
 }
 \section{User-defined focuses}{
 
@@ -75,6 +75,6 @@ For examples, examine the source for the built-in functions
 
 \code{fic:::cox_cumhaz,fic:::cox_cumhaz_deriv,fic:::cox_cumhaz_dH} for the cumulative hazard
 
-\code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival
+\code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival.
 }
 

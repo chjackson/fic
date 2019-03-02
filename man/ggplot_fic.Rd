@@ -21,5 +21,13 @@ ggplot_fic(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
 \item{ylim}{y-axis limits}
 }
 \description{
-Plot focused model comparison statistics: ggplot2 method
+This only works if the focus estimates are available. The focus estimates are
+plotted against the root MSE.  One plot is made for each covariate
+value defining different focuses.  If the wide model estimate is
+available, this is illustrated as a solid line on the plot, and if
+the narrow model estimate is available, this is showm as a dashed
+line.
+}
+\seealso{
+plot.fic, summary.fic
 }

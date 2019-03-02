@@ -32,6 +32,8 @@
 ##' 
 ##' @param ... Other options to pass to \code{\link{plot}}.
 ##'
+##' @seealso ggplot_fic, summary.fic
+##'
 ##' @import graphics grDevices
 ##'
 ##' @export
@@ -86,15 +88,23 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
     }
 }
 
-## TODO decide what to do when no focus 
 
 ##' Plot focused model comparison statistics: ggplot2 method
+##'
+##' This only works if the focus estimates are available. The focus estimates are
+##' plotted against the root MSE.  One plot is made for each covariate
+##' value defining different focuses.  If the wide model estimate is
+##' available, this is illustrated as a solid line on the plot, and if
+##' the narrow model estimate is available, this is showm as a dashed
+##' line.
 ##'
 ##' @inheritParams plot.fic
 ##'
 ##' @importFrom scales hue_pal
 ##' 
 ##' @import ggplot2
+##'
+##' @seealso plot.fic, summary.fic
 ##' 
 ##' @export
 ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){

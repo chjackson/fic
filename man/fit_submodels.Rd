@@ -15,7 +15,7 @@ fit_submodels(wide, inds)
 A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 }
 \value{
-List of all fitted submodel objects
+List of all fitted submodel objects.
 }
 \description{
 Fit the submodels of a wide model \code{wide} which are defined by

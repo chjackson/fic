@@ -1,5 +1,6 @@
 %\VignetteIndexEntry{Using the fic R package for focused model comparison: linear regression}
 %\VignetteEngine{knitr::knitr}
+%\VignetteDepends{fic}
 
 \documentclass[nojss,nofooter]{jss}
 

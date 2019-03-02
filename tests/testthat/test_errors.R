@@ -25,7 +25,7 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, gam
 
 expect_error(
     fic(2, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, gamma0=rep(0, 7)),
-    "argument is specified correctly") ## TODO nicer way to detect that something is a fitted model object.  par, n and J should be extracted with no error and be of right form
+    "argument is specified correctly")
 
 
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=mod1.glm),
@@ -42,10 +42,17 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub
 
 ## errors in lower-level functions 
 
-## TODO mismatch between X and length of par
+## Mismatch between X and length of par
 ## Currently check_X checks for X too big
 ## Hard to check for X too small, as covariate effects might be a subset of full set of pars, and hard to identify which pars are the covariate effects 
-## This check might need to be done within the focus function. 
+## This check would need to be done within the focus function. 
+
+Xbig <- X[,c(1:8,8)]
+expect_error(
+    fic(wide=wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=Xbig),
+    "Number of columns")
+
+
 
 expect_error(get_fns(list(foo=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1, bar=2)), "components named")

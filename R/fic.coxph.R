@@ -16,11 +16,11 @@
 ##'
 ##' \code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
 ##'
-##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the times.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.   TODO EXAMPLES, elaborate
+##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the cumulative hazards.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.  See the section "User-defined focuses" below for a little more information.
 ##'
 ##' @param sub If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.
 ##'
-##' @details Stratified Cox models are not currently supported
+##' @details Stratified Cox models are not currently supported.
 ##' 
 ##' @rdname fic.coxph
 ##'
@@ -46,7 +46,7 @@
 ##'
 ##' \code{fic:::cox_cumhaz,fic:::cox_cumhaz_deriv,fic:::cox_cumhaz_dH} for the cumulative hazard
 ##'
-##' \code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival 
+##' \code{fic:::cox_survival,fic:::cox_survival_deriv,fic:::cox_survival_dH} for the survival.
 ##'
 ##' 
 ##' @export
@@ -247,7 +247,6 @@ fic_coxph_core <- function(wide,
 ## Linear predictor from a Cox model
 ## note predict.coxph centres covariates around their means 
 
-
 linpred <- function(mod, centered=FALSE){ 
     mm <- model.matrix(mod)
     if (centered) {
@@ -267,7 +266,6 @@ diag.array <- function(arr){
     inds <- as.matrix(cbind(eg, eg))
     array(arr[inds], dim=c(dim1,dim2))
 }
-
 
 
 get_focus_cox <- function(focus, focus_deriv=NULL, focus_dH=NULL, par=NULL, H0=NULL, X=NULL, t=NULL, ...){
@@ -322,10 +320,10 @@ cox_hr_dH <- function(par, H0, X, t){
 
 ##' Interpolate cumulative hazard function from a fitted Cox model
 ##'
-##' Returns the baseline cumulative hazard from the fitted model at
-##' the requested times.  Linear interpolation is used, assuming the
-##' hazard is piecewise constant, thus the cumulative hazard is
-##' piecewise linear.
+##' Returns the baseline cumulative hazard, at the requested times,
+##' from a Cox model fitted by \code{\link[survival]{coxph}}.  Linear
+##' interpolation is used, assuming the hazard is piecewise constant,
+##' thus the cumulative hazard is piecewise linear.
 ##'
 ##' @param H0 output from \code{\link[survival]{basehaz}}, containing estimates of the baseline cumulative hazard at a series of times.
 ##'

@@ -764,28 +764,75 @@ plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"],
 
 \section{Discussion}
 
-Philosophy behind package.  Consider what model is used for. 
+In focused model comparison, we make an explicit connection between
+statistical models and the scientific questions that the models were
+designed to address.  Different models might give better estimates of
+different focus quantities of interest.  The focused information
+criterion (or mean square error) enables models to be compared
+according to how well they balance the bias and variance of an
+estimate of interest.  The criterion can be decomposed into bias and
+variance terms that allow this trade-off to be examined directly.
 
-Don't necessarily recommend using a single model, but comparing the
-bias and variance tradeoffs associated with a range of models.   
-Model uncertainty should be acknowledged.    Part of a broader 
-scientific process of inference and decision making 
+The \pkg{fic} package performs focused model comparison easily for any
+class of models fitted by maximum likelihood.  The package is designed
+to be easily extensible, by adding new model classes and focuses.  The
+vignettes illustrate some examples, and further contributions of code
+and worked examples would be welcome.  More advanced models, beyond
+standard maximum likelihood, might need novel focused criteria to be
+implemented.  Some generalisations were discussed by
+\citet{claeskens:hjort:book}, for example, for mixed models, missing
+data, and where a submodel is on the boundary of the parameter
+space. \citet{gueuning2018} developed focused information criteria for
+situations where one or more of the models being compared is not
+identifiable from the data, for example, high-dimensional regression.
+\emph{ANY MORE RELEVANT LITERATURE?}
 
-Post-selection inference, model averaging.  Could we recommend
-bootstrapping the model selection procedure?   though properties not
-investigated 
+Model uncertainty is an area of ongoing research.  It is often not
+wise to highlight only the results of the single model that is
+selected by a criterion.  If multiple well-performing models give
+different estimates, then the uncertainty about the model choice
+should be acknowledged.  If a single ``best'' estimate is desired,
+then this could be produced by a model-averaged estimator (see, e.g.
+\citet{hjort:claeskens}, \citet{claeskens:hjort:book}, \emph{[any more
+  recent literature]}).  Alternatively, if we wish to highlight a
+single best model, this could provide the point estimate, but coupled
+with a confidence interval that acknowledges the range of models that
+have been selected from.  In either case, determining appropriate
+confidence intervals or standard errors is challenging \emph{[BEST
+  RECENT REFS?]}  Bootstrapping, e.g. by resampling the data, or
+resampling parameters from their asymptotic sampling distributions
+under a wide model, is an attractive method of handling model
+uncertainty that is simple to implement in software, though its
+theoretical properties in this context are not well understood.  See,
+e.g. \citet{claeskens:hjort:book}, \citet{breiman1996bagging},
+\citet{my:averaging:bayesian}, \emph{[ANYTHING ELSE]} for examples and
+discussion.
 
-Decision making.  Bootstrapping suggested as route to alternative
-losses, but nice go further and use for discrete decision making 
-eg resampling pars from wide model, though 
+Estimation is often followed by decision making.  Formal decision
+theory might also lend itself to focused model comparison.  For
+example we might consider the ``focus'' to be the decision among
+discrete actions with optimal expected loss.  Again, bootstrapping
+might provide a route to focused model comparison, e.g. by calculating
+the average loss, over a set of bootstrap resamples, of decisions made
+under competing models.
 
-High dimensional regression, \citep{gueuning2018}. 
-If wide model is not identifiable then use submodel-based estimates to
-compute the criterion, else use penalisation 
-
-Advanced topics discussed in C + H book, recent literature? 
-
-Designed to be extensible --- contributions and worked examples welcome 
+Focused model comparison principles might also be used for Bayesian
+inference.  In realistic situations, the true process is typically
+more complex than the biggest model that can be identified from the
+data.  In a Bayesian perspective, we might use a
+theoretically-realistic model, but with a prior that encodes external
+information to enable the parameters to be identified from the data,
+e.g. through shrinkage, regularisation or elicited judgements.
+However, the appropriate model or prior might still be uncertain, and
+we may have multiple competing models.  \citet{claeskens:hjort:book}
+present some equivalents of FIC for Bayesian estimators where there is
+prior information about departures from the narrow model.  Various
+criteria, with justifications related to cross-validation or
+predictive loss, have been developed to compare Bayesian models
+\citep{dic,plummer:dic,watanabe2013widely,vehtari2017practical} or
+average their estimates \citep{yao:stacking}.  These might also be
+extended to enable models to be compared for different focuses.
+\emph{[ANYTHING ELSE BAYESIAN?]}
 
 
 \bibliography{fic}

@@ -19,4 +19,6 @@ Convert data frame of covariate values to a design matrix, excluding the interce
 }
 \details{
 Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
+
+See the Cox regression section of the main package vignette for an example.
 }

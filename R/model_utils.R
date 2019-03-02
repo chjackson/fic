@@ -1,9 +1,9 @@
 ##' Form `fic` model indicator argument in presence of factors 
 ##'
-##' Given a model indicator `inds` identifying terms in a regression
-##' model, convert this to the format needed for `fic` by converting
+##' Given a model indicator \code{inds} identifying terms in a regression
+##' model, convert this to the format needed for \code{\link{fic}} by converting
 ##' indicators for regression terms to indicators for inclusion of
-##' parameters.
+##' parameters.  Only required if there are factors.
 ##'
 ##' If a regression term is a factor, then the 0 or 1 indicating its
 ##' inclusion/exclusion is replicated to a length given by the number
@@ -89,6 +89,8 @@ all_inds <- function(wide, inds0=NULL, intercept=TRUE){
 ##'
 ##' @details Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
 ##'
+##' See the Cox regression section of the main package vignette for an example. 
+##'
 ##' @export
 newdata_to_X <- function(newdata, wide){
     tt <- terms(wide)
@@ -116,7 +118,7 @@ newdata_to_X <- function(newdata, wide){
 ##'
 ##' @inheritParams fic
 ##'
-##' @return List of all fitted submodel objects 
+##' @return List of all fitted submodel objects.
 ##'
 ##' @export
 fit_submodels <- function(wide, inds){

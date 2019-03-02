@@ -42,3 +42,6 @@ of the focus estimate are plotted against the corresponding bias.
 The plot points are shaded with darkness proportional to the RMSE,
 with the point of maximum RMSE in black.
 }
+\seealso{
+ggplot_fic, summary.fic
+}

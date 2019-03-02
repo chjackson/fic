@@ -3,7 +3,8 @@
 \docType{data}
 \name{birthwt}
 \alias{birthwt}
-\title{Risk Factors Associated with Low Infant Birth Weight}
+\title{Risk Factors Associated with Low Infant Birth Weight 
+Risk factors associated with low infant birth weight.}
 \format{A data frame with 189 rows and 19 variables.  The first 10 columns are included in the dataset of the same name in the \pkg{MASS} package.  The remaining 9 columns are defined in Claeskens and Hjort (2008), and are included in this dataset for convenience.
 \describe{
     \item{low}{indicator of birth weight less than 2.5 kg}
@@ -33,7 +34,8 @@
 birthwt
 }
 \description{
-Risk Factors Associated with Low Infant Birth Weight
+Risk Factors Associated with Low Infant Birth Weight 
+Risk factors associated with low infant birth weight.
 }
 \references{
 Claeskens, G., & Hjort, N. L. (2008). Model selection and model averaging (Vol. 330). Cambridge: Cambridge University Press.
