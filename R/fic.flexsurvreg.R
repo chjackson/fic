@@ -1,6 +1,6 @@
-##' Focused Information Criterion for flexible parametric survival models
+##' Focused information criteria for flexible parametric survival models
 ##'
-##' Focused information criterion for parametric survival models fitted with the \pkg{flexsurv} package.  
+##' Focused information criteria for parametric survival models fitted with the \pkg{flexsurv} package.  
 ##'
 ##' @param wide Object of class \code{"flexsurvreg"} containing the wide model.  
 ##' These are returned, for example, by the \code{\link[flexsurv]{flexsurvreg}} and 

@@ -4,12 +4,14 @@
 \alias{summary.fic}
 \title{Summarise focused model comparison results}
 \usage{
-\method{summary}{fic}(object, tidy = TRUE, ...)
+\method{summary}{fic}(object, tidy = TRUE, adj = FALSE, ...)
 }
 \arguments{
 \item{object}{Object returned by \code{\link{fic}} representing focused model comparison statistics for a range of models, and potentially also multiple focus quantities.}
 
 \item{tidy}{If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  If \code{FALSE}, the results are returned as a list, including a vector of parameter names.}
+
+\item{adj}{The optimal model is the one with the lowest root mean square error (RMSE). If \code{adj=TRUE} the RMSE is based on the adjusted bias estimator.  Otherwise the standard estimator is used.}
 
 \item{...}{Other arguments, currently unused.}
 }

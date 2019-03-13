@@ -44,13 +44,17 @@ expand_inds <- function(inds, wide){
 
 
 
-##' Form indicator matrix describing all possible submodels of a wide model
+##' Form indicator matrix describing all submodels of a general linear wide model
+##'
+##' Form indicator matrix describing all possible submodels of a general linear wide model, where the submodels are defined by selected covariates.
 ##'
 ##' @param wide A fitted model of standard R format, such that \code{terms(wide)} returns information about the terms of the model formula.  Models outside standard R packages may not support this.
 ##'
-##' @param inds0 Narrow model indicators, in format described in \code{\link{fic}}
+##' @param inds0 Narrow model indicators, in format described in \code{\link{fic}}.
 ##'
-##' @param intercept Is a regression intercept included in the indicators?  Should be \code{TRUE} for standard fully parametric regression models, and \code{FALSE} for Cox regression.
+##' @param auxpars Names of parameters in the wide model other than the covariate effects being selected from.  By default, for linear and generalised linear models this is \code{c("(Intercept)")}, and for Cox regression this is omitted.
+##'
+##' @param ... Other arguments. Currently unused. 
 ##'
 ##' @return A matrix in the format required by the \code{inds} argument of \code{fic()}, representing all possible submodels of the wide model.
 ##'
@@ -58,23 +62,49 @@ expand_inds <- function(inds, wide){
 ##'
 ##' If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
 ##'
+##' @rdname all_inds 
 ##' 
 ##' @export
-all_inds <- function(wide, inds0=NULL, intercept=TRUE){
+all_inds.default <- function(wide, inds0=NULL, auxpars=NULL, ...){
     tt <- terms(wide)
     labs <- attr(tt, "term.labels")
-    if (inherits(wide, "coxph"))
-        intercept <- FALSE
-    if (intercept) labs <- c("(Intercept)",labs)
+    labs <- c(auxpars,labs)
     inds_short <- do.call(expand.grid, Map(function(x)c(0,1), labs))
-    ass <- attr(model.matrix(wide), "assign")
-    ass <- match(ass, unique(ass))
-    combs <- inds_short[,ass,drop=FALSE]
-    rownames(combs) <- apply(inds_short, 1, paste, collapse="")
+    rownames(inds_short) <- apply(inds_short, 1, paste, collapse="")
+    asn <- attr(model.matrix(wide), "assign")
+    pick <- match(asn, unique(asn))
+    combs <- inds_short[,pick,drop=FALSE]
+    if(length(inds0) != ncol(combs))
+        stop(sprintf("inds0 of length %s, but %s parameters in wide model",
+                     length(inds0),ncol(combs)))
     ininds0 <- if (!is.null(inds0)) apply(combs, 1, function(x) !any(x==0 & inds0==1)) else rep(TRUE, nrow(combs))
-    combs[ininds0,]
+    combs <- combs[ininds0,]
+    combs
 }
 
+##' @rdname all_inds 
+##' @export
+all_inds <- function(wide,inds0,...) UseMethod("all_inds")
+
+## todo put in model specific files
+
+##' @rdname all_inds 
+##' @export
+all_inds.lm <- function(wide, inds0, ...) {
+    all_inds.default(wide=wide, inds0=inds0, auxpars=c("(Intercept)"))
+}
+
+##' @rdname all_inds 
+##' @export
+all_inds.glm <- function(wide, inds0, ...) {
+    all_inds.default(wide=wide, inds0=inds0, auxpars=c("(Intercept)"))
+}
+
+##' @rdname all_inds 
+##' @export
+all_inds.coxph <- function(wide, inds0, ...) {
+    all_inds.default(wide=wide, inds0=inds0, auxpars=NULL)
+}
 
 
 ##' Convert data frame of covariate values to a design matrix, excluding the intercept
@@ -85,19 +115,23 @@ all_inds <- function(wide, inds0=NULL, intercept=TRUE){
 ##'
 ##' @param wide Wide model which includes these covariates.
 ##'
-##' @return "Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}.
+##' @param intercept Include an intercept as the first column.
+##'
+##' @return "Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}, with one row per alternative focus. The columns correspond to coefficients in a linear-type model.  For the built-in focus functions such as \code{\link{mean_normal}} and \code{\link{prob_logistic}}, these coefficients include an intercept, but user-written focuses may be written in such a way as not to require an intercept (as in the example in the "skew normal" vignette). 
 ##'
 ##' @details Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
 ##'
 ##' See the Cox regression section of the main package vignette for an example. 
 ##'
 ##' @export
-newdata_to_X <- function(newdata, wide){
+newdata_to_X <- function(newdata, wide, intercept=TRUE){
     tt <- terms(wide)
     faclevs <- .getXlevels(tt, model.frame(wide)) # list of levels of all factors
     fn <- names(faclevs)
     newdata[fn] <- lapply(newdata[fn], as.character) ## convert numerics supplied for factor levels to characters
-    X <- model.matrix(delete.response(tt), data=newdata, xlev=faclevs)[,-1,drop=FALSE]
+    ## TODO better error if wrong variable names in newdata 
+    X <- model.matrix(delete.response(tt), data=newdata, xlev=faclevs)
+    if (!intercept) X <- X[,-1,drop=FALSE]
     X
 }
 
@@ -120,11 +154,18 @@ newdata_to_X <- function(newdata, wide){
 ##'
 ##' @return List of all fitted submodel objects.
 ##'
+##' @rdname fit_submodels
+##' 
 ##' @export
-fit_submodels <- function(wide, inds){
+fit_submodels <- function(wide,inds,...) UseMethod("fit_submodels")
+
+fit_submodels.default <- function(wide, inds, ...){
     nmod <- nrow(inds)
     sub <- vector(nmod, mode="list")
+    names(sub) <- rownames(inds)
     XZ <- model.matrix(wide)
+#    if (length(inds_aux) > 0)
+#        inds <- inds[,-inds_aux,drop=FALSE]
     for (i in 1:nmod){
         XZi <- XZ[,which(inds[i,]==1),drop=FALSE]
         call <- wide$call
@@ -134,13 +175,20 @@ fit_submodels <- function(wide, inds){
     sub
 }
 
+## TODO put in model specific files ? 
+
+#fit_submodels.lm <- function(wide, inds, ...){
+#    fit_submodels.default(wide=wide, inds=inds, inds_aux=1)
+#}
+
 ### Can't seem to just do fit_submodels and then extract basehaz
 ### externally, since then basehaz seems to see the wrong XZi, for some
 ### strange reason related to environments.
 
-fit_submodels_coxph <- function(wide, inds){
+fit_submodels.coxph <- function(wide, inds, ...){
     nmod <- nrow(inds)
     sub <- vector(nmod, mode="list")
+    names(sub) <- rownames(inds)
     XZ <- model.matrix(wide)
     for (i in 1:nmod){
         XZi <- XZ[,which(inds[i,]==1),drop=FALSE]

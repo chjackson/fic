@@ -5,10 +5,11 @@
 \alias{fic_multi}
 \title{Focused information criteria: core calculation functions}
 \usage{
-fic_core(par, J, inds, inds0, gamma0 = 0, n, focus_deriv = NULL, ...)
+fic_core(par, J, inds, inds0, gamma0 = 0, n, focus_deriv = NULL)
 
 fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
-  focus_deriv = NULL, X = NULL, Xwt = NULL, parsub = NULL, ...)
+  focus_deriv = NULL, X = NULL, Xwt = NULL, parsub = NULL,
+  auxpar = NULL, auxsub = NULL, ...)
 }
 \arguments{
 \item{par}{Vector of maximum likelihood estimates from the wide model}
@@ -35,8 +36,6 @@ If there are multiple submodels, this should be a matrix with number of rows equ
 
 This should take the value given by \code{gamma0} in positions where the parameter is excluded from the submodel.
 For example, coefficients of covariates should take the value 0 if the covariate is excluded.}
-
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 
 \item{focus}{An R function with:
 
@@ -68,11 +67,17 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
-\item{parsub}{Vector of maximum likelihood estimates from the submodel.
+\item{parsub}{Vector of maximum likelihood estimates from the submodel, or a matrix if there are multiple submodels. 
 Only required to return the estimate of the focus quantity alongside 
 the model assessment statistics for the submodel. If omitted, the estimate is omitted.}
+
+\item{auxpar}{Estimates of auxiliary parameters from the wide model. The only built-in example is the dispersion parameter for GLMs.}
+
+\item{auxsub}{List of estimates of auxiliary parameters from the submodel.  The only built-in example is the dispersion parameter for GLMs.}
+
+\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \value{
 See \code{\link{fic}}

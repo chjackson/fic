@@ -36,5 +36,7 @@ Suggests: knitr,
     stats,
     msm(>= 1.6.6),
     flexsurv,
-    sn
+    sn,
+    gapminder,
+    GGally
 VignetteBuilder: knitr

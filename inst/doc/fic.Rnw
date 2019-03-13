@@ -48,9 +48,10 @@ opts_chunk$set(fig.path="fic-")
   of the estimate of that focus from the submodel, assuming that the
   wide model is true.
 
-  The \code{fic} package calculates this error, and related
-  quantities, straightforwardly for comparisons within any class of models fitted by
-  maximum likelihood.  There are shortcuts for commonly-used model
+  The \code{fic} package calculates this error, and shows the
+  bias-variance tradeoff directly, for comparisons within any class of models fitted by
+  maximum likelihood.   The tradeoff between bias and variance is
+  shown directlyThere are shortcuts for commonly-used model
   classes such as GLMs and parametric survival models.  Covariate selection 
   problems in Cox regression models are also supported. 
 }
@@ -353,7 +354,10 @@ function, mapping the parameters \code{par} of the wide model to the
 quantity of interest.   The focus can optionally have an second
 argument.  If supplied, this must be called \code{X}, and can be used
 to supply covariate values at which the focus function should be
-evaluated. 
+evaluated.  \footnote{Note we could also have written the focus
+  function as \code{function(par,X)plogis(par[1] + X \%*\% par[-1])}
+then we could have omitted the dummy covariate values of 1 for the intercept at the start of
+\code{vals.smoke} and \code{vals.nonsmoke}.}
  Here we take the probability of low birth weight as the focus, for two covariate categories: 
  
 \begin{enumerate}
@@ -365,12 +369,12 @@ evaluated.
 
 <<>>=
 focus <- function(par, X)plogis(X %*% par)
-@
-We can illustrate this function by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
-<<>>=
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
+@
+We can illustrate this function by calculating the probability of low birth weight, given the parameters of the fitted wide model, for each group.  This is about twice as high for smokers. 
+<<>>=
 focus(coef(wide.glm), X=X)
 @
 
@@ -451,7 +455,7 @@ be worth the increase in uncertainty.
 We may want to examine a broad range
 of models, particularly in regression contexts.  The function \code{all_inds} (a wrapper around
 \code{expand.grid}) creates a matrix of indicators that defines all
-submodels with different covariates, spanned by a given wide model (here \code{wide.glm} and a
+submodels with different covariates, spanned by a given wide model (here \code{wide.glm}) and a
 narrow model (here defined by \code{inds0}).  This
 function works only for all classes of model objects \code{x} for which the
 \code{terms(x)} function is understood, which includes standard R
@@ -712,7 +716,7 @@ narrow model are compared. As before, a matrix of indicators
 describing these models is constructed, and the submodels are fitted
 automatically within the \code{fic} function.
 <<>>=
-combs <- all_inds(wide,inds0,intercept=FALSE)
+combs <- all_inds(wide,inds0)
 @
 
 The focus is defined as the 5 year survival probability
@@ -724,14 +728,16 @@ epithelioid cells and ulceration present, and invasion depth 2.  The
 utility \code{newdata_to_X}  is used to convert the user-defined data
 frame \code{newdata} that identifies these covariate values, with one 
 variable per covariate or factor, to a design matrix \code{X}, with
-one column for each of the 10 parameter values. 
+one column for each of the 10 parameter values.\footnote{Note the
+  intercept is excluded here, as Cox models don't have a regression
+  intercept term.  In GLMs, the design matrix usually includes an intercept.}
 <<>>=
 newdata <- with(melanoma,
                 data.frame(sex = c("female","male"),
                            thick_centred = tapply(thick_centred, sex, mean),
                            infilt=4, epith=1, ulcer=1, depth=2,
                            age = tapply(age, sex, mean)))
-X <- newdata_to_X(newdata, wide)
+X <- newdata_to_X(newdata, wide, intercept=FALSE)
 ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
 ggplot_fic(ficall, ci=FALSE, xlim=c(0,1))
 @ 
@@ -767,10 +773,10 @@ plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"],
 In focused model comparison, we make an explicit connection between
 statistical models and the scientific questions that the models were
 designed to address.  Different models might give better estimates of
-different focus quantities of interest.  The focused information
-criterion (or mean square error) enables models to be compared
+different focus quantities of interest.  Focused information
+criteria enable models to be compared
 according to how well they balance the bias and variance of an
-estimate of interest.  The criterion can be decomposed into bias and
+estimate of interest.  The criteria can be decomposed into bias and
 variance terms that allow this trade-off to be examined directly.
 
 The \pkg{fic} package performs focused model comparison easily for any

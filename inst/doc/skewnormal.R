@@ -1,6 +1,6 @@
 ## ------------------------------------------------------------------------
 ldsnorm <- function(x, mean, sd, lambda){
-    log(lambda) + (lambda-1)*pnorm(x, mean, sd, log=TRUE) +
+    log(lambda) + (lambda-1)*pnorm(x, mean, sd, log.p=TRUE) +
         dnorm(x, mean, sd, log=TRUE)
 }
 

@@ -117,7 +117,6 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
     col <- scales::hue_pal()(3)[3]
-    
     ps <- ggplot(data=x, aes_string(x='focus', y='rmse.adj'))
     if (!is.null(iwide)){
         indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])

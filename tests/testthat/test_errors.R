@@ -14,7 +14,7 @@ expect_error(fic(wide=wide.glm, inds=c(inds1,0), inds0=inds0, focus=focus_plogis
              "`inds` of length")
 expect_error(fic(wide=wide.glm, inds=inds1, inds0=inds0[-1], focus=focus_plogis, X=X),
              "Length of `inds0` must match number of parameters")
-expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus="foo", X=X), "focus function `foo` not found")
+expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus="foo", X=X), "not found")
 
 Xwrong <- cbind(X, c(1,1))
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=Xwrong),
@@ -35,13 +35,6 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub
 mod2.glm <- glm(low ~ lwtkg + age, data=birthwt, family=binomial)
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm)), "`sub` of length")
 
-
-## TODO errors for parsub in fic_multi
-
-## Lengths of parameters in submodels don't match inds
-
-## errors in lower-level functions 
-
 ## Mismatch between X and length of par
 ## Currently check_X checks for X too big
 ## Hard to check for X too small, as covariate effects might be a subset of full set of pars, and hard to identify which pars are the covariate effects 
@@ -52,12 +45,27 @@ expect_error(
     fic(wide=wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=Xbig),
     "Number of columns")
 
-
-
 expect_error(get_fns(list(foo=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1)), "should be a function")
 
+test_that("Xwt of wrong length",{
+    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1, 0.9, 0.1)), "of length 3")
+    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1)), "of length 1")
+})
 
 
-## TODO fns argument not supplied for new model class 
+pars <- coef(wide.glm)
+n <- nrow(birthwt)
+J <- solve(vcov(wide.glm))
+
+test_that("parsub wrong length in lower level functions",{
+expect_error( 
+    fic_multi(par=pars, J=J,  inds=inds1, inds0=inds0, n=n, focus="prob_logistic", X=X,
+              parsub=c(coef(mod1.glm), 0, 0, 0, 0, 0)),
+    "parsub of length 9, should be 8")
+expect_error( 
+    fic_multi(par=pars, J=J,  inds=inds1, inds0=inds0, n=n, focus="prob_logistic", X=X,
+              parsub=c(coef(mod1.glm), 0, 0, 0)),
+    "parsub of length 7, should be 8")
+})

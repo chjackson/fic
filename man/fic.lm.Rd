@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.lm.R
 \name{fic.lm}
 \alias{fic.lm}
-\title{Focused Information Criterion for linear models}
+\title{Focused information criteria for linear models}
 \usage{
 \method{fic}{lm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
   focus_deriv = NULL, X = NULL, Xwt = NULL, sub = "auto", B = 0,
@@ -55,11 +55,17 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results. 
 
-TODO put mtcars in rd example}
+The model parameters include the intercept, followed by the coefficients of any covariates.   The standard deviation is excluded.
+
+Only covariate selection problems are supported in this function.  To compare between models with a fixed and unknown standard deviation, hand-written maximum likelihood estimation routines would be needed, along the lines described in the "skew-normal models" vignette. 
+
+The focus can depend on the standard deviation.  The focus function should then have an argument \code{sigma}. 
+
+See the vignette "Using the fic R package for focused model comparison: linear regression" for some examples.}
 
 \item{B}{If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then a parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument. More details of this approach are given in the package vignette "Focused model comparison with bootstrapping and alternative loss functions".}
 
@@ -68,7 +74,7 @@ TODO put mtcars in rd example}
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for linear models fitted with \code{\link{lm}}.
-Used to compare models with different covariates (more generally,
+Focused information criteria for linear models fitted with \code{\link{lm}}.
+Typically used to compare models with different covariates (more generally,
 different linear terms).
 }

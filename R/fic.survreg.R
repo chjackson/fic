@@ -1,6 +1,6 @@
-##' Focused Information Criterion for parametric survival models
+##' Focused information criteria for parametric survival models
 ##'
-##' Focused information criterion for parametric survival models fitted with the \pkg{survival} package.  
+##' Focused information criteria for parametric survival models fitted with the \pkg{survival} package.  
 ##'
 ##' @param wide Object returned by the \code{\link{survreg}} function, containing the wide model.  
 ##'

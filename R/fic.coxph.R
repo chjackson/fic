@@ -65,7 +65,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     if (is.null(t)) t <- 1 # e.g. for hazard ratio, which is indep of time
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
     if (isTRUE(sub=="auto"))
-        sub <- fit_submodels_coxph(wide, inds)
+        sub <- fit_submodels(wide, inds)
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, coef, wide)
     H0 <- basehaz(wide, centered=FALSE)
     fl <- get_focus_cox(focus, par=par, X=X, H0=H0, t=t)

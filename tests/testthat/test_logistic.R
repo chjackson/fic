@@ -45,7 +45,12 @@ test_that("Multiple submodels",{
 parsub <- rbind(c(coef(mod1.glm), 0, 0, 0, 0),
                 c(coef(mod2.glm),    0, 0, 0))
 num <- fic_multi(par=par, J=J,  inds=inds, inds0=inds0, n=n, focus=focus_plogis, X=X, parsub=parsub)
-ficall <- fic(wide.glm, inds=inds, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm))
+
+test_that("Fitting submodels",{
+    ficall <- fic(wide.glm, inds=inds, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm))
+    ficall2 <- fic(wide.glm, inds=inds, inds0=inds0, focus=focus_plogis, X=X)
+    expect_equal(ficall$focus, ficall2$focus)
+})
 
 test_that("Supplying submodel parameters with multiple submodels",{
     expect_equivalent(focus_plogis(parsub[1,], X[2,]),
@@ -54,13 +59,28 @@ test_that("Supplying submodel parameters with multiple submodels",{
                       num["vals.nonsmoke", "focus", "inds1"])
 })
 
+#test_that("Narrow model parameters in the middle",{
+inds0mid <- c(1,0,1,0,0,0,0,0)
+fic(wide.glm, inds=inds1, inds0=inds0mid, focus=prob_logistic, X=X)
+#})
 
+test_that("Vector or matrix focuses allowed",{
+    ficmat <- fic(wide.glm, inds=inds1, inds0=inds0mid, focus=prob_logistic, X=X)
+    ficsm <- fic(wide.glm, inds=inds1, inds0=inds0mid, focus=prob_logistic, X=vals.smoke)
+    ficnsm <- fic(wide.glm, inds=inds1, inds0=inds0mid, focus=prob_logistic, X=vals.nonsmoke)
+    expect_equal(ficmat[ficmat$vals=="vals.smoke",c("rmse","focus")],
+                 ficsm[,c("rmse","focus")])
+})
 
-#### TESTS TODO
+test_that("Covariate weights", { 
+    ficwt <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1, 0.9))
+    ficwt2 <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.9, 0.1))
+    expect_lt(ficwt2$rmse[ficwt2$vals=="ave"], ficwt$rmse[ficwt$vals=="ave"])
+})
 
-## Narrow model parameters in the middle
-
-
-## sum(indsS) == 0
-
-## calling core with multiple vector focuses gives same as matrix 
+test_that("Tidy and untidy output",{ 
+    ficall <- fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X)
+    ficall_untidy <- fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, tidy=FALSE)
+    expect_equivalent(ficall$rmse[ficall$vals=="vals.smoke"],
+                      ficall_untidy["vals.smoke","rmse",])
+})

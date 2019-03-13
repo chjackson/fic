@@ -16,7 +16,7 @@ newdata <- with(melanoma,
                            thick_centred = tapply(thick_centred, sex, mean),
                            infilt=4, epith=1, ulcer=1, depth=2,
                            age = tapply(age, sex, mean)))
-X <- newdata_to_X(newdata, wide)
+X <- newdata_to_X(newdata, wide, intercept=FALSE)
 
 ficall <- fic(wide, inds=inds, inds0=inds0, focus="survival", X=X, t=5)
 

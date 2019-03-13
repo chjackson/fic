@@ -177,7 +177,7 @@ the expected total time in each state, for a given model, covariate values and t
 interval. For the wide model, in this example, this is
 
 <<>>=
-totlos.msm(psor.wide.msm, covariates=0, t=10)
+totlos.msm(psor.wide.msm, covariates=0, tot=10)
 @ 
 
 However, for \code{fic}, the focus needs to be defined as a function of the
@@ -191,7 +191,7 @@ in the second argument.   This allows the focus function for
 <<>>=
 focus_tlos <- function(pars){
     x.new <- updatepars.msm(psor.wide.msm, pars)
-    totlos.msm(x.new, covariates=0, t=10)["State 4"]
+    totlos.msm(x.new, covariates=0, tot=10)["State 4"]
 }
 @
 

@@ -1,6 +1,6 @@
-##' Focused Information Criterion for multi-state models for panel data
+##' Focused information criteria for multi-state models for panel data
 ##'
-##' Focused information criterion for multi-state models fitted with \code{\link[msm]{msm}} from the \pkg{msm} package. 
+##' Focused information criteria for multi-state models fitted with \code{\link[msm]{msm}} from the \pkg{msm} package. 
 ##'
 ##' @param wide Object returned by \code{\link[msm]{msm}} containing the wide model.
 ##'

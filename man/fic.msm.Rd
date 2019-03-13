@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.msm.R
 \name{fic.msm}
 \alias{fic.msm}
-\title{Focused Information Criterion for multi-state models for panel data}
+\title{Focused information criteria for multi-state models for panel data}
 \usage{
 \method{fic}{msm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
   focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL, B = 0,
@@ -55,7 +55,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{sub}{List of objects returned by \code{\link[msm]{msm}} containing the submodels to be assessed.  Optional. Only required if you want the estimate of the focus
 function under the submodel to be included in the results.}
@@ -67,7 +67,7 @@ function under the submodel to be included in the results.}
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for multi-state models fitted with \code{\link[msm]{msm}} from the \pkg{msm} package.
+Focused information criteria for multi-state models fitted with \code{\link[msm]{msm}} from the \pkg{msm} package.
 }
 \details{
 This might be used for covariate selection, or comparing models with different constraints on the covariate effects or intensities.   An example is given in the \pkg{fic} package vignette "Examples of focused model comparison: multi-state models".  Note in particular in this example how the parameters are ordered in the \code{inds} argument, and how the various \pkg{msm} output functions can be used as focuses.

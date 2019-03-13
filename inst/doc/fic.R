@@ -11,11 +11,11 @@ wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
 
 ## ---------------------------------------------------------
 focus <- function(par, X)plogis(X %*% par)
-
-## ---------------------------------------------------------
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
+
+## ---------------------------------------------------------
 focus(coef(wide.glm), X=X)
 
 ## ---------------------------------------------------------
@@ -73,7 +73,7 @@ inds0
 #       dH=fic:::cox_survival_dH)
 
 ## ---------------------------------------------------------
-combs <- all_inds(wide,inds0,intercept=FALSE)
+combs <- all_inds(wide,inds0)
 
 ## ---------------------------------------------------------
 newdata <- with(melanoma,
@@ -81,7 +81,7 @@ newdata <- with(melanoma,
                            thick_centred = tapply(thick_centred, sex, mean),
                            infilt=4, epith=1, ulcer=1, depth=2,
                            age = tapply(age, sex, mean)))
-X <- newdata_to_X(newdata, wide)
+X <- newdata_to_X(newdata, wide, intercept=FALSE)
 ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
 ggplot_fic(ficall, ci=FALSE, xlim=c(0,1))
 

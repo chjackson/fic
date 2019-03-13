@@ -56,7 +56,7 @@ Models (1) and (2) are defined by setting $\lambda=1$ in models  (3) and (4)
 respectively. 
 <<>>=
 ldsnorm <- function(x, mean, sd, lambda){
-    log(lambda) + (lambda-1)*pnorm(x, mean, sd, log=TRUE) +
+    log(lambda) + (lambda-1)*pnorm(x, mean, sd, log.p=TRUE) +
         dnorm(x, mean, sd, log=TRUE)
 }
 @ 

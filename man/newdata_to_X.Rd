@@ -4,15 +4,17 @@
 \alias{newdata_to_X}
 \title{Convert data frame of covariate values to a design matrix, excluding the intercept}
 \usage{
-newdata_to_X(newdata, wide)
+newdata_to_X(newdata, wide, intercept = TRUE)
 }
 \arguments{
 \item{newdata}{Data frame where each row is a vector of covariate values defining an alternative focus quantity.}
 
 \item{wide}{Wide model which includes these covariates.}
+
+\item{intercept}{Include an intercept as the first column.}
 }
 \value{
-"Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}.
+"Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}, with one row per alternative focus. The columns correspond to coefficients in a linear-type model.  For the built-in focus functions such as \code{\link{mean_normal}} and \code{\link{prob_logistic}}, these coefficients include an intercept, but user-written focuses may be written in such a way as not to require an intercept (as in the example in the "skew normal" vignette).
 }
 \description{
 Convert data frame of covariate values to a design matrix, excluding the intercept

@@ -13,6 +13,8 @@ get_parnames <- function(par, inds){
 ##'
 ##' @param tidy If \code{TRUE} (the default) then the results describing the optimal model (per focus) are returned as a data frame, with the names of the parameters in the optimal model collapsed into a single string.  If \code{FALSE}, the results are returned as a list, including a vector of parameter names.
 ##'
+##' @param adj The optimal model is the one with the lowest root mean square error (RMSE). If \code{adj=TRUE} the RMSE is based on the adjusted bias estimator.  Otherwise the standard estimator is used. 
+##'
 ##' @param ... Other arguments, currently unused. 
 ##'
 ##' @return A list of two components, one for the optimal model per focus, and one for the range of focus and RMSE estimates over models.
@@ -20,7 +22,9 @@ get_parnames <- function(par, inds){
 ##' @seealso \code{\link{ggplot_fic}}, \code{\link{plot.fic}} for a more detailed visual representation of the focused comparison
 ##'
 ##' @export
-summary.fic <- function(object, tidy=TRUE, ...) {
+summary.fic <- function(object, tidy=TRUE, adj=FALSE, ...) {
+    if (adj)
+        object$rmse <- object$rmse.adj
     minfic <- function(x){
         ind <- which.min(x$rmse)
         focus <- x$focus[ind]

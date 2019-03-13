@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.glm.R
 \name{fic.glm}
 \alias{fic.glm}
-\title{Focused Information Criterion for generalized linear models}
+\title{Focused information criteria for generalized linear models}
 \usage{
 \method{fic}{glm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
   focus_deriv = NULL, X = NULL, Xwt = NULL, sub = "auto", B = 0,
@@ -55,7 +55,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.}
 
@@ -66,7 +66,67 @@ If just one covariate value is needed, then \code{X} can be a vector of length e
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for generalized linear models fitted with \code{\link{glm}}.
+Focused information criteria for generalized linear models fitted with \code{\link{glm}}.
 Used to compare models with different covariates (more generally,
 different linear terms).
+}
+\details{
+The model parameters include the intercept, followed by the coefficients of any covariates.  Any "dispersion" parameter is excluded from the parameters indicated by \code{inds} and \code{inds0}.   
+
+Only covariate selection problems are supported in this function.
+To compare between models with a fixed and unknown dispersion,
+glm() would have to be replaced by maximum likelihood
+estimation routines written by hand, along the lines described in
+the "skew-normal models" vignette.
+
+The focus function can however depend on the value of the
+dispersion parameter.  The focus function should then have
+an argument called \code{dispersion}.  See the example of a gamma
+GLM below, where the focus is the mean outcome for some covariate
+value.
+
+Examples of covariate selection in logistic regression are given in the main package vignette.
+}
+\examples{
+
+# Gamma regression with one binary covariate
+
+# Simulated data 
+set.seed(1)
+simx <- rbinom(1000, 1, 0.5)
+mean0 <- 1.1
+simy <- rgamma(1000, shape=2, scale=exp(log(mean0) + 0.2*simx))
+
+mod <- glm(simy ~ simx, family=Gamma(link="log"))
+
+# Check the parameter estimates are close to true
+# values used for simulation
+(shape <- 1 / summary(mod)$dispersion)
+coef(mod)[2] # log mean ratio associated with covariate. true value 0.2
+exp(coef(mod)[1] - log(shape))  # mean with x=0, true value 1.1
+exp(coef(mod)[1] + coef(mod)[2] - log(shape))  # mean with x=1
+
+focus_mean <- function(par, X, dispersion){  
+  exp(par \%*\% X - log(1/dispersion))
+}
+
+X <- rbind("x0" = c(1,0), "x1" = c(1,1))
+inds <- rbind("no_covariate"=c(1,0), "covariate"=c(1,1))
+
+fic(mod, inds=inds, focus=focus_mean, X=X)
+
+# The focus need not depend on X or the dispersion
+focus_base_scale <- function(par, dispersion){  
+  exp(par[1])
+}
+fic(mod, inds=inds, focus=focus_base_scale)
+
+# ...equivalently,
+focus_base_scale <- function(par){  
+  exp(par[1])
+}
+fic(mod, inds=inds, focus=focus_base_scale)
+
+
+
 }

@@ -2,15 +2,14 @@
 ##' @rdname fic_multi
 ##' @export 
 fic_core <- function(
-                       par,
-                       J, 
-                       inds,
-                       inds0, 
+                     par,
+                     J, 
+                     inds,
+                     inds0, 
                      gamma0 = 0,
-                       n,
-                       focus_deriv = NULL,
-                       ...
-                       ) 
+                     n,
+                     focus_deriv = NULL
+                     ) 
 {
     ## checking now done in fic_multi
     npar <- length(par)
@@ -161,10 +160,38 @@ check_X <- function(X, npar){
                 stop(sprintf("Number of columns of X is %s, this should be at most the number of parameters, %s", ncol(X), npar))
         }
         if (is.null(rownames(X))) rownames(X) <- seq_len(nrow(X))
+        if (any(duplicated(rownames(X)))) stop("X does not have unique row names")
     } else {
         X <- matrix(nrow=1, ncol=0) 
     }
     X
+}
+
+check_Xwt <- function(Xwt, nval){
+    if (is.null(Xwt))
+        Xwt <- rep(1/nval, nval)
+    lwt <- length(Xwt)
+    if (lwt != nval) 
+        stop(sprintf("Xwt of length %s, but should be %s, the number of alternative covariate values supplied in X", lwt, nval))
+    Xwt
+}
+
+
+check_focus <- function(focus, par, X, auxpar, ...)
+{
+    focus_args <- list(par)
+    focus_has_Xarg <- any(names(formals(focus)) == "X")
+    if (focus_has_Xarg)
+        focus_args <- c(focus_args, list(X))
+    focus_has_auxargs <- any(!(names(formals(focus)) %in% c("par","X")))
+    if (focus_has_auxargs)
+        focus_args <- c(focus_args, auxpar)
+    focus_args <- c(focus_args, list(...))
+    fn_try <- try(do.call(focus, focus_args))
+    if (inherits(fn_try, "try-error")){
+        argnames <- paste(paste0("`", names(formals(focus)[-1]), "`"), collapse=",")    
+        stop(sprintf("Evaluating the focus function returned an error.  Check that the arguments %s to the focus function have been supplied and are valid, e.g. have the right dimensions", argnames))
+    }
 }
 
 check_parsub <- function(parsub, npar, nmod){
@@ -196,9 +223,13 @@ check_parsub <- function(parsub, npar, nmod){
 ##'
 ##' @param n Number of observations in the data used to fit the wide model.
 ##'
-##' @param parsub Vector of maximum likelihood estimates from the submodel.  
+##' @param parsub Vector of maximum likelihood estimates from the submodel, or a matrix if there are multiple submodels. 
 ##' Only required to return the estimate of the focus quantity alongside 
 ##' the model assessment statistics for the submodel. If omitted, the estimate is omitted.
+##'
+##' @param auxpar Estimates of auxiliary parameters from the wide model. The only built-in example is the dispersion parameter for GLMs.
+##'
+##' @param auxsub List of estimates of auxiliary parameters from the submodel.  The only built-in example is the dispersion parameter for GLMs.
 ##' 
 ##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is required by \code{fic_core}.
 ##' 
@@ -225,7 +256,9 @@ fic_multi <- function(
                        focus_deriv = NULL,
                        X = NULL, 
                        Xwt = NULL, 
-                       parsub = NULL,
+                      parsub = NULL,
+                      auxpar = NULL, 
+                      auxsub = NULL,
                        ...
                       )
 
@@ -237,27 +270,32 @@ fic_multi <- function(
     nmod <- nrow(inds)
     X <- check_X(X, npar)
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
-    if (is.null(Xwt)) Xwt <- rep(1/nval, nval)
+    Xwt <- check_Xwt(Xwt, nval)
     outn <- c("rmse", "rmse.adj","bias", "se", "FIC")
     if (!is.null(parsub)) {
         parsub <- check_parsub(parsub, npar, nmod)
         outn <- c(outn, "focus")
     }
    
+    check_focus(focus, par, X, auxpar, ...)
     # Handle built-in focus functions
     fl <- get_focus(focus, focus_deriv, par, X, ...)
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
 
     if (!is.function(focus)) stop("`focus` must be a function")
+    focus_has_auxargs <- any(!(names(formals(focus)) %in% c("par","X")))
     if(is.null(focus_deriv)){
       ncols <- if(is.null(X)) 1 else nrow(X)
       focus_deriv <- matrix(nrow=npar, ncol=ncols)
       for (i in 1:ncols){
-        if (is.null(X))
-          focus_deriv[,i] <- numDeriv::grad(func=focus, x=par) 
-        else
-          focus_deriv[,i] <- numDeriv::grad(func=focus, x=par, X=X[i,]) 
+          grad_fn <- get("grad", asNamespace("numDeriv"))
+          Xi <- if (ncol(X)==0) NULL else X[i,]
+          grad_args <- list(func=focus, x=par, X=Xi)
+          if (focus_has_auxargs)
+              grad_args <- c(grad_args, auxpar)
+          grad_args <- c(grad_args, list(...))
+          focus_deriv[,i] <- do.call(grad_fn, grad_args)
       }
     }
 
@@ -268,12 +306,14 @@ fic_multi <- function(
     dimnames(res) <- list(vals=Xnames, outn, mods=rownames(inds))
     for (i in 1:nmod){
         ficres <- fic_core(par=par, J=J, inds=inds[i,], inds0=inds0,
-                             gamma0=gamma0, n=n, focus_deriv=focus_deriv,
-                             X=X, ...)
+                             gamma0=gamma0, n=n, focus_deriv=focus_deriv)
         if (!is.null(parsub)) {
             focus_val <- numeric(nval)
             for (j in 1:nval) {
-                focus_val[j] <- focus(par=parsub[i,], X=X[j,], ...)
+                focus_args <- list(par=parsub[i,], X=X[j,])
+                if (focus_has_auxargs) focus_args <- c(focus_args, auxsub[[i]])
+                focus_args <- c(focus_args, list(...))
+                focus_val[j] <- do.call("focus", focus_args)
             }
         } else focus_val <- NULL
         if (nval>1){
@@ -289,13 +329,14 @@ fic_multi <- function(
 }
 
 get_fns <- function(fns){
-    args <- c("coef","nobs","vcov","AIC","BIC")
+    args <- c("coef","nobs","vcov","AIC","BIC","aux")
     default_fns <- list(
         coef = stats::coef,
         nobs = stats::nobs,
         vcov = stats::vcov,
         AIC = stats::AIC,
-        BIC = stats::BIC
+        BIC = stats::BIC,
+        aux = function(x)NULL
     )
     ret <- default_fns
     if (!is.null(fns)){
@@ -304,11 +345,13 @@ get_fns <- function(fns){
         if (length(badnames) > 0){
             badnamestr <- paste0("\"", paste(badnames, collapse="\",\""), "\"")
             goodnamestr <- paste0("\"", paste(args, collapse="\",\""), "\"")
-            stop(sprintf("`fns` has components named %s. Names should include one or more of %s", badnamestr, goodnamestr))
+            stop(sprintf("`fns` has components named %s. Names should include one or more of %s",
+                         badnamestr, goodnamestr))
         }
 
         for (i in names(fns)){
-            if (!is.function(fns[[i]])) stop(sprintf("component of `fns` named \"%s\" should be a function", i))
+            if (!is.function(fns[[i]]))
+                stop(sprintf("component of `fns` named \"%s\" should be a function", i))
             ret[[i]] <- fns[[i]]
         }
     }
@@ -330,7 +373,7 @@ get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
         }
         gamma0 <- check_gamma0(gamma0, inds0)
         rownames(parsub) <- rownames(inds)
-        colnames(parsub) <- names(sub)
+        colnames(parsub) <- colnames(inds)
         for (i in 1:nmod){
             if (!identical(class(sub[[i]]), class(wide)))
                 stop(sprintf("submodel %s of class %s, should be %s, the same class as `wide`", i, class(sub[[i]])[1], class(wide)[1]))
@@ -406,7 +449,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
 ##'
-##' @param Xwt Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.
+##' @param Xwt Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one. 
 ##' 
 ##' @param sub List of fitted model objects corresponding to each submodel to be assessed. 
 ##'
@@ -517,6 +560,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
         par <- fns$coef(wide)
         n <- if (FIC) fns$nobs(wide) else NA
         J <- solve(fns$vcov(wide))
+        auxpar <- fns$aux(wide)
     })
     if (inherits(res, "try-error"))
         stop("check that the wide model or the `fns` argument is specified correctly")
@@ -525,6 +569,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     if (isTRUE(sub=="auto"))
         sub <- fit_submodels(wide, inds)
     parsub <- get_parsub(sub, length(par), inds, inds0, gamma0, fns$coef, wide)
+    auxsub <- get_auxsub(sub, fns$aux)
     if (!is.numeric(B)) stop("`B` should be zero or a positive integer")
     if (B>0){
         if (is.null(sub)) stop("`sub` should be specified if using bootstrap method")
@@ -533,7 +578,8 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     } else {
         res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
                          focus=focus, focus_deriv=focus_deriv, 
-                         parsub=parsub, X=X, Xwt=Xwt, ...)
+                         parsub=parsub, auxpar=auxpar, auxsub=auxsub,
+                         X=X, Xwt=Xwt, ...)
         if (!FIC) res <- res[,-which(dimnames(res)[[2]]=="FIC"),]
     }
     if (tidy){
@@ -551,6 +597,23 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     class(res) <- c("fic",class(res))
     res
 }
+
+
+## get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
+get_auxsub <- function(sub, aux_fn){
+    ## error checking for sub done in get_parsub 
+    if (is.null(sub))
+        auxsub <- NULL
+    else {
+        nmod <- length(sub)
+        auxsub <- vector(nmod, mode="list")
+        for (i in 1:nmod){
+            auxsub[[i]] <- aux_fn(sub[[i]])
+        }
+    }
+    auxsub
+}
+
 
 ## Converts an array into a tidy data frame, with columns given by the
 ## `dim2` dimension of the array, and ordered by the columns indexed

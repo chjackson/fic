@@ -16,3 +16,5 @@ See the package vignettes (work in progress) for an introduction:
 [Survival analysis example](https://chjackson.github.io/fic/inst/doc/survival.pdf)
 
 [Multi-state models example](https://chjackson.github.io/fic/inst/doc/multistate.pdf)
+
+Source code [GitHub repository](https://github.com/chjackson/fic)

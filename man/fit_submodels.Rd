@@ -5,7 +5,7 @@
 \title{Fit submodels of a wide model, defined by a matrix of indicators
 for inclusion of covariates.}
 \usage{
-fit_submodels(wide, inds)
+fit_submodels(wide, inds, ...)
 }
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}
@@ -13,6 +13,8 @@ fit_submodels(wide, inds)
 \item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
 A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
+
+\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \value{
 List of all fitted submodel objects.

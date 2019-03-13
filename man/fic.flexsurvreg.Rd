@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.flexsurvreg.R
 \name{fic.flexsurvreg}
 \alias{fic.flexsurvreg}
-\title{Focused Information Criterion for flexible parametric survival models}
+\title{Focused information criteria for flexible parametric survival models}
 \usage{
 \method{fic}{flexsurvreg}(wide, inds, inds0 = NULL, gamma0 = 0,
   focus = NULL, focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL,
@@ -57,7 +57,7 @@ For a typical regression model, the first parameter will denote an intercept, so
 
 If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
 
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.}
+\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{sub}{List of objects of class \code{\link[flexsurv]{flexsurvreg}} containing the submodels to be assessed. Optional. Only required if you want the estimate of the focus
 function under the submodels to be included in the results.}
@@ -69,7 +69,7 @@ function under the submodels to be included in the results.}
 \item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
 }
 \description{
-Focused information criterion for parametric survival models fitted with the \pkg{flexsurv} package.
+Focused information criteria for parametric survival models fitted with the \pkg{flexsurv} package.
 }
 \details{
 Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential, Weibull and generalized gamma).  Some of these are illustrated in the \pkg{fic} package vignette "Examples of focused model comparison: parametric survival models".

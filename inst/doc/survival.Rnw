@@ -10,7 +10,6 @@
 \Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
 
 \usepackage{bm}
-
 \newcommand{\btheta}{\boldsymbol{\theta}}
 \newcommand{\bbeta}{\boldsymbol{\beta}}
 \newcommand{\bgamma}{\boldsymbol{\gamma}}
