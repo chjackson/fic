@@ -13,8 +13,14 @@ See the package vignettes (work in progress) for an introduction:
 
 [Different models for different purposes: focused model comparison in R](https://chjackson.github.io/fic/inst/doc/fic.pdf)
 
+[Linear models example](https://chjackson.github.io/fic/inst/doc/linear.pdf)
+
+[Skew-normal example](https://chjackson.github.io/fic/inst/doc/skewnormal.pdf)
+
 [Survival analysis example](https://chjackson.github.io/fic/inst/doc/survival.pdf)
 
 [Multi-state models example](https://chjackson.github.io/fic/inst/doc/multistate.pdf)
+
+[Bootstrap and alternative losses](https://chjackson.github.io/fic/inst/doc/loss.pdf)
 
 Source code [GitHub repository](https://github.com/chjackson/fic)
