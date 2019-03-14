@@ -563,12 +563,11 @@ classes of models.
 
 \begin{itemize}
 
-\item Linear models fitted with \code{lm} in base R. 
-
-TODO VIGNETTE expected outcome
-at given covariate values, quantile for given covariate values.
-Polynomial order selection as well as covariate selection. 
-Use a well known dataset, e.g. gapminder? 
+\item Linear models fitted with \code{lm} in base R.  Examples  
+  of covariate selection and polynomial order 
+  selection in linear models are given in an additional \pkg{fic} vignette, which 
+  also illustrates the use of quantiles of the outcome distribution
+  as focuses. 
 
 \item Parametric survival models fitted with \code{flexsurvreg} in the
   \pkg{flexsurv} package \citep{flexsurv}, or \code{survreg} in the
@@ -770,8 +769,8 @@ plot(ficall$FIC[ficall$vals=="male"], ficall$focus[ficall$vals=="male"],
 
 \section{Discussion}
 
-In focused model comparison, we make an explicit connection between
-statistical models and the scientific questions that the models were
+In focused model comparison, we explicitly connect 
+statistical models with the scientific questions that the models were
 designed to address.  Different models might give better estimates of
 different focus quantities of interest.  Focused information
 criteria enable models to be compared

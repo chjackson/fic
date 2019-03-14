@@ -88,7 +88,7 @@ predictor.  This is often implemented through polynomial regression.
 In this example, a linear model with orthogonal polynomials is used to
 represent the relationship of life expectancy to GDP per capita for
 1704 countries (worldwide) and years from 1952 to 2007, using data
-from \url{http://www.gapminder.org}), packaged by
+from \url{http://www.gapminder.org}, packaged by
 \citet{gapminder:pkg}.  The dataset used for analysis excludes Kuwait,
 whose data follow a distinct pattern.  The scatterplot shows a
 diminishing increase in life expectancy as GDP increases above a

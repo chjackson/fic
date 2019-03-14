@@ -223,7 +223,7 @@ be essential.  Including the skewness is pointless for estimating the
 mean, as discussed by \citet{claeskens:hjort:book}, the skewness term
 provides no extra information.  The utility of including the skewness
 is also doubtful for estimating the median too, given the covariate is
-includes, the focus estimates and RMSE are very similar whether or not
+included, the focus estimates and RMSE are very similar whether or not
 the skewness is also included.
 
 % for median: 
