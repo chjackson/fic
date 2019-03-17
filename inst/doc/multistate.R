@@ -26,8 +26,8 @@ inds <- rbind(
 totlos.msm(psor.wide.msm, covariates=0, tot=10)
 
 ## ------------------------------------------------------------------------
-focus_tlos <- function(pars){
-    x.new <- updatepars.msm(psor.wide.msm, pars)
+focus_tlos <- function(par){
+    x.new <- updatepars.msm(psor.wide.msm, par)
     totlos.msm(x.new, covariates=0, tot=10)["State 4"]
 }
 

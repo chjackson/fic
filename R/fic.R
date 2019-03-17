@@ -25,6 +25,7 @@ fic_core <- function(
     dmudtheta <- focus_deriv[i0,,drop=FALSE]
     tau0sq <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
     dmudgamma <- focus_deriv[-i0,,drop=FALSE]
+
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m, where m is number of alternative focuses (typically covariate values)
     psi.full <- t(omega) %*% dnhat # m x 1
 
@@ -167,32 +168,15 @@ check_X <- function(X, npar){
     X
 }
 
-check_Xwt <- function(Xwt, nval){
-    if (is.null(Xwt))
-        Xwt <- rep(1/nval, nval)
-    lwt <- length(Xwt)
-    if (lwt != nval) 
-        stop(sprintf("Xwt of length %s, but should be %s, the number of alternative covariate values supplied in X", lwt, nval))
-    Xwt
+check_wt <- function(wt, nfocus){
+    if (is.null(wt))
+        wt <- rep(1/nfocus, nfocus)
+    lwt <- length(wt)
+    if (lwt != nfocus) 
+        stop(sprintf("wt of length %s, but should be %s, the number of alternative focuses", lwt, nfocus))
+    wt
 }
 
-
-check_focus <- function(focus, par, X, auxpar, ...)
-{
-    focus_args <- list(par)
-    focus_has_Xarg <- any(names(formals(focus)) == "X")
-    if (focus_has_Xarg)
-        focus_args <- c(focus_args, list(X))
-    focus_has_auxargs <- any(!(names(formals(focus)) %in% c("par","X")))
-    if (focus_has_auxargs)
-        focus_args <- c(focus_args, auxpar)
-    focus_args <- c(focus_args, list(...))
-    fn_try <- try(do.call(focus, focus_args))
-    if (inherits(fn_try, "try-error")){
-        argnames <- paste(paste0("`", names(formals(focus)[-1]), "`"), collapse=",")    
-        stop(sprintf("Evaluating the focus function returned an error.  Check that the arguments %s to the focus function have been supplied and are valid, e.g. have the right dimensions", argnames))
-    }
-}
 
 check_parsub <- function(parsub, npar, nmod){
     if (!is.numeric(parsub)) stop("`parsub` must be numeric")
@@ -254,8 +238,7 @@ fic_multi <- function(
                        n,
                        focus = NULL,
                        focus_deriv = NULL,
-                       X = NULL, 
-                       Xwt = NULL, 
+                       wt = NULL, 
                       parsub = NULL,
                       auxpar = NULL, 
                       auxsub = NULL,
@@ -268,59 +251,62 @@ fic_multi <- function(
     gamma0 <- check_gamma0(gamma0, inds0)
     inds <- check_inds(inds, npar)
     nmod <- nrow(inds)
-    X <- check_X(X, npar)
-    nval <- nrow(X)  # number of covariate values to evaluate the focus at
-    Xwt <- check_Xwt(Xwt, nval)
+
+    fc <- check_focus(focus, par, auxpar, ...)
+    eargs <- fc$eargs
+    nfocus <- fc$nfocus
+    wt <- check_wt(wt, nfocus)
     outn <- c("rmse", "rmse.adj","bias", "se", "FIC")
     if (!is.null(parsub)) {
         parsub <- check_parsub(parsub, npar, nmod)
         outn <- c(outn, "focus")
     }
    
-    check_focus(focus, par, X, auxpar, ...)
     # Handle built-in focus functions
-    fl <- get_focus(focus, focus_deriv, par, X, ...)
+    fl <- do.call(get_focus, c(list(focus, focus_deriv, par), eargs))
     focus <- fl$focus
     focus_deriv <- fl$focus_deriv
 
+    # Compute focus derivatives numerically if not built in 
     if (!is.function(focus)) stop("`focus` must be a function")
-    focus_has_auxargs <- any(!(names(formals(focus)) %in% c("par","X")))
+    focus_has_auxargs <- any(!(names(formals(focus)) %in% c("par",names(eargs))))
     if(is.null(focus_deriv)){
-      ncols <- if(is.null(X)) 1 else nrow(X)
-      focus_deriv <- matrix(nrow=npar, ncol=ncols)
-      for (i in 1:ncols){
+      focus_deriv <- matrix(nrow=npar, ncol=nfocus)
+      for (i in 1:nfocus){
           grad_fn <- get("grad", asNamespace("numDeriv"))
-          Xi <- if (ncol(X)==0) NULL else X[i,]
-          grad_args <- list(func=focus, x=par, X=Xi)
+          grad_args <- list(func=focus, x=par)
           if (focus_has_auxargs)
               grad_args <- c(grad_args, auxpar)
-          grad_args <- c(grad_args, list(...))
+          eargsi <- lapply(eargs, function(x)x[i,,drop=FALSE])
+          grad_args <- c(grad_args, eargsi)
           focus_deriv[,i] <- do.call(grad_fn, grad_args)
       }
     }
 
     nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
-    ndim1 <- if(nval>1) nval + 1 else 1
-    Xnames <- if(nval>1) c(rownames(X), "ave") else NULL
+    ndim1 <- if(nfocus>1) nfocus + 1 else 1
+    Xnames <- if(nfocus>1) c(fc$fnames, "ave") else NULL
     res <- array(dim = c(ndim1, nout, nmod))
     dimnames(res) <- list(vals=Xnames, outn, mods=rownames(inds))
     for (i in 1:nmod){
         ficres <- fic_core(par=par, J=J, inds=inds[i,], inds0=inds0,
                              gamma0=gamma0, n=n, focus_deriv=focus_deriv)
         if (!is.null(parsub)) {
-            focus_val <- numeric(nval)
-            for (j in 1:nval) {
-                focus_args <- list(par=parsub[i,], X=X[j,])
-                if (focus_has_auxargs) focus_args <- c(focus_args, auxsub[[i]])
-                focus_args <- c(focus_args, list(...))
+            focus_val <- numeric(nfocus)
+            for (j in 1:nfocus) {
+                focus_args <- list(par=parsub[i,])
+                if (focus_has_auxargs)
+                    focus_args <- c(focus_args, auxsub[[i]])
+                eargsj <- lapply(eargs, function(x)x[j,,drop=FALSE])
+                focus_args <- c(focus_args, eargsj)
                 focus_val[j] <- do.call("focus", focus_args)
             }
         } else focus_val <- NULL
-        if (nval>1){
+        if (nfocus>1){
             ave <- afic(par=par, J=J, inds=inds[i,], inds0=inds0,
-                        gamma0=gamma0, n=n, focus_deriv=focus_deriv, Xwt=Xwt)
+                        gamma0=gamma0, n=n, focus_deriv=focus_deriv, wt=wt)
             ficres <- rbind(ficres, ave=ave)
-            if (!is.null(parsub)) focus_val <- c(focus_val, sum(focus_val*Xwt))
+            if (!is.null(parsub)) focus_val <- c(focus_val, sum(focus_val*wt))
         }
         res[,,i] <- cbind(ficres, focus_val)
     }
@@ -422,10 +408,10 @@ get_ics <- function(sub, fns){
 ##' \itemize{
 ##' \item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 ##'
-##' \item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
+##' \item other arguments defining alternative focuses.  These are supplied through the \code{...} argument to \code{\link{fic}}.  In the built-in examples, there is an argument named \code{X}, denoting alternative covariate values.  The required format is documented below. 
 ##' }
 ##' 
-##' The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+##' The function should return the focus quantity of interest.  If additional arguments are supplied which are vectors or matrices, e.g. \code{X}, then these are assumed to represent multiple focuses, and \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
 ##'
 ##' Not required if \code{focus_deriv} is specified.
 ##'
@@ -439,17 +425,7 @@ get_ics <- function(sub, fns){
 ##'
 ##' @param focus_deriv Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.
 ##'
-##' @param X Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
-##'
-##' This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
-##'
-##' To compute focused model comparison statistics for the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative covariate values.
-##'
-##' For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
-##'
-##' If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model. 
-##'
-##' @param Xwt Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one. 
+##' @param wt Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one. 
 ##' 
 ##' @param sub List of fitted model objects corresponding to each submodel to be assessed. 
 ##'
@@ -493,9 +469,21 @@ get_ics <- function(sub, fns){
 ##' 
 ##' @param loss A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.   An example is given in the vignette  "Focused model comparison with bootstrapping and alternative loss functions".
 ##'
-##' @param tidy If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, \code{X} values and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.
+##' @param tidy If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, focuses and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and focuses respectively.
 ##' 
-##' @param \dots Other arguments to the focus function can be supplied here.  Currently no examples of this. 
+##' @param \dots Other arguments to the focus function can be supplied here.   
+##'
+##' The built-in focus functions \code{\link{prob_logistic}} and \code{\link{mean_normal}} take an argument \code{X} giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+##'
+##' If just one focus is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.
+##' 
+##' To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+##'
+##' For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+##'
+##' Arguments to the focus function other than \code{X} can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument \code{focus_p}, then calling \code{fic(...,focus_p=c(0.1, 0.9))} indicates two alternative focuses defined by the 0.1 and 0.9 quantiles. 
+##'
+##' 
 ##'
 ##' @return The returned data frame or array contains the following components, describing characteristics of the defined submodel.  See the package vignette for full, formal definitions, and Chapter 6 of Claeskens and Hjort, 2008.
 ##'
@@ -552,7 +540,7 @@ get_ics <- function(sub, fns){
 ##' @export
 fic.default <- function(wide, inds, inds0=NULL, gamma0=0, 
                       focus=NULL, focus_deriv=NULL,
-                      X=NULL, Xwt=NULL, sub=NULL, fns=NULL,
+                      wt=NULL, sub=NULL, fns=NULL,
                       FIC=FALSE, B=0, loss=loss_mse,
                       tidy=TRUE, ...){
     fns <- get_fns(fns)
@@ -573,13 +561,13 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     if (!is.numeric(B)) stop("`B` should be zero or a positive integer")
     if (B>0){
         if (is.null(sub)) stop("`sub` should be specified if using bootstrap method")
-        res <- fic_boot(par=par, cov=fns$vcov(wide), focus=focus, X=X,
-                        parsub=parsub, B=B, loss=loss)
+        res <- fic_boot(par=par, cov=fns$vcov(wide), focus=focus,
+                        parsub=parsub, B=B, loss=loss, ...)
     } else {
         res <- fic_multi(par=par, J=J, inds=inds, inds0=inds0, gamma0=gamma0, n=n, 
                          focus=focus, focus_deriv=focus_deriv, 
                          parsub=parsub, auxpar=auxpar, auxsub=auxsub,
-                         X=X, Xwt=Xwt, ...)
+                         wt=wt, ...)
         if (!FIC) res <- res[,-which(dimnames(res)[[2]]=="FIC"),]
     }
     if (tidy){
@@ -640,18 +628,19 @@ loss_mse <- function(sub, wide){
     sqrt(mean((sub - wide)^2))
 }
 
-fic_boot <- function(par, cov, focus, X, parsub, B, loss=loss_mse){
+## TODO error checking, focus dimnames 
+
+fic_boot <- function(par, cov, focus, parsub, B, loss=loss_mse, ...){
     pars_rep <- t(mvtnorm::rmvnorm(B, par, cov))
     nmod <- nrow(parsub)
-    X <- check_X(X, length(par))
-    focus_rep <- focus(pars_rep, X)  # nval x B
-    nval <- nrow(X)
+    focus_rep <- focus(pars_rep, ...)  # nval x B
+    nval <- nrow(focus_rep)
     outn <- c("loss","focus")
     nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
     res <- array(dim = c(nval, nout, nmod))
-    dimnames(res) <- list(vals=rownames(X), outn, mods=rownames(parsub))
+    dimnames(res) <- list(vals=NULL, outn, mods=rownames(parsub))
     for (i in 1:nmod){
-        focus_val <- focus(par=parsub[i,], X=X)  # nval x 1 
+        focus_val <- focus(par=parsub[i,], ...)  # nval x 1 
         for (j in 1:nval) {
             res[j,"loss",i] <- loss(focus_val[j], focus_rep[j,])
         }

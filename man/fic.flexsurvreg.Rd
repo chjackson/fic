@@ -5,8 +5,8 @@
 \title{Focused information criteria for flexible parametric survival models}
 \usage{
 \method{fic}{flexsurvreg}(wide, inds, inds0 = NULL, gamma0 = 0,
-  focus = NULL, focus_deriv = NULL, X = NULL, Xwt = NULL, sub = NULL,
-  B = 0, loss = loss_mse, ...)
+  focus = NULL, focus_deriv = NULL, wt = NULL, sub = NULL, B = 0,
+  loss = loss_mse, ...)
 }
 \arguments{
 \item{wide}{Object of class \code{"flexsurvreg"} containing the wide model.
@@ -30,10 +30,10 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 \itemize{
 \item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 
-\item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
+\item other arguments defining alternative focuses.  These are supplied through the \code{...} argument to \code{\link{fic}}.  In the built-in examples, there is an argument named \code{X}, denoting alternative covariate values.  The required format is documented below. 
 }
 
-The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+The function should return the focus quantity of interest.  If additional arguments are supplied which are vectors or matrices, e.g. \code{X}, then these are assumed to represent multiple focuses, and \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
 
 Not required if \code{focus_deriv} is specified.
 
@@ -47,17 +47,7 @@ See \code{\link{focus_fns}} for the functions underlying these built-in focuses.
 
 \item{focus_deriv}{Vector of partial derivatives of the focus function with respect to the parameters in the wide model.  This is not usually needed, as it can generally be computed automatically and accurately from the function supplied in \code{focus}, using numerical differentiation.}
 
-\item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
-
-This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
-
-To compute focused model comparison statistics for the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative covariate values.
-
-For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
-
-If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
-
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
+\item{wt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{sub}{List of objects of class \code{\link[flexsurv]{flexsurvreg}} containing the submodels to be assessed. Optional. Only required if you want the estimate of the focus
 function under the submodels to be included in the results.}
@@ -66,7 +56,17 @@ function under the submodels to be included in the results.}
 
 \item{loss}{A function returning an estimated loss for a submodel estimate under the sampling distribution of the wide model.  Only applicable when using bootstrapping.  This should have two arguments \code{sub} and \code{wide}.  \code{sub} should be a scalar giving the focus estimate from a submodel.  \code{wide} should be a vector with a sample of focus estimates from the wide model, e.g. generated by a bootstrap method.  By default this is a function calculating the root mean square error of the submodel estimate.   An example is given in the vignette  "Focused model comparison with bootstrapping and alternative loss functions".}
 
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+\item{...}{Other arguments to the focus function can be supplied here.
+
+The built-in focus functions \code{\link{prob_logistic}} and \code{\link{mean_normal}} take an argument \code{X} giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+
+If just one focus is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.
+
+To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+
+For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+
+Arguments to the focus function other than \code{X} can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument \code{focus_p}, then calling \code{fic(...,focus_p=c(0.1, 0.9))} indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.}
 }
 \description{
 Focused information criteria for parametric survival models fitted with the \pkg{flexsurv} package.

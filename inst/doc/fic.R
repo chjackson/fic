@@ -10,13 +10,13 @@ wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
                 data=birthwt, family=binomial)
 
 ## ---------------------------------------------------------
-focus <- function(par, X)plogis(X %*% par)
+prob_logistic <- function(par, X)plogis(X %*% par)
 vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
 X <- rbind("Smokers"=vals.smoke, "Non-smokers"=vals.nonsmoke)
 
 ## ---------------------------------------------------------
-focus(coef(wide.glm), X=X)
+prob_logistic(coef(wide.glm), X=X)
 
 ## ---------------------------------------------------------
 mod1.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family=binomial)
@@ -28,7 +28,7 @@ inds <- rbind(mod1 = c(1,1,1,1,0,0,0,0),
 inds0 <- c(1,1,0,0,0,0,0,0)
 
 ## ---------------------------------------------------------
-fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, X=X)
+fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=prob_logistic, X=X)
 fic1
 
 ## ---------------------------------------------------------
@@ -40,7 +40,8 @@ combs <- with(combs,
                       (smoke==0 & smokeui==1) |
                       (age==0 & smokeage==1) |
                       (ui==0 & smokeui==1)),])
-ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0, focus=focus, X=X)
+ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0,
+              focus=prob_logistic, X=X)
 
 ## ---------------------------------------------------------
 ggplot_fic(ficres)
@@ -52,8 +53,8 @@ summary(ficres)
 #  fns <- list(coef = function(x)coef(x),
 #              nobs = function(x)nobs(x),
 #              vcov = function(x)vcov(x))
-#  fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus, fns=fns,
-#              X=X, sub=sub)
+#  fic1 <- fic(wide=wide.glm, inds=inds, inds0=inds0, focus=prob_logistic,
+#              fns=fns, X=X)
 
 ## ---------------------------------------------------------
 library(survival)

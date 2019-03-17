@@ -5,6 +5,7 @@ vignettes/*\.html$
 vignettes/figure
 vignettes/fic.bbl
 vignettes/fic.blg
+vignettes/_region_.tex
 tests/FIClogisticreg.R
 tests/birthwt.R
 TODO.md

@@ -16,6 +16,7 @@
 
 \Abstract{This vignette illustrates focused model comparison with the \pkg{fic} package
   for linear regression models.   Examples are given of covariate selection and polynomial order selection, with focuses defined by the mean, median or other quantiles of the outcome. }
+\Keywords{models}
 
 \begin{document}
 
@@ -45,7 +46,8 @@ correlated with all of these predictors, but many of the predictors themselves
 are correlated with each other.
 <<warning=FALSE,message=FALSE>>=
 library(GGally)
-ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=factor(am)))
+mtcars$am <- factor(mtcars$am)
+ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=am))
 @ 
 
 <<>>=
@@ -65,8 +67,8 @@ The focus is taken as the mean outcome (\code{focus=mean_normal}) for a car with
 <<>>=
 cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
 X <- rbind(
-  "auto"=c(intercept=1, am=0, cmeans),
-  "manual"=c(intercept=1, am=1, cmeans)
+  "auto"   = c(intercept=1, am=0, cmeans),
+  "manual" = c(intercept=1, am=1, cmeans)
 )
 ficres <- fic(wide.lm, inds=inds, focus=mean_normal, X=X)
 summary(ficres)
@@ -78,6 +80,9 @@ have relatively low bias and mean square error.   The model with
 minimal mean square error, for either focus, omits \code{wt} and
 \code{qsec}.  Given the strong correlation of \code{wt} with \code{disp} and \code{qsec} with \code{hp}, these two variables do not improve the precision of the focus
 estimate.  
+
+
+
 
 \section{Polynomial order selection}
 
@@ -161,7 +166,7 @@ to the results for \code{focus=mean_normal} above by doing:
 median_normal<- function(par,X){
     qnorm(0.5, mean = as.numeric(X %*% par))
 }
-(ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X))
+ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X)
 @ 
 
 Other quantiles, however, depend on the variance.  Therefore a
@@ -172,24 +177,74 @@ This allows, e.g. a 10\% quantile focus to be implemented as
 q10_normal <- function(par, X, sigma){
     qnorm(0.1, mean = as.numeric(X %*% par), sd=sigma)
 }
-(ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X))
+ficres <- fic(wide.lm, inds=inds, focus=q10_normal, X=X)
 @ 
 
 However, we can define focus functions with arbitrary additional
 arguments.  This allows any quantile to be defined using one common
-function, with an argument, say, \code{focus_p} specifying the
-particular quantile to return.  This argument can be passed to
-\code{fic}, along with \code{focus=quantile_normal}, to fully specify
-the focus of interest.
+function, with an argument, say, \code{focus_p}, specifying the
+particular quantile to return.  
+in a 
 <<>>=
 quantile_normal <- function(par, X, sigma, focus_p=0.5){
     qnorm(focus_p, mean = as.numeric(X %*% par), sd=sigma)
 }
-(ficres <- fic(wide.lm, inds=inds, focus=quantile_normal, X=X, focus_p=0.1))
-(ficres <- fic(wide.lm, inds=inds, focus=quantile_normal, X=X, focus_p=0.9))
+@ 
+This argument can be passed to
+\code{fic}, along with the focus function, to fully specify
+the focus of interest.  If a vector of values is supplied in
+\code{focus_p}, then multiple focuses are evaluated at
+once.\footnote{Note that vectors for \texttt{X} are treated
+  differently from vectors for other focus arguments.  If a named vector is
+  supplied for \texttt{X} it is assumed to refer to multiple
+  covariate values defining a single focus.  If a vector is supplied
+  for any other argument, it is assumed to identify multiple
+  focuses. To completely avoid ambiguity for any argument, a matrix
+  can be supplied, where the rows identify focuses and the columns
+  identify, e.g. covariate values. }
+<<>>=
+ficres <- fic(wide.lm, inds=inds, focus=quantile_normal,
+               X=X[1,], focus_p=c(0.1,0.5,0.9))
 @ 
 
-Check that the results are the same for all four \pkg{fic} calls. 
+Check that the results match between the alternative ways of setting up \code{fic}. 
+
+
+
+\section{Relation of focused model comparison with AIC}
+
+Using the \code{mtcars} example, we illustrate when focused model comparison agrees with model comparison using AIC.  The following code performs focused model comparison for 32 distinct focus parameters, defined as the log likelihood contribution from each of the 32 observed covariate combinations in the \code{mtcars} data.  
+
+Firstly the focus function is defined as the log density for an individual outcome.  \citet{fic} show that differences between submodels in the expected mean square error of this focus are asymptotically equivalent to differences in AIC. 
+
+<<>>=
+focus_loglik <- function(par,X,sigma,Y){
+    mu <- as.numeric(X %*% par)
+    dnorm(Y,mu,sigma,log=TRUE)
+}
+@ 
+
+To illustrate this result, we run \code{fic} with $n=32$ variants of this focus defined by the observed outcomes \code{Y} and covariates \code{X} in the \code{mtcars} data.
+
+<<>>=
+wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
+ncovs_wide <- length(coef(wide.lm)) - 1
+inds0 <- c(1, rep(0, ncovs_wide))
+inds <- all_inds(wide.lm, inds0)
+X <- model.matrix(wide.lm)
+Y <- model.response(model.frame(wide.lm))
+ficres <- fic(wide.lm, inds=inds, focus=focus_loglik, X=X, Y=Y)
+@
+
+We then extract the results averaged over these focuses, automatically computed by \code{fic} with each focus weighted equally, and extract the AICs of the submodels.  The preference among models from the averaged FIC result agrees with AIC, up to sampling error.
+
+<<>>=
+ficres <- ficres[ficres$vals=="ave",]
+aics <- sapply(attr(ficres,"sub"), AIC)
+qplot(ficres$rmse, aics, xlab="Root mean square error of log density estimate", ylab="AIC") 
+@ 
+
+
 
 
 \bibliography{fic}

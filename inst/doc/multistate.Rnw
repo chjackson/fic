@@ -17,7 +17,7 @@
   non-standard structure.  Additionally, the focus is a complicated
   function of the model parameters.
 }
-\Keywords{models,survival}
+\Keywords{models,survival,multistate}
 
 
 \usepackage{bm}
@@ -64,7 +64,7 @@ three of the transitions.  The covariates are constant through time
 and measured at baseline.   The transition intensity from state $r$ to
 state $s$ for person $i$ with covariates $\x_i$ is then 
 
-\[ q_{irs}(x) = q_{rs}^{(0)} \exp(\bbeta_{rs}\x_{i}) \] 
+\[ q_{irs}(\x_i) = q_{rs}^{(0)} \exp(\bbeta_{rs}\x_{i}) \] 
 
 where $\bbeta_{rs} = (\beta_{rs}^{(1)},\beta_{rs}^{(2)})$ is the vector of log hazard ratios on the $r$--$s$ transition for the two covariates. 
 
@@ -104,7 +104,7 @@ psor.wide.msm <- msm(state ~ months, subject=ptnum, data=psor,
 psor.wide.msm
 @ 
 
-The hazard ratios $exp(\bbeta_{rs})$ for the two covariates are
+The hazard ratios $\exp(\bbeta_{rs})$ for the two covariates are
 presented in the model output. The confidence intervals are wide,
 which suggests that a smaller model might give more precise
 estimates. 
@@ -165,7 +165,7 @@ inds <- rbind(
 The focus function in this example is taken as the expected total time spent in state 4 over 10 years for people currently in state 1 without \code{ollwsdrt} or \code{hieffusn}.   This is defined as 
 
 \[ 
-\int_{0}^{10} p_{14}(t|\x = 0)
+\int_{0}^{10} p_{14}(t|\x = 0) dt
 \]
 
 where $p_{rs}(t|\x)$ is the probability of being in state $s$ at time
@@ -189,8 +189,8 @@ in the second argument.   This allows the focus function for
 \code{fic} to be defined as 
 
 <<>>=
-focus_tlos <- function(pars){
-    x.new <- updatepars.msm(psor.wide.msm, pars)
+focus_tlos <- function(par){
+    x.new <- updatepars.msm(psor.wide.msm, par)
     totlos.msm(x.new, covariates=0, tot=10)["State 4"]
 }
 @

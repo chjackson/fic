@@ -32,23 +32,25 @@ This should either be a scalar, assumed to be the same for all parameters fixed 
 
 Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the cumulative hazards.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.  See the section "User-defined focuses" below for a little more information.}
 
-\item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
-
-This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
-
-To compute focused model comparison statistics for the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative covariate values.
-
-For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
-
-If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
+\item{X}{Covariate values to evaluate the focus at.  See \code{\link{fic}}, argument \code{...}, for the required format.}
 
 \item{t}{times to evaluate the focus at.  Only relevant for survival and cumulative hazard focuses, as the hazard ratio is constant through time.}
 
 \item{sub}{If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.}
 
-\item{tidy}{If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, \code{X} values and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and \code{X} values respectively.}
+\item{tidy}{If \code{TRUE} the results are returned as a data frame with variables to indicate the submodels, focuses and corresponding result statistics.  If \code{FALSE}, the results are returned as a three-dimensional array, with dimensions indexed by the submodels, result statistics and focuses respectively.}
 
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+\item{...}{Other arguments to the focus function can be supplied here.
+
+The built-in focus functions \code{\link{prob_logistic}} and \code{\link{mean_normal}} take an argument \code{X} giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+
+If just one focus is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.
+
+To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+
+For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+
+Arguments to the focus function other than \code{X} can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument \code{focus_p}, then calling \code{fic(...,focus_p=c(0.1, 0.9))} indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.}
 }
 \description{
 Focused model comparison for Cox models fitted with \code{coxph} from the \code{survival} package.  Built-in focuses include the hazard ratio, survival and cumulative hazard.

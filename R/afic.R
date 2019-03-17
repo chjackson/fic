@@ -1,4 +1,4 @@
-afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
+afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, wt)
 {
     npar <- length(par)
     inds <- check_indsinds0(inds, inds0)
@@ -21,7 +21,7 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
         dmu[-i0] <- dmudgamma[,i]
         BX[,,i] <- outer(dmu, dmu)
     }
-    B <- apply(BX, c(1,2), function(x)sum(x * Xwt))
+    B <- apply(BX, c(1,2), function(x)sum(x * wt))
     B00 <- B[i0, i0, drop=FALSE]
     B10 <- B[-i0, i0, drop=FALSE]
     B01 <- B[i0,-i0, drop=FALSE]
@@ -32,10 +32,10 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, Xwt)
       B10 %*% invJ00 %*% J01 +
       B11 
     tau0sqX <- diag(t(dmudtheta) %*% solve(J00) %*% dmudtheta)
-    tau0sqA <- sum(tau0sqX*Xwt) # integrated over covariate space
+    tau0sqA <- sum(tau0sqX*wt) # integrated over covariate space
     ## end afic specific 
     omega <- J10 %*% solve(J00) %*% dmudtheta - dmudgamma # q x m, where m is number of alternative focuses (typically covariate values)
-    omegaA <- omega %*% Xwt
+    omegaA <- omega %*% wt
 
     indsS <- inds[inds0==0]
     qq <- sum(inds0==0)  # maximum number of "extra" parameters

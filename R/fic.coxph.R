@@ -6,7 +6,10 @@
 ##' 
 ##' @inheritParams fic.default
 ##'
+##' @param X Covariate values to evaluate the focus at.  See \code{\link{fic}}, argument \code{...}, for the required format. 
+##'
 ##' @param t times to evaluate the focus at.  Only relevant for survival and cumulative hazard focuses, as the hazard ratio is constant through time.
+##'
 ##'
 ##' @param focus Three built-in focus quantities are supported:
 ##'
@@ -17,6 +20,7 @@
 ##' \code{"cumhaz"} for the cumulative hazard at time or times given in \code{t}.
 ##'
 ##' Alternatively, a list of three R functions can be supplied, with components named \code{"focus"}, \code{"deriv"} and \code{"dH"} respectively giving the focus, derivative with respect to the log hazard ratios, and derivative with respect to the cumulative hazards.   Each function should have arguments \code{par}, \code{H0}, \code{X} and \code{t}, giving the log hazard ratios, baseline cumulative hazard, covariate values and time points at which the focus function should be evaluated.  See the section "User-defined focuses" below for a little more information.
+##'
 ##'
 ##' @param sub If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.
 ##'

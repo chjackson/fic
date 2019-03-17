@@ -28,8 +28,8 @@ inds0 <- c(1,1,0,0,0,0,0,0)
 ## Focus quantity: 
 ## Prob of LBW for covariate values of the first person in the data
 vals.first <- XZ[1,]
-focus <- function(ests){
-    plogis(q = ests %*% vals.first)
+focus <- function(par){
+    plogis(q = par %*% vals.first)
 }
 
 fic(wide=wide.glm, inds=inds, inds0=inds0, focus=focus)

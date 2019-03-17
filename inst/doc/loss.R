@@ -2,7 +2,7 @@
 library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
-vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+vals.smoke <- c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 X <- vals.smoke
 inds0 <- c(1,1,0,0,0,0,0,0)
 combs <- all_inds(wide.glm, inds0)

@@ -1,6 +1,4 @@
-## Normal example: focus is expected MPG for cars like the first two in the mtcars dataset
-
-# MPG on TRANSMISSION TYPE, WEIGHT, and QUARTER MILE TIME 'may be best for prediction'. This model is difficult to interpret, and the absence of DISPLACEMENT or HORSEPOWER, which intuition suggests should be important in the prediction of MPG, is surprising. Hocking noted (pp. 25-26) that DISPLACEMENT exhibits instability and he found it disturbing that the ridge trace did not suggest the important role of his optimal subset
+## same example as in vignette
 
 context("Normal example")
 
@@ -11,11 +9,9 @@ combs <- all_inds(wide.lm, inds0)
 cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
 X <- c(intercept=1, am=0, cmeans)
 ficall <- fic(wide.lm, inds=combs, inds0=inds0, focus="mean_normal", X=X)
-ggplot_fic(ficall)
+if (interactive()) ggplot_fic(ficall)
 summary(ficall)
 ficall[ficall$rmse <1,] # all include AM
-
-## todo plot against AIC / BIC 
 
 wide.lm <- lm(mpg ~ cyl + disp + hp + drat + wt + qsec + vs + am + gear + carb, data=mtcars)
 
@@ -43,25 +39,34 @@ test_that("Analytic focus derivatives match numeric: normal", {
 combs <- all_inds(wide.lm, inds0)
 
 X <- model.matrix(wide.lm)[1,]
-(ficres <- fic(wide.lm, combs, focus=mean_normal, X=X))
-ggplot_fic(ficres)
+ficres <- fic(wide.lm, combs, focus=mean_normal, X=X)
+if (interactive()) ggplot_fic(ficres)
 
-require(graphics)
-pairs(mtcars, main = "mtcars data")
-coplot(mpg ~ disp | as.factor(cyl), data = mtcars,
-       panel = panel.smooth, rows = 1)
 
-## TODO gapminder
-
-## extra args to focus function 
+## Extra args to focus function 
 
 focus_med <- function(par,X,sigma){
-    qnorm(0.5, mean = as.numeric(par %*% X), sd=sigma)
+    qnorm(0.5, mean = as.numeric(X %*% par), sd=sigma)
 }
 
 focus_quantile <- function(par,X,sigma,focus_p=0.5){
-    qnorm(focus_p, mean = as.numeric(par %*% X), sd=sigma)
+    qnorm(focus_p, mean = as.numeric(X %*% par), sd=sigma)
 }
 
-## expect that fic same for mean and any quantile 
+test_that("focus functions with sigma and/or extra arguments",{
+    ficres_med <- fic(wide.lm, combs[1:4,], focus=focus_med, X=X)
+    expect_equal(ficres_med$FIC[1:4], ficres$FIC[1:4])
+    ficres_q <- fic(wide.lm, combs[1:4,], focus=focus_quantile, X=X, focus_p=0.5)
+    expect_equal(ficres_med$FIC[1:4], ficres_q$FIC[1:4])
+})
 
+test_that("focus function with multiple quantiles",{
+    ficres_qmulti <- fic(wide.lm, combs[1:4,], focus=focus_quantile, X=X, focus_p=c(0.1, 0.5, 0.9))
+    expect_equal(ficres$FIC[1:4], ficres_qmulti[ficres_qmulti$vals=="0.5","FIC"])
+})
+
+test_that("focus function argument length mismatch",{
+    Xmat <- matrix(X, nrow=1)[c(1,1),]
+    expect_error(fic(wide.lm, combs[1:4,], focus=focus_quantile, X=Xmat, focus_p=c(0.1, 0.5, 0.9)),
+                 "Number of focuses")
+})

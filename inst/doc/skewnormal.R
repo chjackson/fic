@@ -9,7 +9,7 @@ if (!require("sn"))
     stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
 par(mfrow=c(1,2))
-plot(density(ais$Hc), xlab="Haematocrit level")
+plot(density(ais$Hc), xlab="Haematocrit level", main="")
 plot(ais$BMI, ais$Hc, pch=19,
      xlab="Body mass index", ylab="Haematocrit level")
 
@@ -54,7 +54,7 @@ median_snorm <- function(mu, sigma, lambda){
 ## ------------------------------------------------------------------------
 focus1 <- function(par, X){
     mean_snorm(mu = par[1] + X %*% par[2],
-               sigma=exp(par[3]), lambda=exp(par[4]))
+               sigma = exp(par[3]), lambda = exp(par[4]))
 }
 focus2 <- function(par, X){
     median_snorm(mu = par[1] + X %*% par[2],

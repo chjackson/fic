@@ -12,7 +12,7 @@
 ##' @inheritParams fic
 ##' 
 ##' @export
-fic.msm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, X=NULL, Xwt=NULL, sub=NULL, B=0, loss=loss_mse, ...){
+fic.msm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, wt=NULL, sub=NULL, B=0, loss=loss_mse, ...){
     msm_fns <- list(coef = function(x)x$estimates,
                     nobs = function(x){
                        mf <- model.frame(x)
@@ -20,7 +20,7 @@ fic.msm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NU
                     },
                     vcov = function(x)x$covmat)
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
+                focus=focus, focus_deriv=focus_deriv, wt=wt, sub=sub,
                 B=B, FIC=TRUE, loss=loss, 
                 fns = msm_fns, ...)
 }

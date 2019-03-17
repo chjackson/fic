@@ -14,7 +14,17 @@ fit_submodels(wide, inds, ...)
 
 A matrix should be supplied if there are multiple submodels.  This should have number of rows equal to the number of submodels, and number of columns equal to the total number of parameters in the wide model.  It contains 1s in the positions where the parameter is included in the submodel, and 0s in positions where the parameter is excluded.  This should always be 1 in the positions defining the narrow model, as specified in \code{inds0}.}
 
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+\item{...}{Other arguments to the focus function can be supplied here.
+
+The built-in focus functions \code{\link{prob_logistic}} and \code{\link{mean_normal}} take an argument \code{X} giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+
+If just one focus is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.
+
+To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+
+For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+
+Arguments to the focus function other than \code{X} can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument \code{focus_p}, then calling \code{fic(...,focus_p=c(0.1, 0.9))} indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.}
 }
 \value{
 List of all fitted submodel objects.

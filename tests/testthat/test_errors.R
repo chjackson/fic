@@ -18,7 +18,7 @@ expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus="foo", X=X), "not foun
 
 Xwrong <- cbind(X, c(1,1))
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=Xwrong),
-             "Number of columns of X is")
+             "focus function returned an error")
 
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, gamma0=rep(0, 7)),
              "Length of gamma0")
@@ -31,29 +31,49 @@ expect_error(
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=mod1.glm),
              "`sub` should be a list of fitted model objects")
 
-expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm)), "not found")
+expect_error(
+    fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm))
+  , "not found")
 mod2.glm <- glm(low ~ lwtkg + age, data=birthwt, family=binomial)
 expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm, mod2.glm)), "`sub` of length")
 
 ## Mismatch between X and length of par
-## Currently check_X checks for X too big
-## Hard to check for X too small, as covariate effects might be a subset of full set of pars, and hard to identify which pars are the covariate effects 
-## This check would need to be done within the focus function. 
-
 Xbig <- X[,c(1:8,8)]
 expect_error(
     fic(wide=wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=Xbig),
-    "Number of columns")
+    "focus function returned an error")
 
 expect_error(get_fns(list(foo=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1, bar=2)), "components named")
 expect_error(get_fns(list(coef=1)), "should be a function")
 
-test_that("Xwt of wrong length",{
-    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1, 0.9, 0.1)), "of length 3")
-    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1)), "of length 1")
+test_that("wt of wrong length",{
+    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.1, 0.9, 0.1)), "of length 3")
+    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.1)), "of length 1")
 })
 
+test_that("wrong argument names in focus",{
+    focus <- function(ests){
+        plogis(q = ests %*% vals.first)
+    }
+    expect_error(fic(wide.glm, inds=inds1, inds0=inds0, focus=focus, X=X),
+                 "First argument of focus function")
+})
+
+test_that("args wrong way round in focus calculation",{
+    focus <- function(par,X){
+        plogis(q = par %*% X)
+    }
+    expect_error(
+        fic(wide.glm, inds=inds1, inds0=inds0, focus=focus, X=X),
+        "focus function returned an error")
+})
+
+## Error could be more specific, could check in check_focus that all args with no defaults have been supplied 
+### Could check that any mandatory args with no defaults have been supplied. 
+## give error if anames contains X, and has no default, but it's not in eargs 
+## maybe not, because can't check for use of missing() 
+# fic(wide.glm, inds=inds1, inds0=inds0, focus=focus)
 
 pars <- coef(wide.glm)
 n <- nrow(birthwt)

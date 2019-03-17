@@ -11,6 +11,15 @@ X <- rbind(vals.smoke, vals.nonsmoke)
 
 ficall <- fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X)
 
+test_that("Basic FIC and rmse results",{
+    expect_equal(ficall$FIC, c(1.18660265602458, 1.30514383073585, 1.00470197274807), tol=1e-06)
+    expect_equal(ficall$rmse, c(0.0722883108076118, 0.0803563210789494, 0.076428849974211), tol=1e-06)
+    expect_equal(ficall$rmse.adj, c(0.0722883108076118, 0.0803563210789494, 0.076428849974211))
+    expect_equal(ficall$bias, c(0.0459169526618119, 0.0730792045208761, 0.0610284223749518))
+    expect_equal(ficall$se, c(0.0558321890818443, 0.0334150894647788, 0.0460097899452381))
+    expect_equal(ficall$focus, c(0.397835568632103, 0.242744427996539, 0.320289998314321))
+})
+
 par <- coef(wide.glm)
 n <- nrow(birthwt)
 J <- solve(vcov(wide.glm))
@@ -73,8 +82,8 @@ test_that("Vector or matrix focuses allowed",{
 })
 
 test_that("Covariate weights", { 
-    ficwt <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.1, 0.9))
-    ficwt2 <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, Xwt=c(0.9, 0.1))
+    ficwt <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.1, 0.9))
+    ficwt2 <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.9, 0.1))
     expect_lt(ficwt2$rmse[ficwt2$vals=="ave"], ficwt$rmse[ficwt$vals=="ave"])
 })
 

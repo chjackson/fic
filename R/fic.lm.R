@@ -18,13 +18,13 @@
 ##'
 ##' @export
 fic.lm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL,
-                          X=NULL, Xwt=NULL, sub="auto", B=0, loss=loss_mse, ...){
+                          wt=NULL, sub="auto", B=0, loss=loss_mse, ...){
     if (!inherits(wide, "lm")) stop("\"wide\" must be an object of class \"lm\"")
     fns <- list(
         aux = function(x)list(sigma=summary(x)$sigma)
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt, sub=sub,
+                focus=focus, focus_deriv=focus_deriv, wt=wt, sub=sub,
                 fns=fns, B=B, FIC=TRUE, loss=loss, ...)
 }
 

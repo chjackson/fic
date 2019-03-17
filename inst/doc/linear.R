@@ -1,6 +1,7 @@
 ## ----warning=FALSE,message=FALSE-----------------------------------------
 library(GGally)
-ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=factor(am)))
+mtcars$am <- factor(mtcars$am)
+ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=am))
 
 ## ------------------------------------------------------------------------
 wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
@@ -14,8 +15,8 @@ inds <- all_inds(wide.lm, inds0)
 ## ------------------------------------------------------------------------
 cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
 X <- rbind(
-  "auto"=c(intercept=1, am=0, cmeans),
-  "manual"=c(intercept=1, am=1, cmeans)
+  "auto"   = c(intercept=1, am=0, cmeans),
+  "manual" = c(intercept=1, am=1, cmeans)
 )
 ficres <- fic(wide.lm, inds=inds, focus=mean_normal, X=X)
 summary(ficres)
@@ -64,18 +65,40 @@ summary(ficres)
 median_normal<- function(par,X){
     qnorm(0.5, mean = as.numeric(X %*% par))
 }
-(ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X))
+ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X)
 
 ## ------------------------------------------------------------------------
 q10_normal <- function(par, X, sigma){
     qnorm(0.1, mean = as.numeric(X %*% par), sd=sigma)
 }
-(ficres <- fic(wide.lm, inds=inds, focus=median_normal, X=X))
+ficres <- fic(wide.lm, inds=inds, focus=q10_normal, X=X)
 
 ## ------------------------------------------------------------------------
 quantile_normal <- function(par, X, sigma, focus_p=0.5){
     qnorm(focus_p, mean = as.numeric(X %*% par), sd=sigma)
 }
-(ficres <- fic(wide.lm, inds=inds, focus=quantile_normal, X=X, focus_p=0.1))
-(ficres <- fic(wide.lm, inds=inds, focus=quantile_normal, X=X, focus_p=0.9))
+
+## ------------------------------------------------------------------------
+ficres <- fic(wide.lm, inds=inds, focus=quantile_normal,
+               X=X[1,], focus_p=c(0.1,0.5,0.9))
+
+## ------------------------------------------------------------------------
+focus_loglik <- function(par,X,sigma,Y){
+    mu <- as.numeric(X %*% par)
+    dnorm(Y,mu,sigma,log=TRUE)
+}
+
+## ------------------------------------------------------------------------
+wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
+ncovs_wide <- length(coef(wide.lm)) - 1
+inds0 <- c(1, rep(0, ncovs_wide))
+inds <- all_inds(wide.lm, inds0)
+X <- model.matrix(wide.lm)
+Y <- model.response(model.frame(wide.lm))
+ficres <- fic(wide.lm, inds=inds, focus=focus_loglik, X=X, Y=Y)
+
+## ------------------------------------------------------------------------
+ficres <- ficres[ficres$vals=="ave",]
+aics <- sapply(attr(ficres,"sub"), AIC)
+qplot(ficres$rmse, aics, xlab="Root mean square error of log density estimate", ylab="AIC") 
 

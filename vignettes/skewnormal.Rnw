@@ -72,7 +72,7 @@ if (!require("sn"))
     stop("The `sn` package should be installed to run code in this vignette") 
 data(ais)
 par(mfrow=c(1,2))
-plot(density(ais$Hc), xlab="Haematocrit level")
+plot(density(ais$Hc), xlab="Haematocrit level", main="")
 plot(ais$BMI, ais$Hc, pch=19,
      xlab="Body mass index", ylab="Haematocrit level")
 @ 
@@ -107,7 +107,10 @@ the coefficients with \code{coef} (for $\beta_0$ and $\beta_1$) and the
 residual standard deviation for $\log(\sigma)$.  An initial value of 0
 is used for $\log(\lambda)$.   \footnote{Note these are the exact
   maximum likelihood estimates for model 2.  The added value of
-  \code{nlm} in fitting models 1 and 2, compared to simply using \code{lm}, is to conveniently provide the covariance matrix at the maximum likelihood estimates, which is required for focused model comparison }
+  \code{nlm} in fitting models 1 and 2, compared to simply using
+  \code{lm}, is to conveniently provide the covariance matrix at the
+  maximum likelihood estimates in the same form as for the skew normal
+  models, making focused model comparison more convenient here. }
 <<>>=
 lm2 <- lm(Hc ~ BMI, data=ais)
 cf <- unname(coef(lm2))
@@ -161,14 +164,14 @@ median_snorm <- function(mu, sigma, lambda){
 As described in the main \code{fic} package vignette, the focus
 function supplied to \code{fic} should have arguments defined by 
 a vector \code{par} of parameters of the biggest model (in
-this case the four-parameter model 4), and a matrix of covariate values
-\code{X}, and return the corresponding focus quantity.   In this
+this case the four-parameter model 4), and optionally also a matrix of covariate values
+\code{X}, and should return the corresponding focus quantity.   In this
 example,  the two focus functions are 
 
 <<>>=
 focus1 <- function(par, X){
     mean_snorm(mu = par[1] + X %*% par[2],
-               sigma=exp(par[3]), lambda=exp(par[4]))
+               sigma = exp(par[3]), lambda = exp(par[4]))
 }
 focus2 <- function(par, X){
     median_snorm(mu = par[1] + X %*% par[2],
@@ -220,9 +223,9 @@ ggplot_fic(fmed)
 
 For both the mean and the median, including the covariate is judged to
 be essential.  Including the skewness is pointless for estimating the
-mean, as discussed by \citet{claeskens:hjort:book}, the skewness term
+mean, since, as discussed by \citet{claeskens:hjort:book}, the skewness term
 provides no extra information.  The utility of including the skewness
-is also doubtful for estimating the median too, given the covariate is
+is also doubtful for estimating the median too --- given that the covariate is
 included, the focus estimates and RMSE are very similar whether or not
 the skewness is also included.
 

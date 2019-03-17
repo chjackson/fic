@@ -45,7 +45,7 @@
 ##' exp(coef(mod)[1] + coef(mod)[2] - log(shape))  # mean with x=1
 ##'
 ##' focus_mean <- function(par, X, dispersion){  
-##'   exp(par %*% X - log(1/dispersion))
+##'   exp(X %*% par - log(1/dispersion))
 ##' }
 ##'
 ##' X <- rbind("x0" = c(1,0), "x1" = c(1,1))
@@ -69,13 +69,13 @@
 ##' 
 ##' @export
 fic.glm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL,
-                          X=NULL, Xwt=NULL, sub="auto", B=0, loss=loss_mse, ...){
+                          wt=NULL, sub="auto", B=0, loss=loss_mse, ...){
     if (!inherits(wide, "glm")) stop("\"wide\" must be an object of class \"glm\"")
     fns <- list(
         aux = function(x)list(dispersion=summary(x)$dispersion)
     )
     fic.default(wide=wide, inds=inds, inds0=inds0, gamma0=gamma0, 
-                focus=focus, focus_deriv=focus_deriv, X=X, Xwt=Xwt,
+                focus=focus, focus_deriv=focus_deriv, wt=wt,
                 sub=sub, fns=fns, B=B, FIC=TRUE, loss=loss, ...)
 }
 

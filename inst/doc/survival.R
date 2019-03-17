@@ -43,7 +43,6 @@ gamma0 <- c(0,1)
 ## ------------------------------------------------------------------------
 library(fic)
 fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex2, we2, gg))
-fic(gg, inds=indmat, gamma0=gamma0, focus=focus, sub=list(ex, we, gg))
 
 ## ------------------------------------------------------------------------
 set.seed(1)

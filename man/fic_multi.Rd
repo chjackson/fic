@@ -8,8 +8,8 @@
 fic_core(par, J, inds, inds0, gamma0 = 0, n, focus_deriv = NULL)
 
 fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
-  focus_deriv = NULL, X = NULL, Xwt = NULL, parsub = NULL,
-  auxpar = NULL, auxsub = NULL, ...)
+  focus_deriv = NULL, wt = NULL, parsub = NULL, auxpar = NULL,
+  auxsub = NULL, ...)
 }
 \arguments{
 \item{par}{Vector of maximum likelihood estimates from the wide model}
@@ -42,10 +42,10 @@ For example, coefficients of covariates should take the value 0 if the covariate
 \itemize{
 \item first argument named \code{par}, denoting a vector of parameters, of the same length as in wide model
 
-\item an optional second argument named \code{X}, typically denoting covariate values.  The required format is documented below. 
+\item other arguments defining alternative focuses.  These are supplied through the \code{...} argument to \code{\link{fic}}.  In the built-in examples, there is an argument named \code{X}, denoting alternative covariate values.  The required format is documented below. 
 }
 
-The function should return the focus quantity of interest.  If \code{X} is supplied and has multiple rows, then \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
+The function should return the focus quantity of interest.  If additional arguments are supplied which are vectors or matrices, e.g. \code{X}, then these are assumed to represent multiple focuses, and \code{focus} should return a vector giving the focus for \code{par} and each row of \code{X}.  Otherwise \code{focus} should return a scalar giving the focus value at \code{par}.
 
 Not required if \code{focus_deriv} is specified.
 
@@ -57,17 +57,7 @@ Alternatively, \code{focus} can be a character string naming a built-in focus fu
 
 See \code{\link{focus_fns}} for the functions underlying these built-in focuses.}
 
-\item{X}{Second argument of the focus function, typically giving covariate values defining the focus. This can either be a matrix or a vector.
-
-This is optional.  If not supplied, \code{focus} should return a scalar giving the focus value at parameters \code{par}.
-
-To compute focused model comparison statistics for the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative covariate values.
-
-For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
-
-If just one covariate value is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.}
-
-\item{Xwt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
+\item{wt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
 \item{parsub}{Vector of maximum likelihood estimates from the submodel, or a matrix if there are multiple submodels. 
 Only required to return the estimate of the focus quantity alongside 
@@ -77,7 +67,17 @@ the model assessment statistics for the submodel. If omitted, the estimate is om
 
 \item{auxsub}{List of estimates of auxiliary parameters from the submodel.  The only built-in example is the dispersion parameter for GLMs.}
 
-\item{...}{Other arguments to the focus function can be supplied here.  Currently no examples of this.}
+\item{...}{Other arguments to the focus function can be supplied here.
+
+The built-in focus functions \code{\link{prob_logistic}} and \code{\link{mean_normal}} take an argument \code{X} giving covariate values defining the focus. This can either be a matrix or a vector, or a list or data frame that can be coerced into a matrix. 
+
+If just one focus is needed, then \code{X} can be a vector of length equal to the number of parameters in the wide model.
+
+To compute focused model comparison statistics for multiple focuses defined by the same focus function evaluated at multiple covariate values, \code{X} should be a matrix, with number of columns equal to the number of parameters in the wide model, and number of rows equal to the number of alternative focuses.
+
+For a typical regression model, the first parameter will denote an intercept, so the first value of \code{X} should be 1, and the remaining values should correspond to covariates whose coefficients form parameters of the wide model.  See the examples in the vignette.
+
+Arguments to the focus function other than \code{X} can also be supplied as a matrix, vector, list or data frame in the same way. An exception is when the argument is supplied as a vector, this is assumed to refer to multiple focuses.   For example, suppose the focus function defines the quantile of a distribution, and takes an argument \code{focus_p}, then calling \code{fic(...,focus_p=c(0.1, 0.9))} indicates two alternative focuses defined by the 0.1 and 0.9 quantiles.}
 }
 \value{
 See \code{\link{fic}}

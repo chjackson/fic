@@ -51,18 +51,80 @@ focus_fns <-
 
 ## Construct the arguments to supply to fic() from the built-in focus functions
 
-get_focus <- function(focus, focus_deriv=NULL, par=NULL, X=NULL, ...){
+get_focus <- function(focus, focus_deriv=NULL, par=NULL, ...){
     if (is.character(focus)) {
         if (!(focus %in% names(focus_fns)))
             stop(sprintf("focus function `%s` not found", focus))
         fi <- match(focus, names(focus_fns))
         args_extra <- list(...)
         focus <- focus_fns[[fi]]$focus
-        deriv_args <- c(par=list(par), X=list(X), args_extra)
+        deriv_args <- c(par=list(par), args_extra)
         focus_deriv <- do.call(focus_fns[[fi]]$deriv, deriv_args)
     }
-    ## add unused X argument to function if it doesn't already have one
-    if (!("X" %in% names(formals(focus))))
-        formals(focus) <- c(formals(focus), alist(X=))
     list(focus=focus, focus_deriv=focus_deriv)
 }
+
+
+check_focus <- function(focus, par, auxpar, ...)
+{
+    focus_args <- list(par=par)
+    eargs <- list(...)
+    nargs <- length(eargs)
+    anames <- names(formals(focus))
+    if (!(anames[1] == "par")) stop(sprintf("First argument of focus function named `%s`, this should be named `par`",anames[1]))
+    focus_has_auxargs <- any(!(anames %in% c("par",names(eargs))))
+    if (focus_has_auxargs)
+        focus_args <- c(focus_args, auxpar)
+    if (nargs > 0) { 
+        for (i in seq_along(eargs)){
+            eargs[[i]] <- check_focusarg(eargs[[i]], names(eargs)[i], length(par))
+            ## on output these should all be matrices, nrow = nfocus, ncol = (typically) ncovs. no restriction on ncols
+        }
+        arglens <- sapply(eargs, nrow)
+        nfocus <- max(arglens)
+        ## Rownames of biggest argument used to label the different foci in the fic output
+        wm <- which.max(arglens)
+        if (is.null(rownames(eargs[[wm]])) | 
+            any(duplicated(rownames(eargs[[wm]]))))
+            rownames(eargs[[wm]]) <- eargs[[wm]][,1]
+        for (i in seq_along(eargs)){
+            if (arglens[i] == 1)
+                eargs[[i]] <- eargs[[i]][rep(1,nfocus),,drop=FALSE]
+            if (!(arglens[i] %in% c(1,nfocus)))
+            {
+                stop(sprintf("Number of focuses taken to be %s, but focus argument `%s` has %s elements/rows. This argument should either be a scalar or a vector/matrix with %s elements/rows", nfocus, names(eargs)[i], arglens[i], nfocus))
+            }
+        }
+        fnames <- rownames(eargs[[wm]])
+    } else {
+        nfocus <- 1
+        fnames <- NULL
+        eargs <- NULL
+    }
+    focus_args <- c(focus_args, eargs)[anames]
+    fn_try <- try(do.call(focus, focus_args))
+    if (inherits(fn_try, "try-error")){
+        argnames <- paste(paste0("`", names(formals(focus)[-1]), "`"), collapse=",")    
+        stop(sprintf("Evaluating the focus function returned an error.  Check that the arguments %s to the focus function have been supplied and are valid, e.g. have the right dimensions", argnames))
+    } 
+    list(eargs=eargs, nfocus=nfocus, fnames=fnames)
+}
+
+check_focusarg <- function(arg, name, npar){
+    if (!is.null(arg)){
+        if (is.list(arg))
+            arg <- as.matrix(as.data.frame(arg))
+        if (!is.numeric(arg))
+            stop(sprintf("Focus argument `%s` must be numeric", name))
+        if (!(is.vector(arg) || is.matrix(arg))) 
+            stop(sprintf("Focus argument `%s` must be a vector or a matrix", name))
+        if (is.vector(arg)){
+            if (name == "X")
+                arg <- matrix(arg, nrow=1)
+            else 
+                arg <- matrix(arg, ncol=1)
+        }
+    }
+    arg
+}
+

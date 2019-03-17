@@ -16,7 +16,9 @@
 \newcommand{\bdelta}{\boldsymbol{\delta}}
 
 \Abstract{
-This vignette briefly illustrates a bootstrap procedure for focused model comparison which allows very general loss functions, though is based on different asymptotic assumptions.   This procedure is experimental and has not been studied in detail. 
+This vignette briefly illustrates a bootstrap procedure for focused
+model comparison which allows very general loss functions, though is
+based on different asymptotic assumptions from standard focused model comparison.   This procedure is experimental and has not been studied in detail. 
 }
 \Keywords{models,bootstrap}
 
@@ -28,7 +30,7 @@ Take the low birth weight example, described in detail in the main FIC package v
 library(fic)
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data=birthwt, family=binomial)
-vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+vals.smoke <- c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
 X <- vals.smoke
 inds0 <- c(1,1,0,0,0,0,0,0)
 combs <- all_inds(wide.glm, inds0)
