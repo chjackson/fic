@@ -17,8 +17,12 @@
 
 \Abstract{
 This vignette briefly illustrates a bootstrap procedure for focused
-model comparison which allows very general loss functions, though is
-based on different asymptotic assumptions from standard focused model comparison.   This procedure is experimental and has not been studied in detail. 
+model comparison.   This allows focused model comparison to be done
+without an algebraic formula, so that the assumed model 
+and the calculation of expected loss under a submodel is made very explicit. 
+This procedure also allows very general loss functions, though is
+based on different asymptotic assumptions from standard focused model comparison.   
+This procedure is experimental and has not been studied in detail. 
 }
 \Keywords{models,bootstrap}
 
@@ -50,6 +54,7 @@ The mean square error of the focus is then estimated as
 This is implemented in the \code{fic} function by supplying a \code{B} argument giving the number of bootstrap samples.
 
 <<>>=
+set.seed(1)
 ficboot_mse <- fic(wide=wide.glm, inds=combs, inds0=inds0, 
                    focus=prob_logistic, X=X, B=1000)
 @ 

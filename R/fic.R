@@ -96,6 +96,7 @@ check_J <- function(J, npar){
 }
 
 check_inds <- function(inds, npar){
+    tn <- attr(inds, "termnames")
     if (!(is.vector(inds) || is.matrix(inds) || is.data.frame(inds)))
         stop("`inds` must be a vector, matrix or data frame")
     if (is.data.frame(inds))
@@ -110,6 +111,7 @@ check_inds <- function(inds, npar){
             stop(sprintf("`inds` has %d columns, but model has %d parameters.\nNumber of columns of matrix `inds` must match number of parameters", ncol(inds), npar))
     }
     if (is.null(rownames(inds))) rownames(inds) <- seq_len(nrow(inds))
+    attr(inds, "termnames") <- tn
     inds
 }
 
@@ -580,6 +582,7 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
     attr(res, "sub") <- sub
     attr(res, "parnames") <- get_parnames(par, inds)
+    attr(res, "termnames") <- attr(inds, "termnames") 
     attr(res, "inds") <- inds
 
     class(res) <- c("fic",class(res))
@@ -587,7 +590,6 @@ fic.default <- function(wide, inds, inds0=NULL, gamma0=0,
 }
 
 
-## get_parsub <- function(sub, npar, inds, inds0, gamma0, coef_fn, wide){
 get_auxsub <- function(sub, aux_fn){
     ## error checking for sub done in get_parsub 
     if (is.null(sub))

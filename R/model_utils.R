@@ -79,6 +79,7 @@ all_inds.default <- function(wide, inds0=NULL, auxpars=NULL, ...){
                      length(inds0),ncol(combs)))
     ininds0 <- if (!is.null(inds0)) apply(combs, 1, function(x) !any(x==0 & inds0==1)) else rep(TRUE, nrow(combs))
     combs <- combs[ininds0,]
+    attr(combs, "termnames") <- labs
     combs
 }
 

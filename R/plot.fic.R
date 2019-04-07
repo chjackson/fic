@@ -100,6 +100,16 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##'
 ##' @inheritParams plot.fic
 ##'
+##' @param legend Show a legend, identifying
+##'
+##' a) the line types for the wide and narrow models
+##'
+##' b) the names of the terms of the wide model.  This is used when the \code{inds} object
+##' supplied to \code{fic} contains row names made out of a string of 0s and 1s that identify
+##' the terms included in the submodel.  These strings are plotted as text labels against the
+##' estimate for each submodel.  The legend identifies which 0s and 1s correspond to which
+##' model terms. 
+##'
 ##' @importFrom scales hue_pal
 ##' 
 ##' @import ggplot2
@@ -107,7 +117,7 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##' @seealso plot.fic, summary.fic
 ##' 
 ##' @export
-ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
+ggplot_fic <- function(x, ci=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
     if (is.null(x$focus))
         stop("No focus estimates found. `fic` should be run with the `sub` argument")
     if (is.null(ylab)) ylab <- "RMSE"
@@ -121,18 +131,22 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
     if (!is.null(iwide)){
         indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
         xwide <- x[indwide,,drop=FALSE]
-        ps <- ps + geom_vline(data=xwide, aes_string(xintercept = 'focus'), col=col)
+        xwide$Model <- "Wide"
     }
     if (!is.null(inarr)){
         indnarr <- tapply(1:nrow(x), x$vals, function(x)x[inarr])
         xnarr <- x[indnarr,,drop=FALSE]
-        ps <- ps + geom_vline(data=xnarr, aes_string(xintercept = 'focus'), lty=2, col=col)
+        xnarr$Model <- "Narrow"
     }
+    xmod <- rbind(xnarr, xwide)
+    xmod$Model <- factor(xmod$Model, levels=c("Wide","Narrow"))
+    ps <- ps + geom_vline(data=xmod, aes_string(xintercept = 'focus', lty='Model'), col=col)
     ps <- ps + 
-      facet_grid(.~vals) + 
-      geom_point() +
-      xlab(xlab) +
-      ylab(ylab)
+        facet_grid(.~vals) + 
+        geom_point(aes(color="black")) + # to force legend
+        scale_colour_identity(guide="legend") + # allow "black" in aes instead of variable
+        xlab(xlab) +
+        ylab(ylab)
     if (!is.null(xlim))
         ps <- ps + xlim(xlim)
     if (ci)
@@ -140,5 +154,15 @@ ggplot_fic <- function(x, ci=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
             geom_segment(aes_string(x='l95', xend='u95', yend='rmse.adj'))
     ps <- ps +
       geom_text(aes_string(x=-Inf, label='mods', hjust=0), col="gray60", size=2.5)
+    pn <- attr(x, "termnames")
+    if (!is.null(pn) && legend){
+        plab <- paste0("Terms\n", paste(paste(seq(along.with=pn), pn, sep=": "), collapse="\n"))
+        ## Hack a legend to display parameter names 
+        ps <- ps +
+            guides(color = guide_legend(title=plab, # use par names as legend title
+                                        label=FALSE, # remove key label 
+                                        override.aes = list(alpha = 0))) + # remove key background
+            theme(legend.key=element_blank()) # remove key point symbols
+    } else ps <- ps + theme(legend.position="none")
     ps
 }

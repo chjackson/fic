@@ -4,6 +4,16 @@
 
 \documentclass[nojss,nofooter]{jss}
 
+<<echo=FALSE>>=
+options(prompt = "R> ",
+        continue = "+  ",
+        width = 70,
+        useFancyQuotes = FALSE,
+        digits = 3)
+library("knitr")
+opts_chunk$set(fig.path="fic-")
+@
+
 \author{Christopher Jackson\\\email{chris.jackson@mrc-bsu.cam.ac.uk}}
 \title{Examples of focused model comparison: linear regression}
 \Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
@@ -22,14 +32,14 @@
 
 The linear regression model considered here has the general form
 \[
-  y_i \sim N(\mu_i, \sigma^2), \quad \mu_i = \alpha + \sum \beta_i x_i .
+  y_i \sim N(\mu_i, \sigma^2), \quad \mu_i = \alpha + \sum \beta_{s} x_{is} .
 \]
 
-for observations $i=1,\ldots,n$.  The regressors $x_i$ might represent different covariates, contrasts between levels of a factor, functions of covariates such as polynomials, or interactions between different covariates. 
+for observations $i=1,\ldots,n$.  The regressors $x_{is}$ might represent different covariates, contrasts between levels of a factor, functions of covariates such as polynomials, or interactions between different covariates. 
 
 \section{Covariate selection in linear regression}
 
-Firstly we present a simple covariate selection problem in the well-known \code{mtcars} dataset from the \pkg{datasets} package distributed with standard R installations. 
+Firstly we present a simple covariate selection problem in the well-known \code{mtcars} dataset from the \pkg{datasets} package distributed with standard \proglang{R} installations. 
 The outcome $y_i$ is the fuel efficiency of car model $i$ measured in MPG.  
 The wide model is taken to be the model suggested in \citet{henderson1981building} which includes the following predictors
 
@@ -72,8 +82,19 @@ X <- rbind(
 )
 ficres <- fic(wide.lm, inds=inds, focus=mean_normal, X=X)
 summary(ficres)
+@ 
+
+<<mtcars,include=FALSE>>=
 ggplot_fic(ficres)
 @ 
+\begin{figure}[h]
+  \centering
+  \includegraphics{fic-mtcars-1}
+  \caption{Focused comparison of linear regression models for the
+    \code{mtcars} data. }
+  \label{fig:ficres}
+\end{figure}
+
 
 There is a cluster of submodels whose focus estimates are judged to
 have relatively low bias and mean square error.   The model with
@@ -102,9 +123,9 @@ certain level.
 
 <<>>=
 library(gapminder)
-gap4 <- gapminder[gapminder$country !="Kuwait",]
+gap2 <- gapminder[gapminder$country !="Kuwait",]
 pal <- heat.colors(5)
-p <- ggplot(gap4, aes(x=gdpPercap, y=lifeExp)) +
+p <- ggplot(gap2, aes(x=gdpPercap, y=lifeExp)) +
   geom_point() +
   xlab("GDP per capita (US$, inflation-adjusted)") +
   ylab("Life expectancy (years)") +
@@ -115,11 +136,11 @@ p <- ggplot(gap4, aes(x=gdpPercap, y=lifeExp)) +
 A wide model is fitted with a polynomial relationship of degree 5.  Fitted values from each model are added to the scatterplot.
 
 <<>>=
-wide.lm <- lm(lifeExp ~ poly(gdpPercap,5), data=gap4)
+wide.lm <- lm(lifeExp ~ poly(gdpPercap,5), data=gap2)
 yilab <- c(0, 50, 100, 65, 85)
 for (i in 2:5) {
-    poly.lm <- lm(lifeExp ~ poly(gdpPercap,i), data=gap4)
-    ft <- data.frame(x=gap4$gdpPercap, y=fitted(poly.lm))
+    poly.lm <- lm(lifeExp ~ poly(gdpPercap,i), data=gap2)
+    ft <- data.frame(x=gap2$gdpPercap, y=fitted(poly.lm))
     ft <- ft[order(ft$x),]
     p <- p + 
       geom_line(data=ft, aes(x=x,y=y), col=pal[i], lwd=2, alpha=0.8) + 
@@ -207,7 +228,7 @@ ficres <- fic(wide.lm, inds=inds, focus=quantile_normal,
                X=X[1,], focus_p=c(0.1,0.5,0.9))
 @ 
 
-Check that the results match between the alternative ways of setting up \code{fic}. 
+We can check that the results match between the alternative ways of setting up \code{fic} for the same focus. 
 
 
 
@@ -241,7 +262,9 @@ We then extract the results averaged over these focuses, automatically computed 
 <<>>=
 ficres <- ficres[ficres$vals=="ave",]
 aics <- sapply(attr(ficres,"sub"), AIC)
-qplot(ficres$rmse, aics, xlab="Root mean square error of log density estimate", ylab="AIC") 
+qplot(ficres$rmse, aics,
+      xlab="Root mean square error of log density estimate",
+      ylab="AIC") 
 @ 
 
 

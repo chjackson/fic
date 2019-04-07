@@ -10,6 +10,7 @@ ficres <- fic(wide=wide.glm, inds=combs, inds0=inds0,
               focus=prob_logistic, X=X)
 
 ## ------------------------------------------------------------------------
+set.seed(1)
 ficboot_mse <- fic(wide=wide.glm, inds=combs, inds0=inds0, 
                    focus=prob_logistic, X=X, B=1000)
 

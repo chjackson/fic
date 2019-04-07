@@ -73,6 +73,7 @@ fns <- list(coef=function(x)x$est,
 
 med.bmi <- rbind(male=23.56,  female=21.82)
 
+library(fic)
 fmean <- fic(mod4, inds=inds, fns=fns, focus=focus1, X=med.bmi, FIC=TRUE,
              sub=list(mod1, mod2, mod3, mod4))
 fmean 

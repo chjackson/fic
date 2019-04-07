@@ -4,13 +4,23 @@
 \alias{ggplot_fic}
 \title{Plot focused model comparison statistics: ggplot2 method}
 \usage{
-ggplot_fic(x, ci = TRUE, ylab = NULL, xlab = NULL, xlim = NULL,
-  ylim = NULL)
+ggplot_fic(x, ci = TRUE, legend = TRUE, ylab = NULL, xlab = NULL,
+  xlim = NULL, ylim = NULL)
 }
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
 \item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.}
+
+\item{legend}{Show a legend, identifying
+
+a) the line types for the wide and narrow models
+
+b) the names of the terms of the wide model.  This is used when the \code{inds} object
+supplied to \code{fic} contains row names made out of a string of 0s and 1s that identify
+the terms included in the submodel.  These strings are plotted as text labels against the
+estimate for each submodel.  The legend identifies which 0s and 1s correspond to which
+model terms.}
 
 \item{ylab}{y-axis label.}
 

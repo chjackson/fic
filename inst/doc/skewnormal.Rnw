@@ -13,7 +13,7 @@ The following example (from \citet{claeskens:hjort:book}) illustrates
 how focused model comparison can be performed using the \pkg{fic}
 package in a situation where: 
 \begin{itemize}
-\item a novel class of models is defined and fitted by custom R functions 
+\item a novel class of models is defined and fitted by custom \proglang{R} functions 
 \item a simple model is extended in two different directions to define the models being compared
 \end{itemize}
 }
@@ -47,7 +47,7 @@ are nested in the ``wide'' model (4).
 
 \section{Fitting the models in R} 
 
-To implement this class of models in R, firstly we define the log density function of the general skew-normal model with mean, scale and skewness parameters $\mu,\sigma,\lambda$ indicated by
+To implement this class of models in \proglang{R}, firstly we define the log density function of the general skew-normal model with mean, scale and skewness parameters $\mu,\sigma,\lambda$ indicated by
 arguments \code{mean}, \code{sigma} and \code{lambda}. 
 This defines the distribution of $y_i$ in model (3) with
 mean $\mu_i = \beta_0$,  and in (4) with $\mu_i = \beta_0 +
@@ -149,7 +149,7 @@ We now perform a focused comparison of the four models.  Two
 alternative focuses are investigated: the mean and median outcome at a
 covariate value of interest.   Expressions for the mean and median of 
 the skew normal, in the parameterisation used here, are given by
-\citet{claeskens:hjort:book} and implemented in the following R functions: 
+\citet{claeskens:hjort:book} and implemented in the following \proglang{R} functions: 
 
 <<>>=
 mean_snorm <- function(mu, sigma, lambda){
@@ -194,7 +194,7 @@ defined by the mean and median for average men and women, with
 covariate values defined by \code{med.bmi}.   The \code{sub} argument
 is supplied to ensure the focus estimates are returned too -- note
 that \code{fic} can only automatically fit the submodels for standard
-R model classes such as \code{glm}. 
+\proglang{R} model classes such as \code{glm}. 
 
 <<>>=
 inds <- rbind("intcpt"     =c(1,0,1,0),
@@ -208,6 +208,7 @@ fns <- list(coef=function(x)x$est,
 
 med.bmi <- rbind(male=23.56,  female=21.82)
 
+library(fic)
 fmean <- fic(mod4, inds=inds, fns=fns, focus=focus1, X=med.bmi, FIC=TRUE,
              sub=list(mod1, mod2, mod3, mod4))
 fmean 

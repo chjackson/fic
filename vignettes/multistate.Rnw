@@ -12,13 +12,33 @@
   This vignette illustrates focused model comparison with the
   \pkg{fic} package for covariate selection in multi-state models
   fitted with the \pkg{msm} package.  A challenge of this
-  example is that a single model involves several regression models
+  setting is that a single model involves several regression models
   fitted simultaneously, so that the set of parameters has a
-  non-standard structure.  Additionally, the focus is a complicated
-  function of the model parameters.
+  non-standard structure.  Additionally, the focus is typically 
+  a complicated function of the model parameters.
 }
 \Keywords{models,survival,multistate}
 
+<<echo=FALSE>>=
+options(width=60,digits=3)
+options(prompt="R> ")
+library(knitr)
+opts_chunk$set(fig.path="multistate-", linewidth=80)
+
+hook_output = knit_hooks$get("output")
+knit_hooks$set(output = function(x, options) {
+    # this hook is used only when the linewidth option is not NULL
+    if (!is.null(n <- options$linewidth)) {
+        x = knitr:::split_lines(x)
+        # any lines wider than n should be wrapped
+        if (any(nchar(x) > n)) 
+            x = strwrap(x, width = n)
+        x = paste(x, collapse = "\n")
+    }
+    hook_output(x, options)
+})
+
+@
 
 \usepackage{bm}
 
@@ -48,7 +68,7 @@ times.  The likelihood for this class of models was orginally
 described by \citet{kalbfleisch:lawless}. 
 
 The example dataset \code{psor} in the package records the progression
-of joint damage for 305 patients with psoriatic arthritis \citep[from][]{gladman1999progression}
+of joint damage for 305 patients with psoriatic arthritis \citep[from][]{gladman1999progression}.
 Each of the 806 rows represents a clinic visit.  The outcome is the variable
 \code{state}, where 1, 2, 3, and 4 represent 0, 1--4, 5--9 and 10 or
 more damaged joints, respectively. 
@@ -105,8 +125,10 @@ psor.wide.msm
 @ 
 
 The hazard ratios $\exp(\bbeta_{rs})$ for the two covariates are
-presented in the model output. The confidence intervals are wide,
-which suggests that a smaller model might give more precise
+presented in the model output. The confidence intervals include 
+a wide range of values, generally including a hazard ratio of 1, and are 
+wide compared to the confidence intervals for the baseline rates.
+This suggests that a smaller model might give more precise
 estimates. 
 
 \section{Focused comparison of multi-state models fitted with ``msm''}

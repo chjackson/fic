@@ -97,6 +97,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     attr(res, "inarr") <- if (any(inarr)) which(inarr) else NULL
     attr(res, "sub") <- sub
     attr(res, "parnames") <- get_parnames(par, inds)
+    attr(res, "termnames") <- attr(inds, "termnames") 
     attr(res, "inds") <- inds
 
     class(res) <- c("fic",class(res))
