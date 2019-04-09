@@ -2,7 +2,7 @@
 % Please edit documentation in R/fic.coxph.R
 \name{fic.coxph}
 \alias{fic.coxph}
-\title{Focused Information Criterion for Cox proportional hazard regression models}
+\title{Focused information criteria for Cox proportional hazard regression models}
 \usage{
 \method{fic}{coxph}(wide, inds, inds0 = NULL, gamma0 = 0, focus, X = NULL,
   t = NULL, sub = "auto", tidy = TRUE, ...)

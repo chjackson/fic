@@ -25,14 +25,20 @@ get_parnames <- function(par, inds){
 summary.fic <- function(object, tidy=TRUE, adj=FALSE, ...) {
     if (adj)
         object$rmse <- object$rmse.adj
+    if (is.null(object$focus)) {
+        object$focus <- NA
+        warning("Focus values not available")
+    }
     minfic <- function(x){
         ind <- which.min(x$rmse)
         focus <- x$focus[ind]
         parnames <- parnames[inds[ind,]==1]
         if (tidy)
-            data.frame(index=ind, focus=focus, pars=paste(parnames, collapse=","))
+            res <- data.frame(index=ind, pars=paste(parnames, collapse=","))
         else 
-            list(index=ind, focus=focus, pars=parnames) 
+            res <- list(index=ind, pars=parnames)
+        res$focus <- focus 
+        res
     }
     fsplit <- split(object, object$vals)
     parnames <- attr(object, "parnames")
@@ -47,8 +53,6 @@ summary.fic <- function(object, tidy=TRUE, adj=FALSE, ...) {
     class(res) <- "summary.fic"
     res
 }
-
-## TODO test if focus not included 
 
 print.summary.fic <- function(x){
     cat("Model with lowest RMSE by focus\n")

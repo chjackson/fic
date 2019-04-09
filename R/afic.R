@@ -83,6 +83,7 @@ afic <- function(par, J, inds, inds0, gamma0=0, n, focus_deriv, wt)
 }
 
 
-## TODO can we share more code between fic_core and AFIC 
+## We might be able to share more code between fic_core and AFIC,
+## likewise for Cox models, but doesn't seem worth it unless we
+## implement several more FIC-like methods.
 
-## Maybe this will all change again when we do Cox models

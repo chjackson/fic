@@ -82,7 +82,8 @@ where $n$ is the number of observations. These two criteria are based on very di
 
 Both of these methods give a single ranking of models according how well they fit a given dataset.   However, different models may be better for different purposes, for example to estimate different quantities of interest.  Such quantities are termed the ``focus'' of a model, and this is the idea behind ``focused" model comparison.
 
-This paper describes the \pkg{fic} \proglang{R} package.   This compares a set of
+This paper describes the \pkg{fic} \proglang{R} package, available
+from   This compares a set of
 models according to how accurately they estimate a focus quantity.
 The models should all be nested in a single ``wide'' model that is
 assumed to generate the data.   Section \ref{sec:formulae} gives an
@@ -237,7 +238,7 @@ Often we want a model that performs well in a range of situations.    In covaria
 
 \[ MSE_S^{(ave)} = \int MSE_S(u) dW(u) du \] 
 
-as a weighted average of the mean squared errors~(\ref{eq:mse}) for focuses defined by different covariate values $u$, weighted by their prevalence $W(u)$.   However \citet{claeskens:hjort:book} derived an alternative formula, so that if correction of the squared bias estimate, as in~(\ref{eq:sqbias:adj}) is required, it only needs to be performed once:
+as a weighted average of the mean squared errors~(\ref{eq:mse}) for focuses defined by different covariate values $u$, weighted by their prevalence $W(u)$.   However \citet{claeskens:hjort:book} derived an alternative formula, so that if correction of the squared bias estimate, as in~(\ref{eq:sqbias:adj}), is required, it only needs to be performed once:
 \begin{equation}
   \label{eq:amse}
 %  AMSE = max(IS,0) + IIS
@@ -336,7 +337,7 @@ commonly-used models.
 
 The use of the \code{fic} package is illustrated for covariate selection in logistic regression, using the example from \citet{claeskens:hjort:book} (Example 6.1).  The dataset was originally presented by \citet{hosmer:lemeshow:firstedition}. Data are taken from $n=189$ women with newborn babies, and the binary outcome is whether the baby is born with a weight of less than 2500g.   We build a logistic regression model to predict the outcome, but are uncertain about what covariates should be included. 
 
-The data are provided as an object \code{birthwt} in the \code{fic} package.  This is the same as \code{birthwt} in \code{MASS} \citep{venables:ripley} with the addition of a few extra columns defining interactions and transformations as in \citet{claeskens:hjort:book}. 
+The data are provided as an object \code{birthwt} in the \pkg{fic} package.  This is the same as \code{birthwt} in \pkg{MASS} \citep{venables:ripley} with the addition of a few extra columns defining interactions and transformations as in \citet{claeskens:hjort:book}. 
 
 The following covariates are always included (coefficient vector $\btheta$)
 
@@ -364,7 +365,7 @@ The following covariates will be selected from (coefficient vector $\bgamma$)
 
 Firstly the wide model, that includes all the above covariates, is defined and fitted.  
 
-<<>>=
+<<message=FALSE>>=
 library("fic")
 wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui, 
                 data = birthwt, family = binomial)
@@ -514,7 +515,7 @@ the focus estimate against the root MSE of each submodel.  The default
 \code{plot} method for \code{fic} objects accomplishes this using base
 \proglang{R} graphics: try \code{plot(ficres)}. 
 Alternatively a graph can be plotted using \code{ggplot2} if this
-package is installed.   This is illustrated in Figure~\ref{fic:ficres}. 
+package is installed.   This is illustrated in Figure~\ref{fig:ficres}. 
 <<birthwt,include=FALSE>>=
 ggplot_fic(ficres)
 @ 
@@ -768,7 +769,7 @@ combs <- all_inds(wide, inds0)
 @
 
 The focus is defined as the 5 year survival probability
-(\code{fic(...,focus = "survival", t = 5}) for the covariate values defined by
+\code{fic(...,focus = "survival", t = 5)} for the covariate values defined by
 \code{X}, here taken as men and women separately, with
 average age and mean observed tumour thickness among men and women,
 infiltration level 4,
@@ -795,7 +796,7 @@ ggplot_fic(ficall, ci = FALSE, xlim = c(0,1))
   \includegraphics{fic-melanoma-1}
   \caption{Focused comparison of Cox regression models for
     the melanoma data.  }
-  \label{fig:ficres}
+  \label{fig:melanoma}
 \end{figure}
 
 The models give a big range of estimates for the focus survival
@@ -902,6 +903,7 @@ average their estimates \citep{yao:stacking,my:averaging:bayesian}.
 These might also be extended to enable models to be compared for 
 different focuses.
 
+\pkg{fic} is available from \url{http://CRAN.R-project.org/package=fic}.  Development versions are available on \url{https://github.com/chjackson/fic}, and contributions are welcome.
 
 \bibliography{fic}
 

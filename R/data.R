@@ -1,6 +1,4 @@
-#' Risk Factors Associated with Low Infant Birth Weight 
-
-#' Risk factors associated with low infant birth weight. 
+#' Risk factors associated with low infant birth weight
 #' 
 #' @format A data frame with 189 rows and 19 variables.  The first 10 columns are included in the dataset of the same name in the \pkg{MASS} package.  The remaining 9 columns are defined in Claeskens and Hjort (2008), and are included in this dataset for convenience.
 #' \describe{

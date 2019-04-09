@@ -1,11 +1,11 @@
-%\VignetteIndexEntry{Using the fic R package for focused model comparison: multi-state models}
+%\VignetteIndexEntry{Examples of focused model comparison: multi-state models}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{fic,msm}
 
 \documentclass[nojss,nofooter]{jss}
 
 \author{Christopher Jackson\\\email{chris.jackson@mrc-bsu.cam.ac.uk}}
-\title{Examples of focused model comparison: multi-state models}
+\title{Eamples of focused model comparison: multi-state models}
 \Plainauthor{Christopher Jackson, MRC Biostatistics Unit}
 
 \Abstract{

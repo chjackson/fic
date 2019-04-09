@@ -62,6 +62,8 @@ expand_inds <- function(inds, wide){
 ##'
 ##' If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
 ##'
+##' See the package vignettes for examples.
+##'
 ##' @rdname all_inds 
 ##' 
 ##' @export
@@ -137,8 +139,8 @@ newdata_to_X <- function(newdata, wide, intercept=TRUE){
 }
 
 
-##' Fit submodels of a wide model, defined by a matrix of indicators
-##' for inclusion of covariates.
+##' Fit submodels of a general linear wide model, defined by a matrix of indicators
+##' for inclusion of covariates
 ##' 
 ##' Fit the submodels of a wide model \code{wide} which are defined by
 ##' \code{inds}.  This can only be used for covariate selection
@@ -176,11 +178,6 @@ fit_submodels.default <- function(wide, inds, ...){
     sub
 }
 
-## TODO put in model specific files ? 
-
-#fit_submodels.lm <- function(wide, inds, ...){
-#    fit_submodels.default(wide=wide, inds=inds, inds_aux=1)
-#}
 
 ### Can't seem to just do fit_submodels and then extract basehaz
 ### externally, since then basehaz seems to see the wrong XZi, for some

@@ -16,11 +16,13 @@ ggplot_fic(x, ci = TRUE, legend = TRUE, ylab = NULL, xlab = NULL,
 
 a) the line types for the wide and narrow models
 
-b) the names of the terms of the wide model.  This is used when the \code{inds} object
-supplied to \code{fic} contains row names made out of a string of 0s and 1s that identify
-the terms included in the submodel.  These strings are plotted as text labels against the
-estimate for each submodel.  The legend identifies which 0s and 1s correspond to which
-model terms.}
+b) the names of the terms of the wide model.  This is used when
+the \code{inds} object supplied to \code{\link{fic}} was constructed by
+\code{\link{all_inds}}, so has row names made out of a string
+of 0s and 1s that identify the terms included in the submodel.
+These strings are plotted as text labels against the estimate for
+each submodel.  The legend identifies which 0s and 1s correspond
+to which model terms.}
 
 \item{ylab}{y-axis label.}
 

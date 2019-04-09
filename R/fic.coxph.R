@@ -1,4 +1,4 @@
-##' Focused Information Criterion for Cox proportional hazard regression models
+##' Focused information criteria for Cox proportional hazard regression models
 ##'
 ##' Focused model comparison for Cox models fitted with \code{coxph} from the \code{survival} package.  Built-in focuses include the hazard ratio, survival and cumulative hazard. 
 ##' 
@@ -55,10 +55,9 @@
 ##' 
 ##' @export
 fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
-                      focus, X=NULL, t=NULL, sub="auto", tidy=TRUE, ...)  ## TODO defaults for X, t etc 
+                      focus, X=NULL, t=NULL, sub="auto", tidy=TRUE, ...)
 {
     if (!inherits(wide, "coxph")) stop("\"wide\" must be an object of class \"coxph\"")
-    ## TODO work out where all error checks go
     if (!is.null(attr(wide$terms, "specials")$strata)) stop("Stratified Cox models are not currently supported")
     par <- coef(wide)
     inds <- check_inds(inds, length(par))
@@ -66,7 +65,7 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
 
     nmod <- nrow(inds)
     X <- check_X(X, length(par))
-    if (is.null(t)) t <- 1 # e.g. for hazard ratio, which is indep of time
+    t <- check_t(t)
     nval <- nrow(X)  # number of covariate values to evaluate the focus at
     if (isTRUE(sub=="auto"))
         sub <- fit_submodels(wide, inds)
@@ -104,6 +103,12 @@ fic.coxph <- function(wide, inds, inds0=NULL, gamma0=0,
     res
 }
 
+check_t <- function(t){
+    if (is.null(t)) t <- 1 # e.g. for hazard ratio, which is indep of time
+    if (!is.numeric(t)) stop("`t` must be numeric")
+    if (any(t < 0)) stop("t must be a vector of survival times all > 0")
+    t
+}
 
 fic_coxph_core <- function(wide,
                            inds,
@@ -116,7 +121,6 @@ fic_coxph_core <- function(wide,
                            ) 
 {
     ## Notation in book 3.4
-    ## TODO error checking for t 
     ## Only handle built-in focuses for the moment 
     par <- coef(wide)
     n <- nrow(model.frame(wide))

@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Using the fic R package for focused model comparison: linear regression}
+%\VignetteIndexEntry{Examples of focused model comparison: linear regression}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{fic,ggplot2,GGally,gapminder}
 

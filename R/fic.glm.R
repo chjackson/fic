@@ -13,7 +13,7 @@
 ##'
 ##' Only covariate selection problems are supported in this function.
 ##' To compare between models with a fixed and unknown dispersion,
-##' glm() would have to be replaced by maximum likelihood
+##' \code{\link{glm}} would have to be replaced by maximum likelihood
 ##' estimation routines written by hand, along the lines described in
 ##' the "skew-normal models" vignette.
 ##'

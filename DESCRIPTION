@@ -1,7 +1,7 @@
 Package: fic
 Title: Focused Information Criteria for Model Comparison
-Version: 0.9
-Date: 2019-03-17
+Version: 1.0.0
+Date: 2019-04-09
 Authors@R: c(person("Christopher","Jackson", role=c("cre","aut"),
 	            email="chris.jackson@mrc-bsu.cam.ac.uk",
 		    comment="(package design and programming)"),

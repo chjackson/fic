@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Using the fic R package for focused model comparison: parametric survival modelling}
+%\VignetteIndexEntry{Examples of focused model comparison: parametric survival modelling}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{fic,survival,flexsurv}
 

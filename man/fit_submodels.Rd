@@ -2,8 +2,8 @@
 % Please edit documentation in R/model_utils.R
 \name{fit_submodels}
 \alias{fit_submodels}
-\title{Fit submodels of a wide model, defined by a matrix of indicators
-for inclusion of covariates.}
+\title{Fit submodels of a general linear wide model, defined by a matrix of indicators
+for inclusion of covariates}
 \usage{
 fit_submodels(wide, inds, ...)
 }

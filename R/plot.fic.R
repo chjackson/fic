@@ -1,6 +1,6 @@
-##' Plot focused model comparison statistics
+##' Plot focused model comparison statistics: base graphics method
 ##'
-##' Plot focused model comparison statistics.  
+##' Plot focused model comparison statistics: base graphics method
 ##'
 ##' If the focus estimates are available, then the focus estimates are
 ##' plotted against the root MSE.  One plot is made for each covariate
@@ -104,11 +104,13 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##'
 ##' a) the line types for the wide and narrow models
 ##'
-##' b) the names of the terms of the wide model.  This is used when the \code{inds} object
-##' supplied to \code{fic} contains row names made out of a string of 0s and 1s that identify
-##' the terms included in the submodel.  These strings are plotted as text labels against the
-##' estimate for each submodel.  The legend identifies which 0s and 1s correspond to which
-##' model terms. 
+##' b) the names of the terms of the wide model.  This is used when
+##' the \code{inds} object supplied to \code{\link{fic}} was constructed by
+##' \code{\link{all_inds}}, so has row names made out of a string
+##' of 0s and 1s that identify the terms included in the submodel.
+##' These strings are plotted as text labels against the estimate for
+##' each submodel.  The legend identifies which 0s and 1s correspond
+##' to which model terms.
 ##'
 ##' @importFrom scales hue_pal
 ##' 

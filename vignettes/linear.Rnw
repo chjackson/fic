@@ -1,4 +1,4 @@
-%\VignetteIndexEntry{Using the fic R package for focused model comparison: linear regression}
+%\VignetteIndexEntry{Examples of focused model comparison: linear regression}
 %\VignetteEngine{knitr::knitr}
 %\VignetteDepends{fic,ggplot2,GGally,gapminder}
 
@@ -55,9 +55,11 @@ Paired scatterplots of these variables suggest that \code{mpg} is
 correlated with all of these predictors, but many of the predictors themselves
 are correlated with each other.
 <<warning=FALSE,message=FALSE>>=
-library(GGally)
 mtcars$am <- factor(mtcars$am)
-ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=am))
+library(ggplot2)
+if (requireNamespace("GGally",quietly=TRUE)){
+    GGally::ggpairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")], aes(colour=am))
+} else pairs(mtcars[,c("mpg","am","wt","qsec","disp","hp")])
 @ 
 
 <<>>=

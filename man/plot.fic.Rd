@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.fic.R
 \name{plot.fic}
 \alias{plot.fic}
-\title{Plot focused model comparison statistics}
+\title{Plot focused model comparison statistics: base graphics method}
 \usage{
 \method{plot}{fic}(x, ci = TRUE, xlab = NULL, ylab = NULL, xlim = NULL,
   ylim = NULL, pch = 19, mfrow = NULL, ...)
@@ -27,7 +27,7 @@
 \item{...}{Other options to pass to \code{\link{plot}}.}
 }
 \description{
-Plot focused model comparison statistics.
+Plot focused model comparison statistics: base graphics method
 }
 \details{
 If the focus estimates are available, then the focus estimates are

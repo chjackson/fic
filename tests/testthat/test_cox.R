@@ -20,6 +20,9 @@ X <- newdata_to_X(newdata, wide, intercept=FALSE)
 
 ficall <- fic(wide, inds=inds, inds0=inds0, focus="survival", X=X, t=5)
 
+expect_error(fic(wide, inds=inds, inds0=inds0, focus="survival", X=X, t=-1), "all > 0")
+expect_error(fic(wide, inds=inds, inds0=inds0, focus="survival", X=X, t="foo"), "must be numeric")
+
 test_that("Cox FIC results",{
     expect_equal(ficall$FIC[1:8],
                  c(9.56963761576712, 9.62619861138848, 8.60796715809067, 16.3132883942816, 
