@@ -76,3 +76,36 @@ Any situation where all models being compared are special cases of a single "wid
 
 The choice between \code{\link[flexsurv]{flexsurvspline}} models with different numbers of knots is not supported, unless perhaps if the knot locations are defined manually so that models are nested within each other, but this has not been investigated.
 }
+\examples{
+
+## Simulated example from the "fic" package vignette on
+## parametric survival modelling.
+## See this vignette for more details and more examples.
+
+set.seed(1)
+
+if (requireNamespace("flexsurv", quietly=TRUE)){
+
+## Simulate from an exponential 
+y <- rexp(50); cen <- rep(1,50)
+
+## Fit wide generalized gamma, and compare
+## exponential, weibull and generalized gamma models
+indmat <- rbind(exp    = c(1,0,0),
+                weib   = c(1,1,0),
+                ggamma = c(1,1,1))
+gge <- flexsurv::flexsurvreg(survival::Surv(y, cen) ~ 1, dist="gengamma")
+
+## Focus is restricted mean survival over 8 time units 
+focus <- function(par){
+   flexsurv::rmst_gengamma(8, par[1], exp(par[2]), par[3])
+}
+
+## Weibull model actually has lowest FIC and RMSE even though it's
+## not true: extra variability is deemed worth alleviating the
+## risk of bias.
+
+fic(gge, inds=indmat, gamma0=c(0,1), focus=focus)
+
+}
+}

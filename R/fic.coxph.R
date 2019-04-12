@@ -25,6 +25,34 @@
 ##' @param sub If \code{"auto"} (the default) then the submodels are fitted automatically within this function.   If \code{NULL} they are not fitted, and focus estimates are not returned with the results.
 ##'
 ##' @details Stratified Cox models are not currently supported.
+##'
+##' @examples
+##'
+##' ## Example of focused covariate selection in a Cox model
+##' ## For more information see the main package vignette.
+##' 
+##' library(survival)
+##' wide <- coxph(Surv(years, death==1) ~ sex + thick_centred + infilt +
+##'               epith + ulcer + depth + age, data=melanoma)
+##'
+##' ## Define models to be selected from
+##' ## Sex included in all models
+##' ## Select between models including all combinations of other covariates
+##' inds0 <- expand_inds(c(1,0,0,0,0,0,0), wide)
+##' combs <- all_inds(wide, inds0)
+##'
+##' ## Covariate values defining focus 
+##' newdata <- with(melanoma,
+##'                 data.frame(sex = c("female","male"),
+##'                            thick_centred = tapply(thick_centred, sex, mean),
+##'                            infilt=4, epith=1, ulcer=1, depth=2,
+##'                            age = tapply(age, sex, mean)))
+##' X <- newdata_to_X(newdata, wide, intercept=FALSE)
+##'
+##' ## Focus is 5-year survival for these covariate values
+##' ficall <- fic(wide, inds=combs, inds0=inds0, focus="survival", X=X, t=5)
+##' ggplot_fic(ficall)
+##' summary(ficall)
 ##' 
 ##' @rdname fic.coxph
 ##'
@@ -341,6 +369,15 @@ cox_hr_dH <- function(par, H0, X, t){
 ##' @return Fitted cumulative hazard at \code{t}.
 ##'
 ##' @details This does not extrapolate.  If \code{t} is outside the observed event times, then \code{NA} will be returned.
+##'
+##' @examples
+##'
+##' library(survival)
+##' wide <- coxph(Surv(years, death==1) ~ sex + thick_centred +
+##'               infilt + epith + ulcer + depth + age, data=melanoma)
+##' basehaz(wide)
+##' get_H0(basehaz(wide), c(0,1,5,10,100))
+##' 
 ##' 
 ##' @export
 ##' 

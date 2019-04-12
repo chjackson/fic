@@ -35,6 +35,12 @@ test_that("Analytic focus derivatives match numeric: normal", {
     expect_equivalent(ana, num)
 })
 
+test_that("Results of low and super-low level functions match",{
+    focus_deriv <- prob_logistic_deriv(par=par, X=X)
+    anacore <- fic_core(par=par, J=J, inds=inds1, inds0=inds0, gamma0=0, n=n, focus_deriv=focus_deriv)
+    expect_equal(anacore[,"FIC"], ana[1:2,"FIC",1])
+})
+
 test_that("Supplying submodel parameters with single submodel",{
     ficall <- fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm))
     expect_equivalent(ficall$focus, num[,"focus",])

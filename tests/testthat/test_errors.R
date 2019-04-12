@@ -89,3 +89,20 @@ expect_error(
               parsub=c(coef(mod1.glm), 0, 0, 0)),
     "parsub of length 7, should be 8")
 })
+
+test_that("wrong inds dimension in expand_inds", { 
+    bwt.glm <- glm(low ~ lwtkg + age + smoke + ftv, data=birthwt, family="binomial")
+    inds <- rbind(c(1,1,0,0),
+                  c(1,1,1,1))
+    expect_error(expand_inds(inds, bwt.glm),
+                 "`inds` has 4 columns, but 5 terms in model")
+    inds <- c(1,1,0,0)
+    expect_error(expand_inds(inds, bwt.glm),
+                 "`inds` of length 4, but 5 terms in model")
+})
+
+test_that("wrong inds dimension in all_inds", {
+    bwt.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family="binomial")
+    expect_error(all_inds(bwt.glm, inds0=c(1,0,0)),
+                 "inds0 of length 3, but 4 parameters in wide model")
+})

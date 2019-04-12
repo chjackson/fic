@@ -78,3 +78,28 @@ Focused information criteria for linear models fitted with \code{\link{lm}}.
 Typically used to compare models with different covariates (more generally,
 different linear terms).
 }
+\examples{
+
+## Covariate selection in Motor Trend cars data
+## See the "fic" package vignette on linear models for more details
+
+wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
+
+## Select between all submodels 
+ncovs_wide <- length(coef(wide.lm)) - 1
+inds0 <- c(1, rep(0, ncovs_wide))
+inds <- all_inds(wide.lm, inds0)
+
+## Two focuses: mean MPG for automatic and manual transmission,
+## given mean values of the other covariates 
+cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
+X <- rbind(
+  "auto"   = c(intercept=1, am=0, cmeans),
+  "manual" = c(intercept=1, am=1, cmeans)
+)
+ficres <- fic(wide.lm, inds=inds, focus=mean_normal, X=X)
+summary(ficres)
+ggplot_fic(ficres)
+
+
+}

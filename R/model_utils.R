@@ -16,6 +16,19 @@
 ##' commonly-used models in base R.
 ##' 
 ##' @inheritParams fic
+##'
+##' @examples
+##'
+##' # Five terms in this model: intercept and four covariates,
+##' # but the covariate "ftv" is a factor with 3 levels,
+##' # so there are six parameters
+##' bwt.glm <- glm(low ~ lwtkg + age + smoke + ftv, data=birthwt, family="binomial")
+##'
+##' ## Convert indicator for terms to indicator for parameters 
+##' inds <- rbind(c(1,1,1,0,0),
+##'               c(1,1,1,1,1))
+##' expand_inds(inds, bwt.glm)
+##' 
 ##' 
 ##' @export
 expand_inds <- function(inds, wide){
@@ -36,7 +49,7 @@ expand_inds <- function(inds, wide){
         inds <- matrix(inds, nrow=1)
     } else {
         if (ncol(inds) != nterms){
-            stop(sprintf("`inds` has %s columns, but %s terms in model%s", length(inds), nterms, icpt_msg))
+            stop(sprintf("`inds` has %s columns, but %s terms in model%s", ncol(inds), nterms, icpt_msg))
         }
     }
     inds[,ass,drop=FALSE]
@@ -62,8 +75,15 @@ expand_inds <- function(inds, wide){
 ##'
 ##' If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
 ##'
-##' See the package vignettes for examples.
+##' @examples
+##' bwt.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family="binomial")
+##' all_inds(bwt.glm, inds0=c(1,0,0,0))
 ##'
+##' # note no intercept term in Cox models, so inds0 has two elements here
+##' library(survival)
+##' wide <- coxph(Surv(years, death==1) ~ sex + thick_centred, data=melanoma)
+##' all_inds(wide, inds0=c(0,0))
+##' 
 ##' @rdname all_inds 
 ##' 
 ##' @export
@@ -110,7 +130,7 @@ all_inds.coxph <- function(wide, inds0, ...) {
 }
 
 
-##' Convert data frame of covariate values to a design matrix, excluding the intercept
+##' Convert data frame of covariate values to a design matrix
 ##'
 ##' @inheritParams
 ##' 
@@ -124,7 +144,12 @@ all_inds.coxph <- function(wide, inds0, ...) {
 ##'
 ##' @details Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
 ##'
-##' See the Cox regression section of the main package vignette for an example. 
+##' @examples
+##' bwt.glm <- glm(low ~ lwtkg + age + smoke + ftv, data=birthwt, family="binomial")
+##' newdata <- data.frame(lwtkg=1, age=60, smoke=0, ftv="2+")
+##' newdata_to_X(newdata, bwt.glm)
+##' 
+##' ## See the Cox regression section of the main package vignette for another example.
 ##'
 ##' @export
 newdata_to_X <- function(newdata, wide, intercept=TRUE){
@@ -132,7 +157,6 @@ newdata_to_X <- function(newdata, wide, intercept=TRUE){
     faclevs <- .getXlevels(tt, model.frame(wide)) # list of levels of all factors
     fn <- names(faclevs)
     newdata[fn] <- lapply(newdata[fn], as.character) ## convert numerics supplied for factor levels to characters
-    ## TODO better error if wrong variable names in newdata 
     X <- model.matrix(delete.response(tt), data=newdata, xlev=faclevs)
     if (!intercept) X <- X[,-1,drop=FALSE]
     X
@@ -158,17 +182,22 @@ newdata_to_X <- function(newdata, wide, intercept=TRUE){
 ##' @return List of all fitted submodel objects.
 ##'
 ##' @rdname fit_submodels
+##'
+##' @examples
+##' bwt.glm <- glm(low ~ lwtkg + age + smoke,
+##'                data=birthwt, family="binomial")
+##' inds <- rbind(c(1,1,1,0), c(1,1,0,0))
+##' fit_submodels(bwt.glm, inds=inds)
 ##' 
 ##' @export
 fit_submodels <- function(wide,inds,...) UseMethod("fit_submodels")
 
+##' @export
 fit_submodels.default <- function(wide, inds, ...){
     nmod <- nrow(inds)
     sub <- vector(nmod, mode="list")
     names(sub) <- rownames(inds)
     XZ <- model.matrix(wide)
-#    if (length(inds_aux) > 0)
-#        inds <- inds[,-inds_aux,drop=FALSE]
     for (i in 1:nmod){
         XZi <- XZ[,which(inds[i,]==1),drop=FALSE]
         call <- wide$call
@@ -183,6 +212,7 @@ fit_submodels.default <- function(wide, inds, ...){
 ### externally, since then basehaz seems to see the wrong XZi, for some
 ### strange reason related to environments.
 
+##' @export
 fit_submodels.coxph <- function(wide, inds, ...){
     nmod <- nrow(inds)
     sub <- vector(nmod, mode="list")

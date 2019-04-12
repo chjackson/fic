@@ -2,7 +2,7 @@
 % Please edit documentation in R/model_utils.R
 \name{newdata_to_X}
 \alias{newdata_to_X}
-\title{Convert data frame of covariate values to a design matrix, excluding the intercept}
+\title{Convert data frame of covariate values to a design matrix}
 \usage{
 newdata_to_X(newdata, wide, intercept = TRUE)
 }
@@ -17,10 +17,16 @@ newdata_to_X(newdata, wide, intercept = TRUE)
 "Design" matrix of covariate values defining alternative focuses, with factors expanded to their contrasts.  This is in the form required by the \code{X} argument of \code{\link{fic}}, with one row per alternative focus. The columns correspond to coefficients in a linear-type model.  For the built-in focus functions such as \code{\link{mean_normal}} and \code{\link{prob_logistic}}, these coefficients include an intercept, but user-written focuses may be written in such a way as not to require an intercept (as in the example in the "skew normal" vignette).
 }
 \description{
-Convert data frame of covariate values to a design matrix, excluding the intercept
+Convert data frame of covariate values to a design matrix
 }
 \details{
 Numeric values can be supplied for factor levels that are character strings denoting numbers (like \code{"1"} or \code{"2"}).
+}
+\examples{
+bwt.glm <- glm(low ~ lwtkg + age + smoke + ftv, data=birthwt, family="binomial")
+newdata <- data.frame(lwtkg=1, age=60, smoke=0, ftv="2+")
+newdata_to_X(newdata, bwt.glm)
 
-See the Cox regression section of the main package vignette for an example.
+## See the Cox regression section of the main package vignette for another example.
+
 }

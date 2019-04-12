@@ -42,3 +42,10 @@ This call should include a \code{formula} component, which this
 function updates in order to define and fit the submodel.  This
 should work for most standard linear-type models in common R packages.
 }
+\examples{
+bwt.glm <- glm(low ~ lwtkg + age + smoke,
+               data=birthwt, family="binomial")
+inds <- rbind(c(1,1,1,0), c(1,1,0,0))
+fit_submodels(bwt.glm, inds=inds)
+
+}

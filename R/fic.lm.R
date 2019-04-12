@@ -16,6 +16,30 @@
 ##' 
 ##' @inheritParams fic
 ##'
+##' @examples
+##'
+##' ## Covariate selection in Motor Trend cars data
+##' ## See the "fic" package vignette on linear models for more details
+##'
+##' wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
+##'
+##' ## Select between all submodels 
+##' ncovs_wide <- length(coef(wide.lm)) - 1
+##' inds0 <- c(1, rep(0, ncovs_wide))
+##' inds <- all_inds(wide.lm, inds0)
+##'
+##' ## Two focuses: mean MPG for automatic and manual transmission,
+##' ## given mean values of the other covariates 
+##' cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
+##' X <- rbind(
+##'   "auto"   = c(intercept=1, am=0, cmeans),
+##'   "manual" = c(intercept=1, am=1, cmeans)
+##' )
+##' ficres <- fic(wide.lm, inds=inds, focus=mean_normal, X=X)
+##' summary(ficres)
+##' ggplot_fic(ficres)
+##'
+##'
 ##' @export
 fic.lm <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL,
                           wt=NULL, sub="auto", B=0, loss=loss_mse, ...){

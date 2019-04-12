@@ -16,6 +16,41 @@
 ##' @inheritParams fic
 ##' 
 ##' @export
+##'
+##' @examples
+##'
+##' ## Simulated example from the "fic" package vignette on
+##' ## parametric survival modelling.
+##' ## See this vignette for more details and more examples.
+##' 
+##' set.seed(1)
+##'
+##' if (requireNamespace("flexsurv", quietly=TRUE)){
+##'
+##' ## Simulate from an exponential 
+##' y <- rexp(50); cen <- rep(1,50)
+##'
+##' ## Fit wide generalized gamma, and compare
+##' ## exponential, weibull and generalized gamma models
+##' indmat <- rbind(exp    = c(1,0,0),
+##'                 weib   = c(1,1,0),
+##'                 ggamma = c(1,1,1))
+##' gge <- flexsurv::flexsurvreg(survival::Surv(y, cen) ~ 1, dist="gengamma")
+##'
+##' ## Focus is restricted mean survival over 8 time units 
+##' focus <- function(par){
+##'    flexsurv::rmst_gengamma(8, par[1], exp(par[2]), par[3])
+##' }
+##'
+##' ## Weibull model actually has lowest FIC and RMSE even though it's
+##' ## not true: extra variability is deemed worth alleviating the
+##' ## risk of bias.
+##' 
+##' fic(gge, inds=indmat, gamma0=c(0,1), focus=focus)
+##'
+##' }
+
+
 fic.flexsurvreg <- function(wide, inds, inds0=NULL, gamma0=0, focus=NULL, focus_deriv=NULL, wt=NULL, sub=NULL, B=0, loss=loss_mse, ...){
     coef_fn = function(x){        
         if (!is.null(x$fixedpars))

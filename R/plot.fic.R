@@ -6,13 +6,16 @@
 ##' plotted against the root MSE.  One plot is made for each covariate
 ##' value defining different focuses.  If the wide model estimate is
 ##' available, this is illustrated as a solid line on the plot, and if
-##' the narrow model estimate is available, this is showm as a dashed
+##' the narrow model estimate is available, this is shown as a dashed
 ##' line.
 ##'
 ##' If the focus estimates are unavailable, then the standard errors
 ##' of the focus estimate are plotted against the corresponding bias.
 ##' The plot points are shaded with darkness proportional to the RMSE,
 ##' with the point of maximum RMSE in black.
+##'
+##' The \pkg{ggplot2}-based plot method, \code{\link{ggplot_fic}}, is
+##' slightly nicer. 
 ##'
 ##' @param x Output from \code{\link{fic}}.
 ##'
@@ -32,9 +35,24 @@
 ##' 
 ##' @param ... Other options to pass to \code{\link{plot}}.
 ##'
-##' @seealso ggplot_fic, summary.fic
+##' @seealso \code{\link{ggplot_fic}}, \code{\link{summary.fic}}
 ##'
 ##' @import graphics grDevices
+##'
+##' @examples
+##'
+##' ## Example from the main vignette, see there for more details
+##' 
+##' wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
+##'                 data=birthwt, family=binomial)
+##' vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+##' vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+##' X <- rbind("Smokers" = vals.smoke, "Non-smokers" = vals.nonsmoke)
+##' inds0 <- c(1,1,0,0,0,0,0,0)
+##' combs <- all_inds(wide.glm, inds0)
+##' ficres <- fic(wide = wide.glm, inds = combs, inds0 = inds0,
+##'               focus = prob_logistic, X = X)
+##' plot(ficres)
 ##'
 ##' @export
 plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
@@ -115,6 +133,22 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##' @importFrom scales hue_pal
 ##' 
 ##' @import ggplot2
+##'
+##' @examples
+##'
+##' ## Example from the main vignette, see there for more details
+##' 
+##' wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
+##'                 data=birthwt, family=binomial)
+##' vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+##' vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+##' X <- rbind("Smokers" = vals.smoke, "Non-smokers" = vals.nonsmoke)
+##' inds0 <- c(1,1,0,0,0,0,0,0)
+##' combs <- all_inds(wide.glm, inds0)
+##' ficres <- fic(wide = wide.glm, inds = combs, inds0 = inds0,
+##'               focus = prob_logistic, X = X)
+##' ggplot_fic(ficres)
+##' summary(ficres)
 ##'
 ##' @seealso plot.fic, summary.fic
 ##' 

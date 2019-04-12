@@ -23,3 +23,13 @@ thus the cumulative hazard is piecewise linear.
 \details{
 This does not extrapolate.  If \code{t} is outside the observed event times, then \code{NA} will be returned.
 }
+\examples{
+
+library(survival)
+wide <- coxph(Surv(years, death==1) ~ sex + thick_centred +
+              infilt + epith + ulcer + depth + age, data=melanoma)
+basehaz(wide)
+get_H0(basehaz(wide), c(0,1,5,10,100))
+
+
+}

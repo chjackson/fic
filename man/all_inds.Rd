@@ -39,3 +39,13 @@ See the package vignettes for examples.
 \description{
 Form indicator matrix describing all possible submodels of a general linear wide model, where the submodels are defined by selected covariates.
 }
+\examples{
+bwt.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family="binomial")
+all_inds(bwt.glm, inds0=c(1,0,0,0))
+
+# note no intercept term in Cox models, so inds0 has two elements here
+library(survival)
+wide <- coxph(Surv(years, death==1) ~ sex + thick_centred, data=melanoma)
+all_inds(wide, inds0=c(0,0))
+
+}

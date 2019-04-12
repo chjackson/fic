@@ -4,17 +4,18 @@ Version: 1.0.0
 Date: 2019-04-09
 Authors@R: c(person("Christopher","Jackson", role=c("cre","aut"),
 	            email="chris.jackson@mrc-bsu.cam.ac.uk",
-		    comment="(package design and programming)"),
+		    comment="package design and programming"),
 	     person("Gerda","Claeskens", role="aut",
 	     	     email="gerda.claeskens@kuleuven.be",
-	     	     comment="(method development and design advice)"),
+	     	     comment="method development and design advice"),
 	     person("Howard","Thom",email="howard.thom@bristol.ac.uk", role="ctb")
 	     )
-Description: The Focused Information Criterion and related methods for model comparison.  These methods are designed to compare how well different models estimate a quantity of interest (the "focus") so that different models may be preferred for different purposes.
+Description: Compares how well different models estimate a quantity of interest (the "focus") so that different models may be preferred for different purposes.  Comparisons within any class of models fitted by maximum likelihood are supported, with shortcuts for commonly-used classes such as generalised linear models and parametric survival models.  The methods originate from Claeskens and Hjort (2003) <doi:10.1198/016214503000000819> and Claeskens and Hjort (2008, ISBN:9780521852258).
 Maintainer: Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk>
 Depends:
     R (>= 2.10)
 Imports:
+    stats,
     numDeriv,
     mvtnorm,
     ggplot2,
@@ -31,7 +32,6 @@ RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown,
     testthat,
-    stats,
     msm(>= 1.6.6),
     flexsurv,
     sn,

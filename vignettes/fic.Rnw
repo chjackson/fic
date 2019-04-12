@@ -78,7 +78,7 @@ The Bayesian information criterion (BIC, \citet{schwarz}) is
 
 $$ -2\log \ell(\hat\theta ; \mathbf{x}) + p\log(n) $$
 
-where $n$ is the number of observations. These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose models with better predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and prefers models with higher posterior probability under an implicit weak prior (with an amount of information equivalent to one observation, see \citet{kass:wasserman} ).  If there is a ``true" model, the BIC will tend to select it as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See, e.g., \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these, and other similar model comparison criteria.
+where $n$ is the number of observations. These two criteria are based on very different principles.  Thus they often rank models differently.  The AIC is designed to choose models with better predictive ability, thus it tends to favour bigger models as the sample size increases.  BIC is an approximation to Bayesian model comparison by Bayes factors, and prefers models with higher posterior probability under an implicit weak prior \citep[with an amount of information equivalent to one observation, see][]{kass:wasserman}.  If there is a ``true" model, the BIC will tend to select it as the sample size increases.  In many situations there may not be a true model, and collecting more data will uncover more complexity in the process generating the data, in which case AIC may be more suitable.   See, e.g., \citet{burnham:anderson:book}, \citet{claeskens:hjort:book} for more theory behind these, and other similar model comparison criteria.
 
 Both of these methods give a single ranking of models according how well they fit a given dataset.   However, different models may be better for different purposes, for example to estimate different quantities of interest.  Such quantities are termed the ``focus'' of a model, and this is the idea behind ``focused" model comparison.
 
@@ -523,7 +523,7 @@ ggplot_fic(ficres)
   \centering
   \includegraphics{fic-birthwt-1}
   \caption{Focused comparison of logistic regression models for
-    low birthweight with different covariates}
+    low birth weight with different covariates}
   \label{fig:ficres}
 \end{figure}
 There is one panel for each of the two covariate categories (smokers and
@@ -780,7 +780,7 @@ variable per covariate or factor, to a design matrix \code{X}, with
 one column for each of the 10 parameter values.\footnote{Note the
   intercept is excluded here, as Cox models don't have a regression
   intercept term.  In GLMs, the design matrix usually includes an intercept.}
-<<melanoma,include=FALSE>>=
+<<>>=
 newdata <- with(melanoma,
                 data.frame(sex = c("female","male"),
                            thick_centred = tapply(thick_centred, sex, mean),
@@ -789,6 +789,8 @@ newdata <- with(melanoma,
 X <- newdata_to_X(newdata, wide, intercept=FALSE)
 ficall <- fic(wide, inds = combs, inds0 = inds0,
               focus = "survival", X = X, t = 5)
+@ 
+<<melanoma,include=FALSE>>=
 ggplot_fic(ficall, ci = FALSE, xlim = c(0,1))
 @ 
 \begin{figure}[h]

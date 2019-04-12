@@ -11,6 +11,20 @@
 NULL
 
 ##' @export
+##'
+##' @examples
+##'
+##' ## Model and focus from the main vignette 
+##' wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui +
+##'                 smokeage + smokeui, data=birthwt, family=binomial)
+##' vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+##' vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+##' X <- rbind("Smokers" = vals.smoke, "Non-smokers" = vals.nonsmoke)
+##' prob_logistic(coef(wide.glm), X=X)
+##' prob_logistic_deriv(coef(wide.glm), X=X)
+##'
+##' @seealso \code{\link{fic}}
+##' 
 ##' @rdname focus_fns
 prob_logistic <- function(par, X){
     plogis(q = X %*% par)
@@ -24,6 +38,20 @@ prob_logistic_deriv <- function(par, X){
 }
 
 ##' @export
+##'
+##' @examples
+##'
+##' ## Mean mpg for a particular covariate category in the Motor Trend data
+##' ## See the "fic" linear models vignette for more detail 
+##' wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
+##' cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
+##' X <- rbind(
+##'   "auto"   = c(intercept=1, am=0, cmeans),
+##'   "manual" = c(intercept=1, am=1, cmeans)
+##' )
+##' mean_normal(coef(wide.lm), X)
+##' mean_normal_deriv(coef(wide.lm), X)
+##' 
 ##' @rdname focus_fns
 mean_normal <- function(par, X){
     X %*% par

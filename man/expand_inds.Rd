@@ -30,3 +30,17 @@ This function only works for classes of models for which the
 with an \code{"assign"} attribute. This includes all the
 commonly-used models in base R.
 }
+\examples{
+
+# Five terms in this model: intercept and four covariates,
+# but the covariate "ftv" is a factor with 3 levels,
+# so there are six parameters
+bwt.glm <- glm(low ~ lwtkg + age + smoke + ftv, data=birthwt, family="binomial")
+
+## Convert indicator for terms to indicator for parameters 
+inds <- rbind(c(1,1,1,0,0),
+              c(1,1,1,1,1))
+expand_inds(inds, bwt.glm)
+
+
+}

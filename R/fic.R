@@ -64,9 +64,6 @@ fic_core <- function(
     }    
     mse.adj.S <- bias.adj.S^2 + var.S
 
-#    print(list(omega, Q, dnhat, tau0sq, n))
-#    print(list(J00, J10, focus_deriv, omega, tau0sq))
-    
     ## unadjusted mse
     res <- cbind(
         rmse = sqrt_nowarning(mse.S),   # book p157
@@ -229,6 +226,35 @@ check_parsub <- function(parsub, npar, nmod){
 ##' @return See \code{\link{fic}} 
 ##' 
 ##' @rdname fic_multi
+##'
+##' @examples
+##'
+##' ## Lower-level implementation of the example in the main vignette
+##' 
+##' wide.glm <- glm(low ~ lwtkg + age + smoke + ht + ui + smokeage + smokeui,
+##'                 data=birthwt, family=binomial)
+##' mod1.glm <- glm(low ~ lwtkg + age + smoke, data=birthwt, family=binomial)
+##' inds0 <- c(1,1,0,0,0,0,0,0)
+##' inds1 <- c(1,1,1,1,0,0,0,0)
+##' focus_plogis <- function(par, X)plogis(X %*% par)
+##' vals.smoke <-    c(1, 58.24, 22.95, 1, 0, 0, 22.95, 0)
+##' vals.nonsmoke <- c(1, 59.50, 23.43, 0, 0, 0, 0, 0)
+##' X <- rbind(vals.smoke, vals.nonsmoke)
+##' par <- coef(wide.glm)
+##' n <- nrow(birthwt)
+##' J <- solve(vcov(wide.glm))
+##' fic_multi(par=par, J=J,  inds=inds1, inds0=inds0, n=n, focus="prob_logistic",
+##'           X=X, parsub=c(coef(mod1.glm), 0, 0, 0, 0))
+##'
+##' ## Even lower-level implementation, requiring derivatives of the focus
+##' ## These are available analytically in this example, but would normally
+##' ## need to be calculated using numerical differentiation
+##' 
+##' focus_deriv <- prob_logistic_deriv(par=par, X=X)
+##' fic_core(par=par, J=J, inds=inds1, inds0=inds0, gamma0=0, n=n,
+##'          focus_deriv=focus_deriv)
+##'
+##' @seealso \code{\link{fic}}
 ##'
 ##' @export
 fic_multi <- function(
