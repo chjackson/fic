@@ -1,13 +1,20 @@
-# fic
-R package for the Focused Information Criterion and related methods for model comparison
+fic
+===
 
-Under development.  To install the package, do
+The development repository for the [fic](http://cran.r-project.org/package=fic) R package for the Focused Information Criterion and related methods for model comparison. 
+
+## Installation (stable CRAN version)
+```r
+install.packages("fic")
+```
+
+## Installation (development version)
 
 ```r
 install.packages("devtools") # if devtools not already installed
 library(devtools)
 install_github("chjackson/fic")
-```
+ ```
 
 See the package vignettes (work in progress) for an introduction:
 
