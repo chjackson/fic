@@ -21,7 +21,7 @@ opts_chunk$set(fig.path="fic-")
 
 \title{Different Models for Different Purposes: Focused Model Comparison in R}
 \author{
-  ~\\Chris Jackson <chris.jackson@mrc-bsu.cam.ac.uk>,\\
+  ~\\Christopher Jackson <chris.jackson@mrc-bsu.cam.ac.uk>,\\
   Howard Thom <howard.thom@bristol.ac.uk>,\\
   Gerda Claeskens <gerda.claeskens@kuleuven.be>
 }
@@ -890,7 +890,7 @@ under competing models.
 Focused model comparison principles might also be used for Bayesian
 inference.  In realistic situations, the true process is typically
 more complex than the biggest model that can be identified from the
-data.  In a Bayesian perspective, we might use a
+data.  From a Bayesian perspective, we might use a
 theoretically-realistic model, but with a prior that encodes external
 information to enable the parameters to be identified from the data,
 e.g., through shrinkage, regularisation or elicited judgements.
