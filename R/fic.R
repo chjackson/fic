@@ -51,7 +51,6 @@ fic_core <- function(
         sqbias2 <- diag(sqbias2)
 
         mse.S <- sqbias2 + var.S 
-        FIC.S <- n*(mse.S - tau0sq + diag(t(omega) %*% Q %*% omega))
 
         sqbias3 <- pmax(sqbias2, 0) # \hat{sqb3}(S) on p152
         bias.adj.S <- sign(bias.S) * sqrt(sqbias3)
@@ -60,8 +59,8 @@ fic_core <- function(
         bias.S <- bias.adj.S <- psi.full
         var.S <- tau0sq
         mse.S <- bias.S^2 + var.S 
-        FIC.S <- n*bias.S^2
     }    
+    FIC.S <- n*(mse.S - tau0sq + diag(t(omega) %*% Q %*% omega))
     mse.adj.S <- bias.adj.S^2 + var.S
 
     ## unadjusted mse
@@ -313,7 +312,7 @@ fic_multi <- function(
 
     nout <- length(outn)  # number of outputs like FIC, rmse, rmse.adj,...
     ndim1 <- if(nfocus>1) nfocus + 1 else 1
-    Xnames <- if(nfocus>1) c(fc$fnames, "ave") else NULL
+    Xnames <- if(nfocus>1) c(fc$fnames, "Average") else NULL
     res <- array(dim = c(ndim1, nout, nmod))
     dimnames(res) <- list(vals=Xnames, outn, mods=rownames(inds))
     for (i in 1:nmod){
