@@ -7,9 +7,21 @@
 \usage{
 fic_core(par, J, inds, inds0, gamma0 = 0, n, focus_deriv = NULL)
 
-fic_multi(par, J, inds, inds0, gamma0 = 0, n, focus = NULL,
-  focus_deriv = NULL, wt = NULL, parsub = NULL, auxpar = NULL,
-  auxsub = NULL, ...)
+fic_multi(
+  par,
+  J,
+  inds,
+  inds0,
+  gamma0 = 0,
+  n,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  parsub = NULL,
+  auxpar = NULL,
+  auxsub = NULL,
+  ...
+)
 }
 \arguments{
 \item{par}{Vector of maximum likelihood estimates from the wide model}

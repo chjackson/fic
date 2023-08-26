@@ -4,13 +4,25 @@
 \alias{plot.fic}
 \title{Plot focused model comparison statistics: base graphics method}
 \usage{
-\method{plot}{fic}(x, ci = TRUE, xlab = NULL, ylab = NULL, xlim = NULL,
-  ylim = NULL, pch = 19, mfrow = NULL, ...)
+\method{plot}{fic}(
+  x,
+  ci = TRUE,
+  adj = TRUE,
+  xlab = NULL,
+  ylab = NULL,
+  xlim = NULL,
+  ylim = NULL,
+  pch = 19,
+  mfrow = NULL,
+  ...
+)
 }
 \arguments{
 \item{x}{Output from \code{\link{fic}}.}
 
 \item{ci}{Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.}
+
+\item{adj}{The optimal model is the one with the lowest root mean square error (RMSE). If \code{adj=TRUE} the RMSE is based on the adjusted bias estimator.  Otherwise the standard estimator is used.}
 
 \item{xlab}{x-axis label.}
 
@@ -62,5 +74,5 @@ plot(ficres)
 
 }
 \seealso{
-ggplot_fic, summary.fic
+\code{\link{ggplot_fic}}, \code{\link{summary.fic}}
 }

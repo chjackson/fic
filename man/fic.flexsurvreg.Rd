@@ -4,9 +4,19 @@
 \alias{fic.flexsurvreg}
 \title{Focused information criteria for flexible parametric survival models}
 \usage{
-\method{fic}{flexsurvreg}(wide, inds, inds0 = NULL, gamma0 = 0,
-  focus = NULL, focus_deriv = NULL, wt = NULL, sub = NULL, B = 0,
-  loss = loss_mse, ...)
+\method{fic}{flexsurvreg}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = NULL,
+  B = 0,
+  loss = loss_mse,
+  ...
+)
 }
 \arguments{
 \item{wide}{Object of class \code{"flexsurvreg"} containing the wide model.

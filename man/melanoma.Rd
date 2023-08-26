@@ -4,7 +4,8 @@
 \name{melanoma}
 \alias{melanoma}
 \title{Malignant melanoma survival data}
-\format{A data frame with 205 rows and the following columns:
+\format{
+A data frame with 205 rows and the following columns:
 \describe{
   \item{ptno}{Patient identification number}
   \item{death}{Survival status: 1 = dead from illness, 2 = censored, 4 = dead from other causes}
@@ -18,7 +19,8 @@
   \item{age}{Age in years}
   \item{years}{Survival time in years (instead of days)}
   \item{thick_centred}{Version of \code{thick} centred around its mean and rescaled, defined as (\code{thick} - 292)/100. }
-}}
+}
+}
 \source{
 The supporting material from Claeskens and Hjort (2008), at \url{https://feb.kuleuven.be/public/u0043181/modelselection/datasets/melanoma_data.txt}.    Versions of this dataset are also given in the \pkg{MASS} and \pkg{boot} packages.
 }

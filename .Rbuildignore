@@ -14,3 +14,7 @@ tests/birthwt.R
 TODO.md
 README.md
 .dropbox.attr
+.covrignore
+^\.github$
+^\.git$
+

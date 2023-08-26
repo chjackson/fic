@@ -4,9 +4,19 @@
 \alias{fic.lm}
 \title{Focused information criteria for linear models}
 \usage{
-\method{fic}{lm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, wt = NULL, sub = "auto", B = 0, loss = loss_mse,
-  ...)
+\method{fic}{lm}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = "auto",
+  B = 0,
+  loss = loss_mse,
+  ...
+)
 }
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}

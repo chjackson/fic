@@ -4,7 +4,8 @@
 \name{birthwt}
 \alias{birthwt}
 \title{Risk factors associated with low infant birth weight}
-\format{A data frame with 189 rows and 19 variables.  The first 10 columns are included in the dataset of the same name in the \pkg{MASS} package.  The remaining 9 columns are defined in Claeskens and Hjort (2008), and are included in this dataset for convenience.
+\format{
+A data frame with 189 rows and 19 variables.  The first 10 columns are included in the dataset of the same name in the \pkg{MASS} package.  The remaining 9 columns are defined in Claeskens and Hjort (2008), and are included in this dataset for convenience.
 \describe{
     \item{low}{indicator of birth weight less than 2.5 kg}
     \item{age}{mother's age in years}
@@ -25,7 +26,8 @@
   \item{ftv1}{Binary indicator for \code{ftv} 1}
   \item{ptd}{Binary indicator for \code{ptl}, number of previous premature labours, 1 or more}
   \item{lwtkg}{Weight measured in kg, as used in Claeskens and Hjort.  Note \code{lwt}, as used in \pkg{MASS}, is in pounds.}
-}}
+}
+}
 \source{
 \pkg{MASS} package (Venables, W. N. and Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth edition. Springer); originally from Hosmer, D.W. and Lemeshow, S. (1989) Applied Logistic Regression. New York: Wiley
 }

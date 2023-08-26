@@ -44,6 +44,8 @@ test_that("Results of low and super-low level functions match",{
 test_that("Supplying submodel parameters with single submodel",{
     ficall <- fic(wide.glm, inds=inds1, inds0=inds0, focus=focus_plogis, X=X, sub=list(mod1.glm))
     expect_equivalent(ficall$focus, num[,"focus",])
+    ficallb <- fic(wide.glm, inds=inds1, inds0=inds0, 
+                  focus=focus_plogis, X=X, sub=list(mod1.glm), B=3)
 })
 
 mod2.glm <- glm(low ~ lwtkg + age + smoke + ht, data=birthwt, family=binomial)
@@ -90,7 +92,7 @@ test_that("Vector or matrix focuses allowed",{
 test_that("Covariate weights", { 
     ficwt <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.1, 0.9))
     ficwt2 <- fic(wide.glm, inds=inds1, inds0=inds0, focus=prob_logistic, X=X, wt=c(0.9, 0.1))
-    expect_lt(ficwt2$rmse[ficwt2$vals=="ave"], ficwt$rmse[ficwt$vals=="ave"])
+    expect_lt(ficwt2$rmse[ficwt2$vals=="Average"], ficwt$rmse[ficwt$vals=="Average"])
 })
 
 test_that("Tidy and untidy output",{ 
@@ -99,3 +101,4 @@ test_that("Tidy and untidy output",{
     expect_equivalent(ficall$rmse[ficall$vals=="vals.smoke"],
                       ficall_untidy["vals.smoke","rmse",])
 })
+

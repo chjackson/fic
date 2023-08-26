@@ -132,8 +132,6 @@ all_inds.coxph <- function(wide, inds0, ...) {
 
 ##' Convert data frame of covariate values to a design matrix
 ##'
-##' @inheritParams
-##' 
 ##' @param newdata Data frame where each row is a vector of covariate values defining an alternative focus quantity.
 ##'
 ##' @param wide Wide model which includes these covariates.

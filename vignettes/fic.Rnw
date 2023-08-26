@@ -182,6 +182,8 @@ estimate of $\bgamma$ under the wide model.
     since $n$ cancels, but their definitions of $Q_S$ and $Q$ are different. }
 and subscripts $0$ and $1$ select the rows and columns forming the submatrices of $J$ that correspond to parameters $\btheta$ and $\bgamma$ respectively.  The partial derivatives of the focus $\mu$ are evaluated at the estimates from the wide model.
 
+%% TODO should it be \pi_S not \pi ? 
+
 \item $G_S = \pi^\top Q_S \pi  Q^{-1}$ is an estimate of the transformation that maps the wide model estimate of $\bdelta$ to the submodel $S$ estimate, where 
     $Q_S = (\pi Q^{-1} \pi^\top)^{-1}$, $Q^{-1} = J_{11}$ and $\pi$ is the projection matrix consisting of 0s and 1s which maps a vector of the same length as $(\btheta,\bgamma)$ to a subvector containing the elements corresponding to submodel $S$. 
   

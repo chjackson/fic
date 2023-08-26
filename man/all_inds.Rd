@@ -33,8 +33,6 @@ A matrix in the format required by the \code{inds} argument of \code{fic()}, rep
 The number of rows is the number of models, and the number of columns is the number of parameters in the wide model.   The \eqn{r,s} entry of the matrix is a 1 if the \eqn{r}th submodel includes parameter \eqn{s}, and 0 otherwise.
 
 If a factor is included (excluded) from the submodel, then all corresponding parameters are included (excluded).
-
-See the package vignettes for examples.
 }
 \description{
 Form indicator matrix describing all possible submodels of a general linear wide model, where the submodels are defined by selected covariates.

@@ -4,9 +4,19 @@
 \alias{fic.msm}
 \title{Focused information criteria for multi-state models for panel data}
 \usage{
-\method{fic}{msm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, wt = NULL, sub = NULL, B = 0, loss = loss_mse,
-  ...)
+\method{fic}{msm}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = NULL,
+  B = 0,
+  loss = loss_mse,
+  ...
+)
 }
 \arguments{
 \item{wide}{Object returned by \code{\link[msm]{msm}} containing the wide model.}

@@ -4,8 +4,18 @@
 \alias{fic.coxph}
 \title{Focused information criteria for Cox proportional hazard regression models}
 \usage{
-\method{fic}{coxph}(wide, inds, inds0 = NULL, gamma0 = 0, focus, X = NULL,
-  t = NULL, sub = "auto", tidy = TRUE, ...)
+\method{fic}{coxph}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus,
+  X = NULL,
+  t = NULL,
+  sub = "auto",
+  tidy = TRUE,
+  ...
+)
 }
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}

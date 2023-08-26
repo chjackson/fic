@@ -4,9 +4,19 @@
 \alias{fic.survreg}
 \title{Focused information criteria for parametric survival models}
 \usage{
-\method{fic}{survreg}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, wt = NULL, sub = NULL, B = 0, loss = loss_mse,
-  ...)
+\method{fic}{survreg}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = NULL,
+  B = 0,
+  loss = loss_mse,
+  ...
+)
 }
 \arguments{
 \item{wide}{Object returned by the \code{\link{survreg}} function, containing the wide model.}

@@ -4,9 +4,19 @@
 \alias{fic.glm}
 \title{Focused information criteria for generalized linear models}
 \usage{
-\method{fic}{glm}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, wt = NULL, sub = "auto", B = 0, loss = loss_mse,
-  ...)
+\method{fic}{glm}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = "auto",
+  B = 0,
+  loss = loss_mse,
+  ...
+)
 }
 \arguments{
 \item{wide}{Fitted model object containing the wide model.}

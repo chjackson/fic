@@ -6,9 +6,22 @@
 \alias{fic}
 \title{Focused information criteria: main user interface}
 \usage{
-\method{fic}{default}(wide, inds, inds0 = NULL, gamma0 = 0, focus = NULL,
-  focus_deriv = NULL, wt = NULL, sub = NULL, fns = NULL, FIC = FALSE,
-  B = 0, loss = loss_mse, tidy = TRUE, ...)
+\method{fic}{default}(
+  wide,
+  inds,
+  inds0 = NULL,
+  gamma0 = 0,
+  focus = NULL,
+  focus_deriv = NULL,
+  wt = NULL,
+  sub = NULL,
+  fns = NULL,
+  FIC = FALSE,
+  B = 0,
+  loss = loss_mse,
+  tidy = TRUE,
+  ...
+)
 
 fic(wide, ...)
 }

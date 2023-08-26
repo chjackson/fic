@@ -4,8 +4,6 @@
 \alias{focus_fns}
 \alias{prob_logistic}
 \alias{prob_logistic_deriv}
-\alias{prob_logistic}
-\alias{prob_logistic_deriv}
 \alias{mean_normal}
 \alias{mean_normal_deriv}
 \title{Built-in focus functions and their derivatives}
@@ -43,7 +41,6 @@ prob_logistic_deriv(coef(wide.glm), X=X)
 
 ## Mean mpg for a particular covariate category in the Motor Trend data
 ## See the "fic" linear models vignette for more detail 
-
 wide.lm <- lm(mpg ~ am + wt + qsec + disp + hp, data=mtcars)
 cmeans <- colMeans(model.frame(wide.lm)[,c("wt","qsec","disp","hp")])
 X <- rbind(

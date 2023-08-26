@@ -20,6 +20,8 @@
 ##' @param x Output from \code{\link{fic}}.
 ##'
 ##' @param ci Plot interval estimates? (\code{TRUE} or \code{FALSE}).  These are calculated as plus / minus twice the standard error of the submodel focus under the wide model.  These are rough estimates of uncertainty intended to illustrate the bias-variance tradeoff, and exclude any uncertainty associated with the choice between models.
+##'
+##' @param adj The optimal model is the one with the lowest root mean square error (RMSE). If \code{adj=TRUE} the RMSE is based on the adjusted bias estimator.  Otherwise the standard estimator is used. 
 ##' 
 ##' @param xlab x-axis label.
 ##'
@@ -55,7 +57,7 @@
 ##' plot(ficres)
 ##'
 ##' @export
-plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
+plot.fic <- function(x, ci=TRUE, adj=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch=19, mfrow=NULL, ...){
     if (is.array(x))
         x <- tidy.array(x, dim2=2, ord=c("vals","mods"))
     if (is.null(pch)) pch <- 19
@@ -65,6 +67,10 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
     }
     par(mfrow=mfrow)
 
+    if (adj){
+        x$rmse <- x$rmse.adj
+        x$bias <- x$bias.adj
+    }
     if (!is.null(x$focus)){
         x$l95 = x$focus - qnorm(0.975)*x$se
         x$u95 = x$focus + qnorm(0.975)*x$se
@@ -77,30 +83,30 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
         val <- unique(x$vals)[i]
         xi <- x[x$vals==val,,drop=FALSE]
         if (is.null(xi$focus)){
-            prmse <- xi$rmse.adj / max(xi$rmse.adj)
+            prmse <- xi$rmse / max(xi$rmse)
             if (is.null(ylab)) ylab <- "SE"
             if (is.null(xlab)) xlab <- "Bias"
-            plot(xi$bias.adj, xi$se, type="n",
+            plot(xi$bias, xi$se, type="n",
                  xlim=xlim, ylim=ylim,
                  xlab=xlab, ylab=ylab, ...)
             abline(v=0.0, col="gray")
-            points(xi$bias.adj, xi$se, pch=pch, col=gray(prmse))
+            points(xi$bias, xi$se, pch=pch, col=gray(prmse))
         } else { 
             if (is.null(xlab)) xlab <- "Focus"
             if (is.null(ylab)) ylab <- "RMSE"
             if (is.null(xlim)) xlim <- range(c(x$l95, x$u95))
-            if (is.null(ylim)) ylim <- range(x$rmse.adj)
-            plot(xi$focus, xi$rmse.adj, type="n",
+            if (is.null(ylim)) ylim <- range(x$rmse)
+            plot(xi$focus, xi$rmse, type="n",
                  xlim=xlim, ylim=ylim,
                  xlab=xlab, ylab=ylab, ...)
             if (!is.null(iwide))
                 abline(v=xi$focus[iwide], col=col)
             if (!is.null(inarr))
                 abline(v=xi$focus[inarr], col=col, lty=2)
-            points(xi$focus, xi$rmse.adj, pch=pch, ...)
+            points(xi$focus, xi$rmse, pch=pch, ...)
             if (ci) 
-                segments(xi$l95, xi$rmse.adj, xi$u95, xi$rmse.adj)
-            text(min(x$l95), xi$rmse.adj, labels=xi$mods, col="gray60", cex=0.7, pos=4)
+                segments(xi$l95, xi$rmse, xi$u95, xi$rmse)
+            text(min(x$l95), xi$rmse, labels=xi$mods, col="gray60", cex=0.7, pos=4)
         }
         title(val)
     }
@@ -153,7 +159,9 @@ plot.fic <- function(x, ci=TRUE, xlab=NULL, ylab=NULL, xlim=NULL, ylim=NULL, pch
 ##' @seealso plot.fic, summary.fic
 ##' 
 ##' @export
-ggplot_fic <- function(x, ci=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
+ggplot_fic <- function(x, ci=TRUE, adj=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, xlim=NULL, ylim=NULL){
+    if (adj)
+        x$rmse <- x$rmse.adj
     if (is.null(x$focus))
         stop("No focus estimates found. `fic` should be run with the `sub` argument")
     if (is.null(ylab)) ylab <- "RMSE"
@@ -163,7 +171,7 @@ ggplot_fic <- function(x, ci=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, xlim=NULL,
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
     col <- scales::hue_pal()(3)[3]
-    ps <- ggplot(data=x, aes_string(x='focus', y='rmse.adj'))
+    ps <- ggplot(data=x, aes_string(x='focus', y='rmse'))
     if (!is.null(iwide)){
         indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
         xwide <- x[indwide,,drop=FALSE]
@@ -187,7 +195,7 @@ ggplot_fic <- function(x, ci=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, xlim=NULL,
         ps <- ps + xlim(xlim)
     if (ci)
         ps <- ps +
-            geom_segment(aes_string(x='l95', xend='u95', yend='rmse.adj'))
+            geom_segment(aes_string(x='l95', xend='u95', yend='rmse'))
     ps <- ps +
       geom_text(aes_string(x=-Inf, label='mods', hjust=0), col="gray60", size=2.5)
     pn <- attr(x, "termnames")
