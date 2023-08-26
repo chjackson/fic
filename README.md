@@ -37,3 +37,9 @@ See the package vignettes (work in progress) for an introduction:
 [Bootstrap and alternative losses](https://chjackson.github.io/fic/inst/doc/loss.pdf)
 
 Source code [GitHub repository](https://github.com/chjackson/fic)
+
+<!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![R-CMD-check](https://github.com/chjackson/fic/workflows/R-CMD-check/badge.svg)](https://github.com/chjackson/fic/actions)
+[![Codecov test coverage](https://codecov.io/gh/chjackson/fic/branch/master/graph/badge.svg)](https://app.codecov.io/gh/chjackson/fic?branch=master)
+<!-- badges: end -->
