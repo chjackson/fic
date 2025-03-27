@@ -261,12 +261,13 @@ ficres <- fic(wide.lm, inds=inds, focus=focus_loglik, X=X, Y=Y)
 
 We then extract the results averaged over these focuses, automatically computed by \code{fic} with each focus weighted equally, and extract the AICs of the submodels.  The preference among models from the averaged FIC result agrees with AIC, up to sampling error.
 
-<<>>=
+<<eval=FALSE>>=
 ficres <- ficres[ficres$vals=="ave",]
 aics <- sapply(attr(ficres,"sub"), AIC)
-qplot(ficres$rmse, aics,
-      xlab="Root mean square error of log density estimate",
-      ylab="AIC") 
+ggplot(data=NULL, aes(x=ficres[["rmse"]], y=aics)) +
+  geom_point() + 
+  xlab("Root mean square error of log density estimate") +
+  ylab("AIC") 
 @ 
 
 

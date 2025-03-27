@@ -2,9 +2,9 @@
 ##'
 ##' Focused information criteria for parametric survival models fitted with the \pkg{survival} package.  
 ##'
-##' @param wide Object returned by the \code{\link{survreg}} function, containing the wide model.  
+##' @param wide Object returned by the \code{\link[survival]{survreg}} function, containing the wide model.  
 ##'
-##' @param sub List of fitted model objects of class \code{\link{survreg}} containing the submodels to be assessed.   Optional. Only required if you want the estimate of the focus
+##' @param sub List of fitted model objects of class \code{\link[survival]{survreg}} containing the submodels to be assessed.   Optional. Only required if you want the estimate of the focus
 ##' function under the submodels to be included in the results. 
 ##' 
 ##' @details Any situation where all models being compared are special cases of a single "wide" model are supported.  Examples include covariate selection, selection between models for the baseline hazard/survival with different levels of flexibility (e.g. comparing exponential and Weibull). An example of the latter is in the \pkg{fic} package vignette "Examples of focused model comparison: parametric survival models".

@@ -171,7 +171,7 @@ ggplot_fic <- function(x, ci=TRUE, adj=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, 
     iwide <- attr(x, "iwide")
     inarr <- attr(x, "inarr")
     col <- scales::hue_pal()(3)[3]
-    ps <- ggplot(data=x, aes_string(x='focus', y='rmse'))
+    ps <- ggplot(data=x, aes(x=.data[["focus"]], y=.data[["rmse"]]))
     if (!is.null(iwide)){
         indwide <- tapply(1:nrow(x), x$vals, function(x)x[iwide])
         xwide <- x[indwide,,drop=FALSE]
@@ -184,7 +184,8 @@ ggplot_fic <- function(x, ci=TRUE, adj=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, 
     }
     xmod <- rbind(xnarr, xwide)
     xmod$Model <- factor(xmod$Model, levels=c("Wide","Narrow"))
-    ps <- ps + geom_vline(data=xmod, aes_string(xintercept = 'focus', lty='Model'), col=col)
+    ps <- ps + geom_vline(data=xmod, aes(xintercept = .data[["focus"]],
+                                         lty= .data[["Model"]]), col=col)
     ps <- ps + 
         facet_grid(.~vals) + 
         geom_point(aes(color="black")) + # to force legend
@@ -195,9 +196,10 @@ ggplot_fic <- function(x, ci=TRUE, adj=TRUE, legend=TRUE, ylab=NULL, xlab=NULL, 
         ps <- ps + xlim(xlim)
     if (ci)
         ps <- ps +
-            geom_segment(aes_string(x='l95', xend='u95', yend='rmse'))
+          geom_segment(aes(x=.data[["l95"]],
+                           xend=.data[["u95"]], yend=.data[["rmse"]]))
     ps <- ps +
-      geom_text(aes_string(x=-Inf, label='mods', hjust=0), col="gray60", size=2.5)
+      geom_text(aes(x=-Inf, label=.data[["mods"]], hjust=0), col="gray60", size=2.5)
     pn <- attr(x, "termnames")
     if (!is.null(pn) && legend){
         plab <- paste0("Terms\n", paste(paste(seq(along.with=pn), pn, sep=": "), collapse="\n"))

@@ -18,3 +18,5 @@ README.md
 ^\.github$
 ^\.git$
 
+^doc$
+^Meta$

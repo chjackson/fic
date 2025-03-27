@@ -70,7 +70,8 @@ summary.fic <- function(object, tidy=TRUE, adj=FALSE, ...) {
     res
 }
 
-print.summary.fic <- function(x){
+##' @export
+print.summary.fic <- function(x,...){
     cat("Model with lowest RMSE by focus\n")
     print(x$min)
     cat("\nRange of focus estimates and RMSE over models\n")

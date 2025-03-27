@@ -1,7 +1,7 @@
 Package: fic
 Title: Focused Information Criteria for Model Comparison
 Version: 1.0.1
-Date: 2023-08-26
+Date: 2025-03-24
 Authors@R: c(person("Christopher","Jackson", role=c("cre","aut"),
 	            email="chris.jackson@mrc-bsu.cam.ac.uk",
 		    comment="package design and programming"),
@@ -29,7 +29,7 @@ BugReports: https://github.com/chjackson/fic/issues
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Suggests: knitr,
     rmarkdown,
     testthat,

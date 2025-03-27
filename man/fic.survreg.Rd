@@ -19,7 +19,7 @@
 )
 }
 \arguments{
-\item{wide}{Object returned by the \code{\link{survreg}} function, containing the wide model.}
+\item{wide}{Object returned by the \code{\link[survival]{survreg}} function, containing the wide model.}
 
 \item{inds}{Matrix or vector of indicators for which parameters are included in the submodel or submodels to be assessed.
 
@@ -57,7 +57,7 @@ See \code{\link{focus_fns}} for the functions underlying these built-in focuses.
 
 \item{wt}{Vector of weights to apply to different covariate values in \code{X}.  This should have length equal to the number of alternative values for the covariates, that is, the number of alternative focuses of interest.  The covariate-specific focused model comparison statistics are then supplemented by averaged statistics for a population defined by this distribution of covariate values.  If this argument is omitted, the values are assumed to have equal weight when computing the average.   The weights are not normalised, though the interpretation is unclear if the weights don't sum to one.}
 
-\item{sub}{List of fitted model objects of class \code{\link{survreg}} containing the submodels to be assessed.   Optional. Only required if you want the estimate of the focus
+\item{sub}{List of fitted model objects of class \code{\link[survival]{survreg}} containing the submodels to be assessed.   Optional. Only required if you want the estimate of the focus
 function under the submodels to be included in the results.}
 
 \item{B}{If \code{B} is 0 (the default) the standard analytic formulae for the focused model comparison statistics are used with mean square error loss.   If \code{B}>0, then a parametric bootstrap method is used with \code{B} bootstrap samples, and the loss specified in the \code{loss} argument. More details of this approach are given in the package vignette "Focused model comparison with bootstrapping and alternative loss functions".}

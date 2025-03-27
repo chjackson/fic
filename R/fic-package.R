@@ -4,7 +4,6 @@
 ##' 
 ##' @name fic-package
 ##' @aliases fic-package
-##' @docType package
 ##' 
 ##' @import stats
-NULL
+"_PACKAGE"
